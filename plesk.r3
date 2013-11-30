@@ -81,7 +81,8 @@ Phrasing-elements: [
 ; === data structures
 
 page: [
-	title: none
+	title: "Page generated with Bootrapy"
+	meta: {}
 ]
 
 form-data: context [
@@ -188,6 +189,8 @@ parse-html: funct [
 	buffer: copy ""
 	form-buffer: copy ""
 
+	header?: false
+
 	; === actions
 
 	emit: func [ 
@@ -282,8 +285,8 @@ parse-html: funct [
 	; TODO: remove custom rules from header (script, style...)
 	; TODO: add META
 
-	header: [
-		'header (header?: true)
+	page-header: [
+		'head (print "header" header?: true)
 		some [
 			'title set value string! (page/title: value)
 		|	'stylesheet set value [ file! | url! ] (
@@ -300,6 +303,10 @@ parse-html: funct [
 					repend stylesheets ["" <script> value </script> newline ]
 				)
 			]
+		|	'meta set name word! set value string! (
+				repend page/meta [ {<meta name="} name {" content="} value {">}]
+			)
+
 		]
 		'body
 
@@ -312,7 +319,7 @@ parse-html: funct [
 
 	match-content: [
 		set value string!
-	|	into elements
+	|	into [ some elements ]
 	]
 
 	paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer ]
@@ -320,9 +327,7 @@ parse-html: funct [
 		set name paired-tags 
 		init-tag
 		opt style
-		(
-			emit-tag tag
-		)
+		( emit-tag tag )
 		match-content
 		(
 			tag: pop tag-stack
@@ -625,7 +630,8 @@ parse-html: funct [
 
 	elements: [
 		[
-			basic-elems
+			set value string! ( print [",,string." value] emit value )
+		|	basic-elems
 		|	heading
 		|	form
 		|	script
@@ -649,15 +655,15 @@ parse-html: funct [
 	container: [
 		'container
 		( emit make-tag 'div [class: #container] )
-		into elements
-		(emit close-tag 'div)	
+		into [ some elements ]
+		( emit close-tag 'div )
 	]
 
 	row: [
 		'row
 		( emit make-tag 'div [class: #row] )
-		into elements
-		(emit close-tag 'div)	
+		into [ some elements ]
+		( emit close-tag 'div )
 	]
 
 ;<span class="glyphicon glyphicon-search"></span>
@@ -673,22 +679,16 @@ parse-html: funct [
 	; === do something useful
 
 	main-rule: [
-		opt header
+		opt page-header
 		some elements
 	]
 
 	unless parse data main-rule [
 		return none!
 	]
-	head buffer
-]
 
-parse-page: funct [
-	data
-][
-	header?: false
-	body: parse-html compose/deep data
-	; move header to make-header funct (input is header object)
+	body: head buffer
+
 	either header? [
 		rejoin [ ""
 <!DOCTYPE html> newline 
@@ -696,6 +696,7 @@ parse-page: funct [
 	<head> newline
 		<title> page/title </title> newline 
 		<meta charset="utf-8"> newline
+		page/meta newline
 		stylesheets
 	</head> newline
 	<body>

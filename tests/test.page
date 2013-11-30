@@ -1,0 +1,8 @@
+head
+;<meta name="viewport" content="width=device-width, initial-scale=1.0">
+meta viewport "width=device-width, initial-scale=1.0"
+stylesheet %css/bootstrap.min.css
+stylesheet %css/bootstrap-theme.min.css
+body
+h1 "Bootstrap test"
+p [ "Some glyph: " glyphicon eye-open ]

@@ -1,6 +1,6 @@
 ; CONFIGURATION: simple test function
 [
-	function? tf: func [data][parse-page data]
+	function? tf: func [data][parse-html data]
 ]
 
 ;;-----------------------
@@ -17,6 +17,9 @@
 [ {<i>italic</i>}				= tf [ i "italic" ] ]
 [ {<p>para</p>}					= tf [ p "para" ] ]
 [ {<p>para^/with newline</p>}	= tf [ p "para^/with newline" ] ]
+[ {<p>para</p>}					= tf [ p [ "para" ] ] ]
+[ {<p>paragraph</p>}			= tf [ p [ "para" "graph" ] ] ]
+[ {<p><b>para</b>graph</p>}		= tf [ p [ b "para" "graph" ] ] ]
 [ {<em>em</em>}					= tf [ em "em" ] ]
 [ {<strong>strong</strong>}		= tf [ strong "strong" ] ]
 [ {<small>Smallprint</small>}	= tf [ small "Smallprint" ] ]
@@ -146,3 +149,7 @@
 		] 
 	]
 ]
+
+; BOOTSTRAP
+
+[ {<span class="glyphicon glyphicon-eye-open"></span>} = tf [ glyphicon eye-open ] ]

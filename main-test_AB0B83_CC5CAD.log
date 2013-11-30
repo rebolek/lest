@@ -1,0 +1,125 @@
+
+%/home/sony/repo/plesk/tests/main-test.r3
+
+[
+	function? tf: func [data][parse-html data]
+] "succeeded"
+[ {} = tf [ comment [ b "bold" ] ] ] "succeeded"
+[ {<div>div</div>}				= tf [ div "div" ] ] "succeeded"
+[ {<span>span</span>}			= tf [ span "span"] ] "succeeded"
+[ {<b>bold</b>}					= tf [ b "bold" ] ] "succeeded"
+[ {<i>italic</i>}				= tf [ i "italic" ] ] "succeeded"
+[ {<p>para</p>}					= tf [ p "para" ] ] "succeeded"
+[ {<p>para^/with newline</p>}	= tf [ p "para^/with newline" ] ] "succeeded"
+[ {<em>em</em>}					= tf [ em "em" ] ] "succeeded"
+[ {<strong>strong</strong>}		= tf [ strong "strong" ] ] "succeeded"
+[ {<small>Smallprint</small>}	= tf [ small "Smallprint" ] ] "succeeded"
+[ {<footer>footer</footer>}		= tf [ footer "footer" ] ] "succeeded"
+[ {<br>} = tf [ br ] ] "succeeded"
+[ {<hr>} = tf [ hr ] ] "succeeded"
+[ {<b id="bold-style">bold</b>} = tf [ b id bold-style "bold" ] ] "succeeded"
+[ {<b class="bold-style">bold</b>} = tf [ b #bold-style "bold" ] ] "succeeded"
+[ {<b class="bold style">bold</b>} = tf [ b #bold #style "bold" ] ] "succeeded"
+[ {<b id="bold-text" class="bold style">bold</b>} = tf [ b id bold-text #bold #style "bold" ] ] "succeeded"
+[ {<b><i>bold italic</i></b>} = tf [ b [ i "bold italic" ] ] ] "succeeded"
+[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b id bold [ i id italic "bold italic" ] ] ] "succeeded"
+[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i id italic "bold italic" ] ] ] "succeeded"
+[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b id bold [ i #italic "bold italic" ] ] ] "succeeded"
+[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ] "succeeded"
+[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b #bold #style [ i #italic "bold italic" ] ] ] "succeeded"
+[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b #bold #style [ i #italic #style "bold italic" ] ] ] "succeeded"
+[ {<script src="script.js"></script>} = tf [ script %script.js ] ] "succeeded"
+[ {<script src="http://iluminat.cz/script.js"></script>} = tf [ script http://iluminat.cz/script.js ] ] "succeeded"
+[ {<script src="script.js"></script>} = tf [ script %script.js ] ] "succeeded"
+[ {<script>alert("hello world");</script>} = tf [ script {alert("hello world");} ] ] "succeeded"
+[ {<a href="#">home</a>} = tf [ a %# "home" ] ] "succeeded"
+[ {<a href="#">home</a>} = tf [ link %# "home" ] ] "succeeded"
+[ {<a href="#about">about</a>} = tf [ link %#about "about" ] ] "succeeded"
+[ {<a href="about">about file</a>} = tf [ link %about "about file" ] ] "succeeded"
+[ {<a href="http://www.about.at">about web</a>} = tf [ link http://www.about.at "about web" ] ] "succeeded"
+[ {<a class="blue" href="#">home</a>} = tf [ link %# #blue "home"] ] "succeeded"
+[ {<a id="blue" href="#">home</a>} = tf [ link %# id blue "home"] ] "succeeded"
+[ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# id blue #main "home"] ] "succeeded"
+[ equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>} 
+	tf [ 
+		link %# id blue #main [ 
+			div #link-class id link "home"
+		]
+	] 
+] "succeeded"
+[ equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>} 
+	tf [
+		div id outer #border [ 
+			link %# id blue #main [ 
+				div #link-class id link "home"
+			]
+		]
+	] 
+] "succeeded"
+[ {<img src="brno.jpg">} = tf [ img %brno.jpg ] ] "succeeded"
+[ {<img src="brno.jpg">} = tf [ image %brno.jpg ] ] "succeeded"
+[ {<img class="adamov" src="brno.jpg">} = tf [ image %brno.jpg #adamov] ] "succeeded"
+[ {<img id="adamov" src="brno.jpg">} = tf [ image id adamov %brno.jpg] ] "succeeded"
+[ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov] ] "succeeded"
+[ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov #ivancice ] ] "succeeded"
+[ equal? 
+		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>} 
+		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ] 
+] "succeeded"
+[ "<ul><li>jedna</li></ul>" = tf [ ul li "jedna" ] ] "succeeded"
+[ "<ul><li>jedna</li><li>dva</li></ul>" = tf [ ul li "jedna" li "dva"] ] "succeeded"
+[ equal?
+	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
+	tf [ ul id list li #item id first "jedna" li id second #item "dva" ] 
+] "succeeded"
+[ {<h1>Brno</h1>} = tf [ h1 "Brno" ] ] "succeeded"
+[ {<h2>Brno</h2>} = tf [ h2 "Brno" ] ] "succeeded"
+[ {<h3>Brno</h3>} = tf [ h3 "Brno" ] ] "succeeded"
+[ {<h4>Brno</h4>} = tf [ h4 "Brno" ] ] "succeeded"
+[ {<h5>Brno</h5>} = tf [ h5 "Brno" ] ] "succeeded"
+[ {<h6>Brno</h6>} = tf [ h6 "Brno" ] ] "succeeded"
+[ {<h1 class="city">Brno</h1>} = tf [ h1 #city "Brno" ] ] "succeeded"
+[ {<h2 class="city">Brno</h2>} = tf [ h2 #city "Brno" ] ] "succeeded"
+[ {<h3 class="city">Brno</h3>} = tf [ h3 #city "Brno" ] ] "succeeded"
+[ {<h4 class="city">Brno</h4>} = tf [ h4 #city "Brno" ] ] "succeeded"
+[ {<h5 class="city">Brno</h5>} = tf [ h5 #city "Brno" ] ] "succeeded"
+[ {<h6 class="city">Brno</h6>} = tf [ h6 #city "Brno" ] ] "succeeded"
+[ {<h1 id="city">Brno</h1>} = tf [ h1 id city "Brno" ] ] "succeeded"
+[ {<h2 id="city">Brno</h2>} = tf [ h2 id city "Brno" ] ] "succeeded"
+[ {<h3 id="city">Brno</h3>} = tf [ h3 id city "Brno" ] ] "succeeded"
+[ {<h4 id="city">Brno</h4>} = tf [ h4 id city "Brno" ] ] "succeeded"
+[ {<h5 id="city">Brno</h5>} = tf [ h5 id city "Brno" ] ] "succeeded"
+[ {<h6 id="city">Brno</h6>} = tf [ h6 id city "Brno" ] ] "succeeded"
+[ equal?
+	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"></form>}
+	tf [ form %script [ field name "Your name:" ] ]
+] "succeeded"
+[ equal?
+	{<form action="script" method="post"><label for="pass">Password:</label><input type="password" name="pass"></form>}
+	tf [ form %script [ password pass "Password:" ] ]
+] "succeeded"
+[ equal?
+	{<form action="script" method="post"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	tf [ form %script [ email mail "Your email:" ] ]
+] "succeeded"
+[ equal?
+	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"><label for="pass">Password:</label><input type="password" name="pass"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	tf [ 
+		form %script [ 
+			field name "Your name:" 
+			password pass "Password:"
+			email mail "Your email:"
+		] 
+	]
+] "succeeded"
+[ true ] "succeeded"
+
+system/version: 2.101.0.4.2
+code-checksum: #{AB0B8335F7BB020739791E406B201B5E4C46FD0F}
+test-checksum: #{CC5CADC7309ECC0D006B04EC9A8B4A0912A09A44}
+Total: 72
+Succeeded: 72
+Test-failures: 0
+Crashes: 0
+Dialect-failures: 0
+Skipped: 0
