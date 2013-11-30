@@ -348,38 +348,32 @@ parse-html: funct [
 	]
 
 	image: [
-		'image
+		['img | 'image]
 		init-tag
+		( tag/name: 'img )
 		some [
-			set target [ file! | url! ] 
+			set target [ file! | url! ] ( append tag compose [ src: (target) ] )
 		|	style 
 		]
 		(
-			emit-tag 'img reduce/no-set [ src: target id: id class: styles]
+			tag: pop tag-stack
+			emit-tag tag
 		)
 	]
 
 	; <a>
 	link: [
-		'link 
-;		init-tag
-		( link-tag: context [] )
+		['a | 'link] 
+		init-tag
+		( tag/name: 'a )
 		some [
-			style (
-				append link-tag reduce/no-set [ id: id class: styles ]
-			)
-		|	
-		set target [ file! | url! ] (
-			append link-tag compose [ href: (target) ]
-		)
-
-		] pos: 
-		(
-			value: none 
-			emit-tag 'a body-of link-tag
-		)
+			set target [ file! | url! ] ( append tag compose [ href: (target) ] )
+		|	style
+		] 
+		( emit-tag tag )
 		match-content
 		(
+			tag: pop tag-stack
 			if value [ emit value ]
 			emit close-tag 'a
 		)
@@ -389,13 +383,13 @@ parse-html: funct [
 
 	li: [
 		'li
+		init-tag
+		( tag/name: 'li )
 		opt style
-		(
-			value: none
-			emit-tag 'li [ id: (id) class: (styles) ]
-		)
+		( emit-tag tag )
 		match-content
 		(
+			tag: pop tag-stack
 			if value [emit value]
 			emit close-tag 'li
 		)
@@ -403,10 +397,15 @@ parse-html: funct [
 
 	ul: [
 		'ul
+		init-tag
+		( tag/name: 'ul )
 		opt style
-			( emit-tag 'ul [ id: (id) class: (styles) ] )
+		( emit-tag tag )
 		some li
-			( emit close-tag 'ul )
+		( 
+			tag: pop tag-stack
+			emit close-tag 'ul 
+		)
 	]
 
 	ol: [

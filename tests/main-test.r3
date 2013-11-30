@@ -52,3 +52,45 @@
 [ {<script src="script.js"></script>} = tf [ script %script.js ] ]
 [ {<script>alert("hello world");</script>} = tf [ script {alert("hello world");} ] ]
 
+; LINK tag
+
+[ {<a href="#">home</a>} = tf [ a %# "home" ] ] 
+[ {<a href="#">home</a>} = tf [ link %# "home" ] ] 
+[ {<a href="#about">about</a>} = tf [ link %#about "about" ] ]
+[ {<a href="about">about file</a>} = tf [ link %about "about file" ] ]
+[ {<a href="http://www.about.at">about web</a>} = tf [ link http://www.about.at "about web" ] ]
+[ {<a class="blue" href="#">home</a>} = tf [ link %# #blue "home"] ]
+[ {<a id="blue" href="#">home</a>} = tf [ link %# id blue "home"] ]
+[ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# id blue #main "home"] ]
+[ 
+	equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>} 
+	tf [ 
+		link %# id blue #main [ 
+			div #link-class id link "home"
+		]
+	] 
+]
+[
+	equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>} 
+	tf [
+		div id outer #border [ 
+			link %# id blue #main [ 
+				div #link-class id link "home"
+			]
+		]
+	] 
+]
+
+; IMG tag
+
+[ {<img src="brno.jpg">} = tf [ img %brno.jpg ] ]
+[ {<img src="brno.jpg">} = tf [ image %brno.jpg ] ]
+[ {<img class="adamov" src="brno.jpg">} = tf [ image %brno.jpg #adamov] ]
+[ {<img id="adamov" src="brno.jpg">} = tf [ image id adamov %brno.jpg] ]
+[ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov] ]
+[ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov #ivancice ] ]
+[ 
+	equal? 
+		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>} 
+		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ] 
+	]
