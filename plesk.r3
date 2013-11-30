@@ -201,11 +201,12 @@ parse-html: funct [
 	emit-tag: funct [
 		tag [object!]
 	][
+		prin "emit-tag:: "
 		?? tag
-		out: clear make string! 256
+		out: make string! 256
 		skip?: false
-		repend out [ "<" tag/name ]
-		tag: head remove/part find body-of tag to set-word! 'name 2
+		repend out [ "<" tag/element ]
+		tag: head remove/part find body-of tag to set-word! 'element 2
 		foreach [ key value ] tag [
 			skip?: false
 			value: switch/default type?/word value [
@@ -213,7 +214,7 @@ parse-html: funct [
 					if empty? value [ skip?: true ]
 					catenate value #" " 
 				]
-				string!	[ if empty? value [ skip?: true ] ]
+				string!	[ if empty? value [ skip?: true ] value ]
 				none!	[ skip?: true ]
 			][
 				form value
@@ -222,20 +223,16 @@ parse-html: funct [
 				repend out [ " " to word! key {="} value {"} ]
 			]
 		]
-;		remove back tail out
 		append buffer head append out #">"
 	]
 
 
-	make-label: func [
+	emit-label: func [
 		label
-		element
+		elem
 	][
-		rejoin [ 
-			emit-tag 'label [ for: (element) ] 
-			label 
-			close-tag 'label 
-		]
+		emit-tag context [ element: 'label for: elem ]
+		emit join label close-tag 'label 
 	]
 
 	; === rules
@@ -244,22 +241,20 @@ parse-html: funct [
 
 	init-tag: [
 		(
-			print [ #init-tag mold name ]
 			value:		none
 			default:	copy ""
 			temp: 		none
 			target:		none
 			push tag-stack context [ id: none class: copy [] ]
 			tag: peek tag-stack
-			append tag probe compose [ name: (name) ] 	; TODO: this should work in CONTEXT above 
+			append tag compose [ element: (name) ] 	; TODO: this should work in CONTEXT above 
 		)
 	]
 
 	style: [
-		( print "style start" )
 		some [
-			'id set temp word! ( print "id" probe tag/id: temp )
-		|	set temp issue! ( print "class" append tag/class to word! temp )
+			'id set temp word! ( tag/id: temp )
+		|	set temp issue! ( append tag/class to word! temp )
 		]
 	]
 
@@ -332,14 +327,13 @@ parse-html: funct [
 		(
 			tag: pop tag-stack
 			if value [ emit value ]
-			emit close-tag tag/name
+			emit close-tag tag/element
 		)
 	]
 
 	image: [
-		['img | 'image]
+		['img | 'image] ( name: 'img )
 		init-tag
-		( tag/name: 'img )
 		some [
 			set target [ file! | url! ] ( append tag compose [ src: (target) ] )
 		|	style 
@@ -352,9 +346,8 @@ parse-html: funct [
 
 	; <a>
 	link: [
-		['a | 'link] 
+		['a | 'link] ( name: 'a )
 		init-tag
-		( tag/name: 'a )
 		some [
 			set target [ file! | url! ] ( append tag compose [ href: (target) ] )
 		|	style
@@ -371,9 +364,8 @@ parse-html: funct [
 	; lists - UL, OL, LI
 
 	li: [
-		'li
+		set name 'li
 		init-tag
-		( tag/name: 'li )
 		opt style
 		( emit-tag tag )
 		match-content
@@ -385,9 +377,8 @@ parse-html: funct [
 	]
 
 	ul: [
-		'ul
+		set name 'ul
 		init-tag
-		( tag/name: 'ul )
 		opt style
 		( emit-tag tag )
 		some li
@@ -430,7 +421,6 @@ parse-html: funct [
 	heading: [ 
 		set name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
 		init-tag
-		( tag/name: name )
 		some [
 			set value string!	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
 		|	style	
@@ -439,7 +429,7 @@ parse-html: funct [
 			emit-tag tag
 			emit [	
 				value
-				close-tag tag/name
+				close-tag tag/element
 			]
 		)
 	]
@@ -447,37 +437,50 @@ parse-html: funct [
 	; --- forms
 
 	field: [ 
-		'field
+		'field ( name: 'input )
 		init-tag 
-		( tag/name: 'field )
 		set name word! 
 		some [
 			set label string! 
 		|	style
 		]
 		(
-			emit make-label label name
+			emit-label label name
+			tag: pop tag-stack
 			append tag compose [ type: "text" name: (name) ] 
-			emit make-label label name
 			emit-tag tag
 		) 
 	]
 	password: [ 
-		'password 
+		'password ( name: 'input )
 		init-tag
-		( tag/name: 'password )
 		set name word! 
 		some [
 			set label string! 
 		|	style
 		]
 		(
-			emit make-label label name
+			emit-label label name
+			tag: pop tag-stack
 			append tag compose [ type: "password" name: (name) ] 
-			emit make-label label name
 			emit-tag tag
 		)
 	]
+	email: [ 
+		'email ( name: 'input )
+		init-tag 
+		set name word! 
+		some [
+			set label string! 
+		|	style
+		]
+		(
+			emit-label label name
+			tag: pop tag-stack
+			append tag compose [ type: "email" name: (name) ] 
+			emit-tag tag
+		) 
+	]	
 	textarea: [
 		'textarea (size: 50x4)
 		set name word!
@@ -539,6 +542,7 @@ parse-html: funct [
 			br	
 		|	field
 		|	password
+		|	email
 		|	textarea
 		|	checkbox
 		|	submit
@@ -547,17 +551,17 @@ parse-html: funct [
 		]
 	]
 	form: [ 
-		'form 
-		set value [ file! | url! ] ( form-data/action: value )
-		(
-			buffer: copy form-buffer
-			emit make-tag 'form body-of form-data
+		set name 'form
+		init-tag
+		set value [ file! | url! ] ( 
+			tag: peek tag-stack
+			append tag compose [ 
+				action: (value) 
+				method: 'post
+			]
+			emit-tag tag 
 		)
-		into form-content (
-			emit </form>
-			buffer: output
-			emit form-buffer
-		)
+		into form-content ( emit </form> )
 	]
 
 	; --- "plugins"
@@ -639,6 +643,7 @@ parse-html: funct [
 	bootstrap-elems: [
 		container
 	|	row	
+	|	glyphicon
 	]
 
 	container: [
@@ -654,6 +659,16 @@ parse-html: funct [
 		into elements
 		(emit close-tag 'div)	
 	]
+
+;<span class="glyphicon glyphicon-search"></span>
+	glyphicon: [
+		'glyphicon 
+		set name word!
+		(
+			emit rejoin [{<span class="glyphicon glyphicon-} name {"></span>}]
+		)
+	]
+
 
 	; === do something useful
 

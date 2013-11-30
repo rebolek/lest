@@ -62,16 +62,14 @@
 [ {<a class="blue" href="#">home</a>} = tf [ link %# #blue "home"] ]
 [ {<a id="blue" href="#">home</a>} = tf [ link %# id blue "home"] ]
 [ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# id blue #main "home"] ]
-[ 
-	equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>} 
+[ equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>} 
 	tf [ 
 		link %# id blue #main [ 
 			div #link-class id link "home"
 		]
 	] 
 ]
-[
-	equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>} 
+[ equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>} 
 	tf [
 		div id outer #border [ 
 			link %# id blue #main [ 
@@ -89,8 +87,7 @@
 [ {<img id="adamov" src="brno.jpg">} = tf [ image id adamov %brno.jpg] ]
 [ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov] ]
 [ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov #ivancice ] ]
-[ 
-	equal? 
+[ equal? 
 		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>} 
 		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ] 
 ]
@@ -99,8 +96,7 @@
 
 [ "<ul><li>jedna</li></ul>" = tf [ ul li "jedna" ] ]
 [ "<ul><li>jedna</li><li>dva</li></ul>" = tf [ ul li "jedna" li "dva"] ]
-[
-	equal?
+[ equal?
 	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
 	tf [ ul id list li #item id first "jedna" li id second #item "dva" ] 
 ]
@@ -125,3 +121,28 @@
 [ {<h4 id="city">Brno</h4>} = tf [ h4 id city "Brno" ] ]
 [ {<h5 id="city">Brno</h5>} = tf [ h5 id city "Brno" ] ]
 [ {<h6 id="city">Brno</h6>} = tf [ h6 id city "Brno" ] ]
+
+; FORMS
+
+[ equal?
+	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"></form>}
+	tf [ form %script [ field name "Your name:" ] ]
+]
+[ equal?
+	{<form action="script" method="post"><label for="pass">Password:</label><input type="password" name="pass"></form>}
+	tf [ form %script [ password pass "Password:" ] ]
+]
+[ equal?
+	{<form action="script" method="post"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	tf [ form %script [ email mail "Your email:" ] ]
+]
+[ equal?
+	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"><label for="pass">Password:</label><input type="password" name="pass"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	tf [ 
+		form %script [ 
+			field name "Your name:" 
+			password pass "Password:"
+			email mail "Your email:"
+		] 
+	]
+]
