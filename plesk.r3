@@ -46,6 +46,35 @@ REBOL[
 		interactive: [
 			details summary menuitem menu
 		]
+
+{
+See: http://dev.w3.org/html5/markup/common-models.html#common.elem.phrasing
+
+
+Flow-elements: [
+	phrasing elements  a  p  hr  pre  ul  ol  dl  div  h1  h2  h3  h4  h5  h6  
+	hgroup  address  blockquote  ins  del  object  map  noscript  
+	section  nav  article  aside  header  footer  video  audio  
+	figure  table  fm  fieldset  menu  canvas  details
+]
+Metadata-elements: [
+	link  style  meta name  
+	meta http-equiv=refresh  
+	meta http-equiv=default-style  
+	meta charset  
+	meta http-equiv=content-type  
+	script  noscript  command
+]
+Phrasing-elements: [
+	a  em  strong  small  mark  abbr  dfn  
+	i  b  s  u  code  var  samp  kbd  sup  sub  
+	q  cite  span  bdo  bdi  br  wbr  ins  del  img  
+	embed  object  iframe  map  area  script  noscript  
+	ruby  video  audio  input  textarea  select  button  
+	label  output  datalist  keygen  progress  command  canvas  time  meter
+]
+
+}		
 	]
 ]
 
@@ -124,46 +153,6 @@ pair-tag: func [
 		value 
 		head insert to tag! type "/"
 	]
-]
-
-
-make-tag: funct [
-	name
-	values
-][
-comment {
-	TODO: better key/value handling - ignore empty keys
-
-
-	Ignores none! values, but inserts key
-	so ID: NONE becomes id=""
-	TODO: look for better solution
-}
-
-	value: clear ""
-	out: clear {}
-	append out rejoin [ "<" name ]
-
-	; TODO: should work without parse, look into it
-
-	parse compose values [
-		some [
-			set key set-word!
-			some [
-				set value [ none! | word! | issue! | file! | url! | number! | string! | block! ]
-			]
-			(
-				if issue? value [ value: to word! value ]
-				unless any [ 
-					not value
-					all [ block? value empty? value ]
-				][
-					append out rejoin [ #" " to word! key {="} value {"} ]
-				]
-			)
-		]
-	]
-	head append out ">"
 ]
 
 close-tag: func [
@@ -438,23 +427,19 @@ parse-html: funct [
 
 	; --- headings
 
-	h1: [ 'h1 ( elem: 'h1 ) ]
-	h2: [ 'h2 ( elem: 'h2 ) ]
-	h3: [ 'h3 ( elem: 'h3 ) ]
-	h4: [ 'h4 ( elem: 'h4 ) ]
-	h5: [ 'h5 ( elem: 'h5 ) ]
-	h6: [ 'h6 ( elem: 'h6 ) ]	
 	heading: [ 
-		[ h1 | h2 | h3 | h4 | h5 | h6 ] 
+		set name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
+		init-tag
+		( tag/name: name )
 		some [
-			set value string!
+			set value string!	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
 		|	style	
 		]
 		( 
 			emit-tag tag
 			emit [	
 				value
-				close-tag elem
+				close-tag tag/name
 			]
 		)
 	]
@@ -464,34 +449,33 @@ parse-html: funct [
 	field: [ 
 		'field
 		init-tag 
+		( tag/name: 'field )
 		set name word! 
 		some [
 			set label string! 
-;		|	opt [set default string!]
 		|	style
 		]
 		(
-			unless id [ id: name ]			
-			emit [ 
-				make-label label name
-				make-tag 'input [ type: "text" name: (name) id: (id) class: (styles)]
-			] 
+			emit make-label label name
+			append tag compose [ type: "text" name: (name) ] 
+			emit make-label label name
+			emit-tag tag
 		) 
 	]
 	password: [ 
 		'password 
 		init-tag
+		( tag/name: 'password )
 		set name word! 
 		some [
 			set label string! 
 		|	style
 		]
 		(
-			unless id [ id: name ]
-			emit [
-				make-label label name
-				make-tag 'input [ type: "password" name: (name) id: (id) ]
-			]
+			emit make-label label name
+			append tag compose [ type: "password" name: (name) ] 
+			emit make-label label name
+			emit-tag tag
 		)
 	]
 	textarea: [
@@ -503,7 +487,6 @@ parse-html: funct [
 		|	style
 		]
 		(
-			unless id [ id: name ]
 			emit [
 				make-label label name
 				make-tag 'textarea [ 

@@ -93,4 +93,35 @@
 	equal? 
 		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>} 
 		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ] 
-	]
+]
+
+; LISTS
+
+[ "<ul><li>jedna</li></ul>" = tf [ ul li "jedna" ] ]
+[ "<ul><li>jedna</li><li>dva</li></ul>" = tf [ ul li "jedna" li "dva"] ]
+[
+	equal?
+	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
+	tf [ ul id list li #item id first "jedna" li id second #item "dva" ] 
+]
+
+; HEADINGS
+
+[ {<h1>Brno</h1>} = tf [ h1 "Brno" ] ]
+[ {<h2>Brno</h2>} = tf [ h2 "Brno" ] ]
+[ {<h3>Brno</h3>} = tf [ h3 "Brno" ] ]
+[ {<h4>Brno</h4>} = tf [ h4 "Brno" ] ]
+[ {<h5>Brno</h5>} = tf [ h5 "Brno" ] ]
+[ {<h6>Brno</h6>} = tf [ h6 "Brno" ] ]
+[ {<h1 class="city">Brno</h1>} = tf [ h1 #city "Brno" ] ]
+[ {<h2 class="city">Brno</h2>} = tf [ h2 #city "Brno" ] ]
+[ {<h3 class="city">Brno</h3>} = tf [ h3 #city "Brno" ] ]
+[ {<h4 class="city">Brno</h4>} = tf [ h4 #city "Brno" ] ]
+[ {<h5 class="city">Brno</h5>} = tf [ h5 #city "Brno" ] ]
+[ {<h6 class="city">Brno</h6>} = tf [ h6 #city "Brno" ] ]
+[ {<h1 id="city">Brno</h1>} = tf [ h1 id city "Brno" ] ]
+[ {<h2 id="city">Brno</h2>} = tf [ h2 id city "Brno" ] ]
+[ {<h3 id="city">Brno</h3>} = tf [ h3 id city "Brno" ] ]
+[ {<h4 id="city">Brno</h4>} = tf [ h4 id city "Brno" ] ]
+[ {<h5 id="city">Brno</h5>} = tf [ h5 id city "Brno" ] ]
+[ {<h6 id="city">Brno</h6>} = tf [ h6 id city "Brno" ] ]
