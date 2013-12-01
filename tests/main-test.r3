@@ -128,19 +128,19 @@
 ; FORMS
 
 [ equal?
-	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"></form>}
+	{<form action="script" method="post" role="form"><label for="name">Your name:</label><input type="text" name="name"></form>}
 	tf [ form %script [ field name "Your name:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post"><label for="pass">Password:</label><input type="password" name="pass"></form>}
+	{<form action="script" method="post" role="form"><label for="pass">Password:</label><input type="password" name="pass"></form>}
 	tf [ form %script [ password pass "Password:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	{<form action="script" method="post" role="form"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
 	tf [ form %script [ email mail "Your email:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post"><label for="name">Your name:</label><input type="text" name="name"><label for="pass">Password:</label><input type="password" name="pass"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	{<form action="script" method="post" role="form"><label for="name">Your name:</label><input type="text" name="name"><label for="pass">Password:</label><input type="password" name="pass"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
 	tf [ 
 		form %script [ 
 			field name "Your name:" 

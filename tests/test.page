@@ -1,8 +1,15 @@
 head
-;<meta name="viewport" content="width=device-width, initial-scale=1.0">
 meta viewport "width=device-width, initial-scale=1.0"
 stylesheet %css/bootstrap.min.css
 stylesheet %css/bootstrap-theme.min.css
 body
 h1 "Bootstrap test"
-p [ "Some glyph: " glyphicon eye-open ]
+p #lead "This is lead, whatever it means."
+p [ "Some glyph: " glyphicon eye-open  b " hope you've seen it"]
+form %script [
+	field name "Your name:"
+	email mail "Email:"
+	password pass "Password:"
+]
+script https://code.jquery.com/jquery.js
+script %js/bootstrap.min.js

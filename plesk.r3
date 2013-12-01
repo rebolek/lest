@@ -181,6 +181,7 @@ parse-html: funct [
 	size: 		50x4
 	temp:		none
 	tag:		none
+	type: 		none
 
 	tag-stack: copy []
 
@@ -441,51 +442,35 @@ parse-html: funct [
 
 	; --- forms
 
-	field: [ 
-		'field ( name: 'input )
-		init-tag 
-		set name word! 
-		some [
-			set label string! 
-		|	style
-		]
-		(
-			emit-label label name
-			tag: pop tag-stack
-			append tag compose [ type: "text" name: (name) ] 
-			emit-tag tag
-		) 
-	]
-	password: [ 
-		'password ( name: 'input )
+	init-input: [
+		( name: 'input )
 		init-tag
-		set name word! 
-		some [
-			set label string! 
-		|	style
-		]
-		(
-			emit-label label name
-			tag: pop tag-stack
-			append tag compose [ type: "password" name: (name) ] 
-			emit-tag tag
-		)
 	]
-	email: [ 
-		'email ( name: 'input )
-		init-tag 
-		set name word! 
-		some [
-			set label string! 
-		|	style
-		]
+	emit-input: [
 		(
 			emit-label label name
 			tag: pop tag-stack
-			append tag compose [ type: "email" name: (name) ] 
+			append tag compose [ type: (type) name: (name) ] 
 			emit-tag tag
 		) 
-	]	
+	]
+	input-parameters: [
+		set name word! 
+		some [
+			set label string! 
+		|	style
+		]
+	]
+	input: [
+		[
+			'field 		( type: 'text )
+		|	'password 	( type: 'password )
+		|	'email 		( type: 'email )
+		]
+		init-input
+		input-parameters
+		emit-input
+	]
 	textarea: [
 		'textarea (size: 50x4)
 		set name word!
@@ -543,17 +528,17 @@ parse-html: funct [
 
 
 	form-content: [
-		some [
+		[
 			br	
-		|	field
-		|	password
-		|	email
+		|	input
 		|	textarea
 		|	checkbox
 		|	submit
 		|	hidden
 		|	captcha
-		]
+		]	(
+			print "form content matched"
+		)
 	]
 	form: [ 
 		set name 'form
@@ -561,12 +546,13 @@ parse-html: funct [
 		set value [ file! | url! ] ( 
 			tag: peek tag-stack
 			append tag compose [ 
-				action: (value) 
-				method: 'post
+				action:	(value) 
+				method:	'post
+				role:	'form
 			]
 			emit-tag tag 
 		)
-		into form-content ( emit </form> )
+		into [ some form-content ] ( emit </form> )
 	]
 
 	; --- "plugins"
