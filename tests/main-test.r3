@@ -128,28 +128,63 @@
 ; FORMS
 
 [ equal?
-	{<form action="script" method="post" role="form"><label for="name">Your name:</label><input type="text" name="name"></form>}
-	tf [ form %script [ field name "Your name:" ] ]
+	{<form action="script" method="post" role="form"><div class="form-group"><label for="name">Your name:</label><input class="form-control" type="text" name="name"></div></form>}
+	tf [ form %script [ text name "Your name:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post" role="form"><label for="pass">Password:</label><input type="password" name="pass"></form>}
+	{<form action="script" method="post" role="form"><div class="form-group"><label for="pass">Password:</label><input class="form-control" type="password" name="pass"></div></form>}
 	tf [ form %script [ password pass "Password:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post" role="form"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	{<form action="script" method="post" role="form"><div class="form-group"><label for="mail">Your email:</label><input class="form-control" type="email" name="mail"></div></form>}
 	tf [ form %script [ email mail "Your email:" ] ]
 ]
 [ equal?
-	{<form action="script" method="post" role="form"><label for="name">Your name:</label><input type="text" name="name"><label for="pass">Password:</label><input type="password" name="pass"><label for="mail">Your email:</label><input type="email" name="mail"></form>}
+	{<form action="script" method="post" role="form"><div class="form-group"><label for="name">Your name:</label><input class="form-control" type="text" name="name"></div><div class="form-group"><label for="pass">Password:</label><input class="form-control" type="password" name="pass"></div><div class="form-group"><label for="mail">Your email:</label><input class="form-control" type="email" name="mail"></div></form>}
 	tf [ 
 		form %script [ 
-			field name "Your name:" 
+			text name "Your name:" 
 			password pass "Password:"
 			email mail "Your email:"
 		] 
 	]
 ]
+[
+	equal?
+	{<form action="script" method="post" role="form"><div class="checkbox"><label><input type="checkbox" name="cb1">Check me</label></div></form>}
+	tf [ form %script [ checkbox cb1 "Check me" ] ]
+]
+[
+	equal?
+	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
+	tf [ form %script [ submit "Bye" ] ]
+]
+
 
 ; BOOTSTRAP
+
+[
+	equal?
+	{<div class="container"><div class="row"><div class="col-md-6">md 6</div></div></div>}
+	tf [
+		container [
+			row [
+				col 6 ["md 6"]
+			]
+		]
+	]
+]
+[
+	equal?
+	{<div class="container"><div class="row"><div class="col-md-6">md 6</div><div class="col-md-6">md 6</div></div></div>}
+	tf [
+		container [
+			row [
+				col 6 ["md 6"]
+				col 6 ["md 6"]
+			]
+		]
+	]
+]
 
 [ {<span class="glyphicon glyphicon-eye-open"></span>} = tf [ glyphicon eye-open ] ]

@@ -2,6 +2,7 @@ REBOL[
 	Title: "PLESK - Sender for LIZ"
 	To-do: [
 		"HTML entities"
+		"Cleanup variables in parse-html"
 	]
 	Notes: [
 		source: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
@@ -76,18 +77,6 @@ Phrasing-elements: [
 
 }		
 	]
-]
-
-; === data structures
-
-page: [
-	title: "Page generated with Bootrapy"
-	meta: {}
-]
-
-form-data: context [
-	action: none
-	method: 'post
 ]
 
 
@@ -166,14 +155,13 @@ close-tag: func [
 
 ; === parse fucntions
 
-stylesheets: copy {^/}
-
 parse-html: funct [
 	"Parse simple HTML dialect"
 	data	
 ][
 	; === variables
 
+	stylesheets: copy {^/}
 	styles:		copy []
 	name:		copy ""
 	value:		copy ""
@@ -182,8 +170,20 @@ parse-html: funct [
 	temp:		none
 	tag:		none
 	type: 		none
+	grid-size: 'md
 
 	tag-stack: copy []
+
+	page: reduce/no-set [
+		title: "Page generated with Bootrapy"
+		meta: copy {}
+	]
+
+	form-data: context [
+		action: none
+		method: 'post
+	]
+
 
 	output: copy ""
 	temp: copy ""
@@ -205,8 +205,6 @@ parse-html: funct [
 	emit-tag: funct [
 		tag [object!]
 	][
-		prin "emit-tag:: "
-		?? tag
 		out: make string! 256
 		skip?: false
 		repend out [ "<" tag/element ]
@@ -234,8 +232,10 @@ parse-html: funct [
 	emit-label: func [
 		label
 		elem
+		/class
+		styles
 	][
-		emit-tag context [ element: 'label for: elem ]
+		emit-tag context [ element: 'label for: elem class: styles ]
 		emit join label close-tag 'label 
 	]
 
@@ -249,9 +249,7 @@ parse-html: funct [
 			default:	copy ""
 			temp: 		none
 			target:		none
-			push tag-stack context [ id: none class: copy [] ]
-			tag: peek tag-stack
-			append tag compose [ element: (name) ] 	; TODO: this should work in CONTEXT above 
+			push tag-stack tag: context [ id: none class: copy [] element: name ]
 		)
 	]
 
@@ -287,7 +285,7 @@ parse-html: funct [
 	; TODO: add META
 
 	page-header: [
-		'head (print "header" header?: true)
+		'head (header?: true)
 		some [
 			'title set value string! (page/title: value)
 		|	'stylesheet set value [ file! | url! ] (
@@ -445,13 +443,25 @@ parse-html: funct [
 	init-input: [
 		( name: 'input )
 		init-tag
+		( tag: peek tag-stack )
 	]
 	emit-input: [
 		(
-			emit-label label name
-			tag: pop tag-stack
-			append tag compose [ type: (type) name: (name) ] 
-			emit-tag tag
+			switch/default form-type [
+				horizontal [
+					emit-label/class label name	[col-sm-2 control-label]
+					emit <div class="col-sm-10">
+					tag: pop tag-stack
+					append tag compose [ type: (type) name: (name) ] 
+					emit-tag tag
+					emit </div>
+				]
+			][
+				emit-label label name
+				tag: pop tag-stack
+				append tag compose [ type: (type) name: (name) ] 
+				emit-tag tag
+			]
 		) 
 	]
 	input-parameters: [
@@ -462,14 +472,28 @@ parse-html: funct [
 		]
 	]
 	input: [
-		[
-			'field 		( type: 'text )
-		|	'password 	( type: 'password )
-		|	'email 		( type: 'email )
+		set type [ 
+			'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week 
+		|	'number | 'email | 'url | 'search | 'tel | 'color
 		]
+		( emit <div class="form-group"> )
 		init-input
+		( append tag/class 'form-control )
 		input-parameters
 		emit-input
+		( emit </div> )
+	]	
+	checkbox: [
+		set type 'checkbox
+		( emit [ "" <div class="checkbox"> <label> ] )
+		init-input
+		input-parameters
+		(
+			tag: pop tag-stack
+			append tag compose [ type: (type) name: (name) ] 
+			emit-tag tag 
+			emit [label </label> </div> ] 
+		)
 	]
 	textarea: [
 		'textarea (size: 50x4)
@@ -492,21 +516,6 @@ parse-html: funct [
 			]
 		)
 	]
-	checkbox: [
-		'checkbox
-		set name word!
-		some [
-			set label string!
-		|	style
-		]
-		(
-			unless id [ id: name ]
-			emit [
-				make-label label name
-				make-tag 'input [type: "checkbox" name: (name) id: (id)]
-			]
-		)
-	]
 	hidden: [
 		'hidden
 		set name word!
@@ -520,14 +529,37 @@ parse-html: funct [
 	]	
 	submit: [
 		'submit 
-		set label string!
 		(
-			emit make-tag 'input [ type: "submit" value: (label) ]
+			push tag-stack tag: context [
+				element:	'button
+				type:		'submit	
+				id:			none 
+				class: copy [btn btn-default]
+			]
+		)
+		some [
+			set label string! 
+		|	style
+		]
+		(
+			tag: pop tag-stack
+			switch/default form-type [
+				horizontal [
+					emit <div class="col-sm-offset-2 col-sm-10">				
+					emit-tag tag
+					emit [ label </button> </div> ]
+
+				]
+			][
+				emit-tag tag
+				emit [ label </button> ]
+			]
 		)
 	]
 
 
 	form-content: [
+		
 		[
 			br	
 		|	input
@@ -536,23 +568,37 @@ parse-html: funct [
 		|	submit
 		|	hidden
 		|	captcha
-		]	(
-			print "form content matched"
-		)
+		]
 	]
+	form-type: none
 	form: [ 
 		set name 'form
+		( form-type: none )
 		init-tag
-		set value [ file! | url! ] ( 
-			tag: peek tag-stack
+		opt [
+			'horizontal
+			( form-type: 'horizontal )
+		]
+		(
 			append tag compose [ 
 				action:	(value) 
 				method:	'post
 				role:	'form
 			]
+			if form-type [ append tag/class join "form-" form-type ]
+		)
+		some [
+			set value [ file! | url! ] ( 
+				append tag compose [ action: (value) ]
+			)
+		|	style
+		] 
+		( 
+			tag: pop tag-stack
 			emit-tag tag 
 		)
-		into [ some form-content ] ( emit </form> )
+		into [ some form-content ] 
+		( emit </form> )
 	]
 
 	; --- "plugins"
@@ -616,7 +662,7 @@ parse-html: funct [
 
 	elements: [
 		[
-			set value string! ( print [",,string." value] emit value )
+			set value string! ( emit value )
 		|	basic-elems
 		|	heading
 		|	form
@@ -633,26 +679,48 @@ parse-html: funct [
 	; bootstrap elements
 
 	bootstrap-elems: [
-		container
-	|	row	
+		grid-elems
+	|	col	
 	|	glyphicon
 	]
 
-	container: [
-		'container
-		( emit make-tag 'div [class: #container] )
-		into [ some elements ]
-		( emit close-tag 'div )
+	close-div: [
+		( 
+			tag: pop tag-stack
+			emit </div>
+		)
 	]
 
-	row: [
-		'row
-		( emit make-tag 'div [class: #row] )
+	grid-elems: [
+		set type [ 'row | 'container ]
+		( name: 'div )
+		init-tag
+		( 
+			append tag/class type
+			emit-tag tag
+		)
 		into [ some elements ]
-		( emit close-tag 'div )
+		close-div
 	]
 
-;<span class="glyphicon glyphicon-search"></span>
+	col: [
+		'col
+		( 
+			name: 'div 
+			grid-size: 'md
+			width: 2
+		)
+		init-tag
+		opt [ set grid-size [ 'xs | 'sm | 'md | 'lg ] ]
+		set width integer!
+		(
+			append tag/class rejoin [ "col-" grid-size "-" width ]
+			emit-tag tag
+		)
+		into [ some elements ]
+		close-div
+	]
+
 	glyphicon: [
 		'glyphicon 
 		set name word!

@@ -6,10 +6,27 @@ body
 h1 "Bootstrap test"
 p #lead "This is lead, whatever it means."
 p [ "Some glyph: " glyphicon eye-open  b " hope you've seen it"]
-form %script [
-	field name "Your name:"
-	email mail "Email:"
-	password pass "Password:"
+container [
+	row [
+		col 2 [br]
+		col 8 [
+			form %script [
+				text name "Your name:"
+				email mail "Email:"
+				password pass "Password:"
+				checkbox cb1 "Check me out!"
+				submit "Okay"
+			]
+		]
+		col 2 [br]
+	]
+	row [
+		form horizontal %script [
+			email login "login (your email):"
+			password pass "pass:"
+			submit "log in"
+		]
+	]
 ]
 script https://code.jquery.com/jquery.js
 script %js/bootstrap.min.js
