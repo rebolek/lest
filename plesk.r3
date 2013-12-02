@@ -202,7 +202,7 @@ parse-html: funct [
 		append buffer data ;join data newline
 	]
 
-	emit-tag: funct [
+	make-tag: funct [
 		tag [object!]
 	][
 		out: make string! 256
@@ -225,9 +225,14 @@ parse-html: funct [
 				repend out [ " " to word! key {="} value {"} ]
 			]
 		]
-		append buffer head append out #">"
+		head append out #">"
 	]
 
+	emit-tag: funct [
+		tag [object!]
+	][
+		append buffer make-tag tag
+	]
 
 	emit-label: func [
 		label
@@ -257,6 +262,7 @@ parse-html: funct [
 		some [
 			'id set temp word! ( tag/id: temp )
 		|	set temp issue! ( append tag/class to word! temp )
+		|	'with set temp block! ( append tag temp )
 		]
 	]
 
@@ -321,7 +327,7 @@ parse-html: funct [
 	|	into [ some elements ]
 	]
 
-	paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer ]
+	paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'button ]
 	paired-tag: [
 		set name paired-tags 
 		init-tag
@@ -394,14 +400,18 @@ parse-html: funct [
 
 	ol: [
 		; TODO: uses some custom values, make better handling
-		'ol
+		set name 'ol
+		init-tag
 		any [
 			style
-		|	set start integer!
+		|	set start integer! ( append tag compose [ start: (start) ] )
 		]
-		( emit-tag 'ul [ id: (id) class: (styles) ] )
+		( emit-tag tag )
 		some li
-		( emit close-tag 'ul )
+		( 
+			tag: pop tag-stack
+			emit close-tag 'ol 
+		)
 
 	]
 
@@ -430,6 +440,7 @@ parse-html: funct [
 		|	style	
 		]
 		( 
+			tag: pop tag-stack
 			emit-tag tag
 			emit [	
 				value
@@ -545,9 +556,10 @@ parse-html: funct [
 			tag: pop tag-stack
 			switch/default form-type [
 				horizontal [
+					emit <div class="form-group">
 					emit <div class="col-sm-offset-2 col-sm-10">				
 					emit-tag tag
-					emit [ label </button> </div> ]
+					emit [ label </button> </div> </div> ]
 
 				]
 			][
@@ -583,7 +595,7 @@ parse-html: funct [
 			append tag compose [ 
 				action:	(value) 
 				method:	'post
-				role:	'form
+;				role:	'form
 			]
 			if form-type [ append tag/class join "form-" form-type ]
 		)
