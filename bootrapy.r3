@@ -145,19 +145,6 @@ replace-deep: funct [
 	target
 ]
 
-replace-all: funct [
-	target
-	values
-][
-	foreach [search repl] values [
-		replace target search switch/default type?/word repl [
-			paren!	[do repl]
-			word! 	[get repl]
-		] [ repl ]
-	]
-	target
-]
-
 add-rule: func [
 	"Add new rule to PARSE rules block!"
 	rules 	[block!]
@@ -264,6 +251,8 @@ emit-html: funct [
 
 	make-tag: funct [
 		tag [object!]
+		/special "Special attributes (without value):"
+			attributes	[block!]
 	][
 		out: make string! 256
 		skip?: false
@@ -279,19 +268,24 @@ emit-html: funct [
 				string!	[ if empty? value [ skip?: true ] value ]
 				none!	[ skip?: true ]
 			][
-				form value
+				lib/form value
 			]
 			unless skip? [
 				repend out [ " " to word! key {="} value {"} ]
 			]
 		]
-		head append out #">"
+		unless empty? attributes [
+			append out join #" " lib/form attributes 
+		]
+		append out #">"
 	]
 
 	emit-tag: funct [
 		tag [object!]
+		/special
+			attributes
 	][
-		append buffer make-tag tag
+		append buffer apply :make-tag [ tag special attributes ]
 	]
 
 	emit-label: func [
@@ -684,7 +678,10 @@ emit-html: funct [
 ;                                             
 
 	init-input: [
-		( name: 'input )
+		( 
+			name: 'input 
+			default: none
+		)
 		init-tag
 		( tag: peek tag-stack )
 	]
@@ -695,14 +692,14 @@ emit-html: funct [
 					emit-label/class label name	[col-sm-2 control-label]
 					emit <div class="col-sm-10">
 					tag: pop tag-stack
-					append tag compose [ type: (type) name: (name) ] 
+					append tag compose [ type: (type) name: (name) placeholder: (default) ] 
 					emit-tag tag
 					emit </div>
 				]
 			][
 				emit-label label name
 				tag: pop tag-stack
-				append tag compose [ type: (type) name: (name) ] 
+				append tag compose [ type: (type) name: (name) placeholder: (default) ] 
 				emit-tag tag
 			]
 		) 
@@ -711,6 +708,7 @@ emit-html: funct [
 		set name word! 
 		some [
 			set label string! 
+		|	'default set default string!
 		|	style
 		]
 	]
@@ -738,8 +736,31 @@ emit-html: funct [
 			emit [label </label> </div> ] 
 		)
 	]
+	radio: [
+		set type 'radio 
+		( 
+			emit [ "" <div class="radio"> ] 
+			special: copy []
+		)
+		init-input
+		set name word!
+		set value [ word! | string! | number! ]
+		some [
+			set label string! 
+		|	'checked ( append special 'checked )
+		|	style
+		]
+		pop-tag
+		(
+			append tag compose [ type: (type) name: (name) value: (value) ]
+			emit-tag/special tag special
+			emit [ "" {<label for="} tag/id {">} label </label> </div> ]
+		)
+	]
 	textarea: [
-		'textarea (size: 50x4)
+		set name 'textarea 
+		( size: 50x4 )
+		init-tag
 		set name word!
 		some [
 			set size pair!
@@ -747,16 +768,15 @@ emit-html: funct [
 		|	style
 		]
 		(
-			emit [
-				make-label label name
-				make-tag 'textarea [ 
-					cols: (to integer! size/x) 
-					rows: (to integer! size/y) 
-					name: (name) 
-					id: (id) 
-				]
-				close-tag 'textarea
+			emit-label label name
+			append tag compose [ 
+				cols: (to integer! size/x) 
+				rows: (to integer! size/y) 
+				name: (name) 
+				id: (id) 
 			]
+			emit-tag tag
+			emit close-tag tag/element
 		)
 	]
 	hidden: [
@@ -805,12 +825,12 @@ emit-html: funct [
 	]
 
 	form-content: [
-		
 		[
 			br	
 		|	input
 		|	textarea
 		|	checkbox
+		|	radio
 		|	submit
 		|	hidden
 		|	captcha
@@ -842,7 +862,8 @@ emit-html: funct [
 		] 
 		pop-tag
 		( emit-tag tag )
-		into [ some form-content ] 
+;		into [ some form-content ] 
+		into [ some elements ] 
 		( emit close-tag 'form )
 	]
 
@@ -954,7 +975,7 @@ emit-html: funct [
 			set same-as-user string!
 		]
 		( 
-			append add-plugins trim/lines replace-all
+			append add-plugins trim/lines reword
 {<script type="text/javascript">
 	jQuery(document).ready(function () {
 		"use strict";
@@ -962,24 +983,24 @@ emit-html: funct [
 			minChar: 8,
 			bootstrap3: true,
 			errorMessages: {
-			    password_too_short: "<too-short>",
-			    same_as_username: "<same-as-user>"
+			    password_too_short: "$too-short",
+			    same_as_username: "$same-as-user"
 			},
 			scores: [17, 26, 40, 50],
-			verdicts: [<verdicts>],
+			verdicts: [$verdicts],
 			showVerdicts: true,
 			showVerdictsInitially: false,
 			raisePower: 1.4,
-			usernameField: "#<username>",
+			usernameField: "#$username",
 		};
 		$(':password').pwstrength(options);
 	});
 </script>} 
-			[ 
-				<verdicts>		(catenate/as-is verdicts ", ")
-				<too-short>		too-short
-				<same-as-user>	same-as-user
-				<username>		username
+			compose [ 
+				verdicts		(catenate/as-is verdicts ", ")
+				too-short		(too-short)
+				same-as-user	(same-as-user)
+				username		(username)
 			]
 		)
 		
@@ -1049,6 +1070,7 @@ emit-html: funct [
 			set value string! ( emit value )
 		|	page-header	
 		|	basic-elems
+		|	form-content
 		|	import
 		|	do-code
 		|	repeat
