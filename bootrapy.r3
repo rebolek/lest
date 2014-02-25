@@ -1,8 +1,9 @@
 REBOL[
 	Title:		"BOOTRAPY - HTML/Bootstrap dialect"
 	Author:		"Boleslav Brezovsky"
-	Version:	0.0.1
-	Date:		7-12-2013 
+	Version:	0.0.2
+	Date:		14-1-2013
+	Started:	7-12-2013
 	To-do: [
 		"HTML entities"
 		"Cleanup variables in emit-html"
@@ -13,7 +14,7 @@ REBOL[
 		metadata:	[head title base link meta style]
 		scripting:	[scipt noscript]
 		sections:	[
-			body section nav article aside 
+			body section nav article aside
 			h1 h2 h3 h4 h5 h6
 			header footer address main
 		]
@@ -25,7 +26,7 @@ REBOL[
 		]
 		text:		[
 			a
-			em strong small s dite q dfn abbr 
+			em strong small s dite q dfn abbr
 			data time code var samp kbd sub sup
 			i b u mark ruby rt rp
 			bdi bdo
@@ -36,12 +37,12 @@ REBOL[
 		content: [
 			img iframe embed object param
 			video audio source track canvas
-			map area svg math 
+			map area svg math
 		]
 		tables: [
 			table caption colgroup colgroup
 			tbody thead tfoot
-			tr td th 
+			tr td th
 		]
 		forms: [
 			form fieldset legend label
@@ -57,47 +58,57 @@ See: http://dev.w3.org/html5/markup/common-models.html#common.elem.phrasing
 
 
 Flow-elements: [
-	phrasing elements  a  p  hr  pre  ul  ol  dl  div  h1  h2  h3  h4  h5  h6  
-	hgroup  address  blockquote  ins  del  object  map  noscript  
-	section  nav  article  aside  header  footer  video  audio  
+	phrasing elements  a  p  hr  pre  ul  ol  dl  div  h1  h2  h3  h4  h5  h6
+	hgroup  address  blockquote  ins  del  object  map  noscript
+	section  nav  article  aside  header  footer  video  audio
 	figure  table  fm  fieldset  menu  canvas  details
 ]
 Metadata-elements: [
-	link  style  meta name  
-	meta http-equiv=refresh  
-	meta http-equiv=default-style  
-	meta charset  
-	meta http-equiv=content-type  
+	link  style  meta name
+	meta http-equiv=refresh
+	meta http-equiv=default-style
+	meta charset
+	meta http-equiv=content-type
 	script  noscript  command
 ]
 Phrasing-elements: [
-	a  em  strong  small  mark  abbr  dfn  
-	i  b  s  u  code  var  samp  kbd  sup  sub  
-	q  cite  span  bdo  bdi  br  wbr  ins  del  img  
-	embed  object  iframe  map  area  script  noscript  
-	ruby  video  audio  input  textarea  select  button  
+	a  em  strong  small  mark  abbr  dfn
+	i  b  s  u  code  var  samp  kbd  sup  sub
+	q  cite  span  bdo  bdi  br  wbr  ins  del  img
+	embed  object  iframe  map  area  script  noscript
+	ruby  video  audio  input  textarea  select  button
 	label  output  datalist  keygen  progress  command  canvas  time  meter
 ]
 
-}		
+}
 	]
 ]
 
 
+debug:
+;:print
+none
+
 ; SETTINGS
 
+; TODO: move settings to .PAGE files
 
 js-path: %../../js/			; we are in cgi-bin/lib/ so we need to go two levels up
 css-path: %../../css/
 
+js-path: %js/			; we are in work dir so we need to go just one level up
+css-path: %css/
+
+
+
 ;
-;   _____   _    _   _____    _____     ____    _____    _______     ______   _    _   _   _    _____    _____ 
+;   _____   _    _   _____    _____     ____    _____    _______     ______   _    _   _   _    _____    _____
 ;  / ____| | |  | | |  __ \  |  __ \   / __ \  |  __ \  |__   __|   |  ____| | |  | | | \ | |  / ____|  / ____|
-; | (___   | |  | | | |__) | | |__) | | |  | | | |__) |    | |      | |__    | |  | | |  \| | | |      | (___  
-;  \___ \  | |  | | |  ___/  |  ___/  | |  | | |  _  /     | |      |  __|   | |  | | | . ` | | |       \___ \ 
+; | (___   | |  | | | |__) | | |__) | | |  | | | |__) |    | |      | |__    | |  | | |  \| | | |      | (___
+;  \___ \  | |  | | |  ___/  |  ___/  | |  | | |  _  /     | |      |  __|   | |  | | | . ` | | |       \___ \
 ;  ____) | | |__| | | |      | |      | |__| | | | \ \     | |      | |      | |__| | | |\  | | |____   ____) |
-; |_____/   \____/  |_|      |_|       \____/  |_|  \_\    |_|      |_|       \____/  |_| \_|  \_____| |_____/ 
-;                                                                                                              
+; |_____/   \____/  |_|      |_|       \____/  |_|  \_\    |_|      |_|       \____/  |_| \_|  \_____| |_____/
+;
 
 push: funct [
 	stack
@@ -115,7 +126,7 @@ pop: funct [
 peek: funct [
 	stack
 ][
-	first stack 
+	first stack
 ]
 
 catenate: funct [
@@ -133,17 +144,27 @@ catenate: funct [
 replace-deep: funct [
 	target
 	'search
-	'replace 
+	'replace
 ][
 	rule: compose [
 		change (:search) (:replace)
 	|	any-string!
 	|	into [ some rule ]
-	|	skip	
+	|	skip
 	]
 	parse target [ some rule ]
 	target
 ]
+
+make-rule: func [
+	"Make PARSE rule with local variables"
+	local 	[word! block!]  "Local variable(s)"
+	rule 	[block!]		"PARSE rule"
+][
+	if word? local [ local: reduce [ local ] ]
+	use local reduce [ rule ]
+]
+
 
 add-rule: func [
 	"Add new rule to PARSE rules block!"
@@ -167,7 +188,7 @@ to-www-form: func [
 		repend out [
 			to word! key
 			#"="
-			value 
+			value
 			#"&"
 		]
 	]
@@ -183,7 +204,7 @@ pair-tag: func [
 	rejoin [
 		""
 		to tag! type
-		value 
+		value
 		head insert to tag! type "/"
 	]
 ]
@@ -241,9 +262,9 @@ emit-html: funct [
 
 	; === actions
 
-	emit: func [ 
+	emit: func [
 		data [ string! block! tag! ]
-	][ 
+	][
 		if block? data	[ data: rejoin data ]
 		if tag? data	[ data: mold data ]
 		append buffer data ;join data newline
@@ -261,9 +282,9 @@ emit-html: funct [
 		foreach [ key value ] tag [
 			skip?: false
 			value: switch/default type?/word value [
-				block!	[ 
+				block!	[
 					if empty? value [ skip?: true ]
-					catenate value #" " 
+					catenate value #" "
 				]
 				string!	[ if empty? value [ skip?: true ] value ]
 				none!	[ skip?: true ]
@@ -275,7 +296,7 @@ emit-html: funct [
 			]
 		]
 		unless empty? attributes [
-			append out join #" " lib/form attributes 
+			append out join #" " lib/form attributes
 		]
 		append out #">"
 	]
@@ -295,17 +316,32 @@ emit-html: funct [
 		styles
 	][
 		emit-tag context [ element: 'label for: elem class: styles ]
-		emit join label close-tag 'label 
+		emit join label close-tag 'label
 	]
 
-;  _____    _    _   _        ______    _____ 
+	emit-stylesheet: func [
+		stylesheet
+	][
+		debug ".-emit-."
+		if path? stylesheet [ stylesheet: get stylesheet ]
+		debug ["EMIT SS:" stylesheet]
+		repend stylesheets [{<link href="} stylesheet {" rel="stylesheet">} newline ]
+	]
+
+	emit-plugin: func [
+		plugin
+	][
+		append add-plugins emit-html reduce [ 'script plugin ]
+	]
+
+;  _____    _    _   _        ______    _____
 ; |  __ \  | |  | | | |      |  ____|  / ____|
-; | |__) | | |  | | | |      | |__    | (___  
-; |  _  /  | |  | | | |      |  __|    \___ \ 
+; | |__) | | |  | | | |      | |__    | (___
+; |  _  /  | |  | | | |      |  __|    \___ \
 ; | | \ \  | |__| | | |____  | |____   ____) |
-; |_|  \_\  \____/  |______| |______| |_____/ 
-;                                             
-                                             
+; |_|  \_\  \____/  |______| |______| |_____/
+;
+
 	; --- subrules
 
 	import: [
@@ -316,38 +352,43 @@ emit-html: funct [
 
 	do-code: [
 		; DO PAREN! AND EMIT LAST VALUE
-		set value paren! 
-		( emit emit-html do value )
+		set value paren!
+		( emit emit-html do probe value )
 	]
 
 	user-rule: [
 		set name set-word!
-		( 
-			parameters: copy [ ] 
-			add-rule user-rules reduce [ 
-				to set-word! 'pos 
-				to lit-word! name 
+		(
+			parameters: copy [ ]
+			add-rule user-rules reduce [
+				to set-word! 'pos
+				to lit-word! name
 			]
 		)
-		any [ 
-			set label word! 
-			set type word! 
+		any [
+			set label word!
+			set type word!
 			(
 				add-rule parameters reduce [ 'change to lit-word! label label ]
-				repend user-rules [ 'set label type ] 
+				repend user-rules [ 'set label type ]
 			)
 		]
 		set value block!
 		(
-			repend user-rules [ 
-				to paren! compose/only [ 
+			; TODO: currently cannot use user-rules within user-rules
+			;		it should be possible with EMIT-HTML/WITH ... custom-rule
+			;
+			append user-rules reduce [
+				to paren! compose/only [
+					debug ["user rule match" pos/1 ]
+					debug ["params: " (mold parameters)]
 					; TODO: move rule outside
-					rule: [
+					rule: (compose [
 						any-string!
 					|	into [ some rule ]
-					|	parameters
-					|	skip	
-					]
+					|	(parameters)
+					|	skip
+					])
 					temp: copy/deep ( value )
 					parse temp [ some rule ]
 					emit emit-html temp
@@ -360,16 +401,16 @@ emit-html: funct [
 	make-row: [
 		'row
 		'with
-		( 
+		(
 			index: 1
-			offset: none 
+			offset: none
 		)
 		some [
-			set cols integer! 
+			set cols integer!
 			[ 'col | 'cols ]
 		|	'offset
-			set offset integer!	
-		;	
+			set offset integer!
+		;
 		; --
 		; -- TODO: COL x COL y COL ...
 		; --
@@ -414,9 +455,9 @@ emit-html: funct [
 						offset: none
 					]
 					append out current
-				] 
+				]
 				emit emit-html compose/deep [ row [ (out) ] ]
-			)	
+			)
 		]
 
 	]
@@ -473,6 +514,10 @@ emit-html: funct [
 	]
 
 	pop-tag: [ ( tag: pop tag-stack ) ]
+	end-tag: [
+		pop-tag
+		( emit close-tag tag/element )
+	]
 
 	style: [
 		some [
@@ -486,20 +531,25 @@ emit-html: funct [
 		'comment [ block! | string! ]
 	]
 
+	debug-rule: [
+		'debug set value string!
+		( print ["DEBUG:" value])
+	]
+
 	script: [
+		opt ['append ( append?: true )]
 		'script
 		init-tag
 		set value [ string! | file! | url! | path! ]
 		(
 			if path? value [ value: get value ]
-			emit [
-				either string? value [
-					rejoin ["" <script type="text/javascript"> value]
-				][
-					rejoin [{<script src="} value {">} ]
-				]
-				close-tag 'script
+			value: rejoin either string? value [
+				["" <script type="text/javascript"> value ]
+			] [
+				[{<script src="} value {">} ]
 			]
+			append value close-tag 'script
+			either append? [ append add-plugins value ] [ emit value ]
 		)
 	]
 
@@ -509,13 +559,15 @@ emit-html: funct [
 	; TODO: use EMIT
 
 	page-header: [
-		'head 
+		'head (debug "==HEAD")
 		(header?: true)
 		some [
-			'title set value string! (page/title: value)
-		|	'stylesheet set value [ file! | url! ] (
-				repend stylesheets [{<link href="} value {" rel="stylesheet">} newline ]
-			) 
+			'title set value string! (page/title: value debug "==TITLE")
+		|	'stylesheet set value [ file! | url! | path! ] (
+				if path? value [ value: get value ]
+				emit-stylesheet value
+				debug ["==STYLESHEET:" value]
+			)
 		|	'style set value string! (
 				repend stylesheets ["" <style> value </style> newline ]
 			)
@@ -531,22 +583,23 @@ emit-html: funct [
 				repend page/meta [ {<meta name="} name {" content="} value {">}]
 			)
 		|	google-font
-
+		|	enable
+		|	ga
 		]
-		'body
+		'body (debug "==BODY")
 
 	]
-	
-;  ____                _____   _____    _____     ______   _        ______   __  __    _____ 
+
+;  ____                _____   _____    _____     ______   _        ______   __  __    _____
 ; |  _ \      /\      / ____| |_   _|  / ____|   |  ____| | |      |  ____| |  \/  |  / ____|
-; | |_) |    /  \    | (___     | |   | |        | |__    | |      | |__    | \  / | | (___  
-; |  _ <    / /\ \    \___ \    | |   | |        |  __|   | |      |  __|   | |\/| |  \___ \ 
+; | |_) |    /  \    | (___     | |   | |        | |__    | |      | |__    | \  / | | (___
+; |  _ <    / /\ \    \___ \    | |   | |        |  __|   | |      |  __|   | |\/| |  \___ \
 ; | |_) |  / ____ \   ____) |  _| |_  | |____    | |____  | |____  | |____  | |  | |  ____) |
-; |____/  /_/    \_\ |_____/  |_____|  \_____|   |______| |______| |______| |_|  |_| |_____/ 
-;                                                                                            
+; |____/  /_/    \_\ |_____/  |_____|  \_____|   |______| |______| |______| |_|  |_| |_____/
+;
 
 	br: [ 'br ( emit <br> ) ]
-	hr: [ 'hr ( emit <hr> ) ]	
+	hr: [ 'hr ( emit <hr> ) ]
 
 	match-content: [
 		set value string!
@@ -555,24 +608,29 @@ emit-html: funct [
 
 	paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 	paired-tag: [
-		set name paired-tags 
+		set name paired-tags
 		init-tag
 		opt style
-		( emit-tag tag )
-		match-content
-		pop-tag
 		(
-			if value [ emit value ]
-			emit close-tag tag/element
+			debug ["==PAIRED:" tag/element]
+			emit-tag tag
 		)
+		match-content
+		( if value [ emit value ] )
+		end-tag
 	]
 
 	image: [
-		['img | 'image] ( name: 'img )
+		['img | 'image]
+		(
+			debug "==IMAGE"
+			name: 'img
+		)
 		init-tag
 		some [
 			set target [ file! | url! ] ( append tag compose [ src: (target) ] )
-		|	style 
+		|	style
+		|	set value pair! ( append tag compose [ width: (value/x) height: (value/y) ] )
 		]
 		pop-tag
 		( emit-tag tag )
@@ -585,17 +643,21 @@ emit-html: funct [
 		some [
 			set target [ file! | url! ] ( append tag compose [ href: (target) ] )
 		|	style
-		] 
-		( emit-tag tag )
+		]
+		(
+			debug "==LINK"
+			emit-tag tag
+		)
 		match-content
 		pop-tag
 		(
+			debug "==LINK close"
 			if value [ emit value ]
 			emit close-tag 'a
 		)
 	]
 
-	; lists - UL, OL, LI
+	; lists - UL, OL, LI, DL
 
 	li: [
 		set name 'li
@@ -611,10 +673,13 @@ emit-html: funct [
 	]
 
 	ul: [
-		set name 'ul
+		set name 'ul (debug "ul matched")
 		init-tag
 		opt style
-		( emit-tag tag )
+		(
+			debug "==UL"
+			emit-tag tag
+		)
 		some li
 		pop-tag
 		( emit close-tag 'ul )
@@ -635,51 +700,115 @@ emit-html: funct [
 
 	]
 
+	dl: [
+		set name 'dl
+		init-tag
+		opt [
+			'horizontal ( append tag/class 'dl-horizontal )
+		|	style
+		]
+		( emit-tag tag )
+		some [
+			set value string!
+			( emit ajoin [ <dt> value </dt> ] )
+			set value string!
+			( emit ajoin [ <dd> value </dd> ] )
+		]
+		end-tag
+	]
+
 	list-elems: [
 		ul
 	|	ol
+	|	dl
 	]
 
 	basic-elems: [
-		comment
+		basic-string
+	|	comment
+	|	debug-rule
 	|	br
 	|	hr
+	|	table
 	|	paired-tag
 	|	image
-	|	link 
+	|	link
 	|	list-elems
+	]
+
+	basic-string: [
+		set value string!
+		( emit value )
 	]
 
 	; --- headings
 
-	heading: [ 
+	heading: [
 		set name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
 		init-tag
 		some [
 			set value string!	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
-		|	style	
+		|	style
 		]
 		pop-tag
-		( 
+		(
+			debug "==HEADING"
 			emit-tag tag
-			emit [	
+			emit [
 				value
 				close-tag tag/element
 			]
 		)
 	]
 
-;  ______    ____    _____    __  __    _____ 
+	; table
+
+	table: [
+		set name 'table
+		init-tag
+		style
+		(
+			insert tag/class 'table
+			emit-tag tag
+		)
+		opt [
+			'header
+			( emit <tr> )
+			into [
+				some [
+					set value string!
+					( emit ajoin [<th> value </th>] )
+				]
+			]
+			( emit </tr> )
+
+		]
+		some [
+			into [
+				( emit <tr> )
+				some [
+					( pos: tail buffer )
+					basic-elems
+					( insert pos <td>)
+					( emit </td> )
+				]
+				( emit </tr> )
+			]
+		]
+		end-tag
+	]
+
+;  ______    ____    _____    __  __    _____
 ; |  ____|  / __ \  |  __ \  |  \/  |  / ____|
-; | |__    | |  | | | |__) | | \  / | | (___  
-; |  __|   | |  | | |  _  /  | |\/| |  \___ \ 
+; | |__    | |  | | | |__) | | \  / | | (___
+; |  __|   | |  | | |  _  /  | |\/| |  \___ \
 ; | |      | |__| | | | \ \  | |  | |  ____) |
-; |_|       \____/  |_|  \_\ |_|  |_| |_____/ 
-;                                             
+; |_|       \____/  |_|  \_\ |_|  |_| |_____/
+;
 
 	init-input: [
-		( 
-			name: 'input 
+		(
+			name: 'input
 			default: none
 		)
 		init-tag
@@ -689,32 +818,37 @@ emit-html: funct [
 		(
 			switch/default form-type [
 				horizontal [
-					emit-label/class label name	[col-sm-2 control-label]
+					unless empty? label [
+						emit-label/class label name	[col-sm-2 control-label]
+					]
 					emit <div class="col-sm-10">
 					tag: pop tag-stack
-					append tag compose [ type: (type) name: (name) placeholder: (default) ] 
+					append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
 					emit-tag tag
 					emit </div>
 				]
 			][
-				emit-label label name
+				unless empty? label [
+					emit-label label name
+				]
 				tag: pop tag-stack
-				append tag compose [ type: (type) name: (name) placeholder: (default) ] 
+				append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
 				emit-tag tag
 			]
-		) 
+		)
 	]
 	input-parameters: [
-		set name word! 
+		set name word!
 		some [
-			set label string! 
+			set label string!
 		|	'default set default string!
+		|	'value set value string!
 		|	style
 		]
 	]
 	input: [
-		set type [ 
-			'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week 
+		set type [
+			'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
 		|	'number | 'email | 'url | 'search | 'tel | 'color
 		]
 		( emit <div class="form-group"> )
@@ -723,7 +857,7 @@ emit-html: funct [
 		input-parameters
 		emit-input
 		( emit </div> )
-	]	
+	]
 	checkbox: [
 		set type 'checkbox
 		( emit [ "" <div class="checkbox"> <label> ] )
@@ -731,22 +865,23 @@ emit-html: funct [
 		input-parameters
 		pop-tag
 		(
-			append tag compose [ type: (type) name: (name) ] 
-			emit-tag tag 
-			emit [label </label> </div> ] 
+			append tag compose [ type: (type) name: (name) ]
+			emit-tag tag
+			emit [label </label> </div> ]
 		)
 	]
 	radio: [
-		set type 'radio 
-		( 
-			emit [ "" <div class="radio"> ] 
+		set type 'radio
+		(
+			debug "==RADIO"
+			emit [ "" <div class="radio"> ]
 			special: copy []
 		)
 		init-input
 		set name word!
 		set value [ word! | string! | number! ]
 		some [
-			set label string! 
+			set label string!
 		|	'checked ( append special 'checked )
 		|	style
 		]
@@ -758,24 +893,36 @@ emit-html: funct [
 		)
 	]
 	textarea: [
-		set name 'textarea 
-		( size: 50x4 )
+		; TODO: DEFAULT
+		set name 'textarea
+		(
+			size: 50x4
+			label: ""
+		)
 		init-tag
 		set name word!
+		(
+			value: ""
+			default: ""
+		)
 		some [
 			set size pair!
 		|	set label string!
+		|	'default set default string!
+		|	'value set value string!
 		|	style
 		]
+		pop-tag
 		(
-			emit-label label name
-			append tag compose [ 
-				cols: (to integer! size/x) 
-				rows: (to integer! size/y) 
-				name: (name) 
-				id: (id) 
+			unless empty? label [ emit-label label name ]
+			append tag compose [
+				cols: (to integer! size/x)
+				rows: (to integer! size/y)
+				name: (name)
+;				id: (id)
 			]
 			emit-tag tag
+			emit value
 			emit close-tag tag/element
 		)
 	]
@@ -789,22 +936,22 @@ emit-html: funct [
 		]
 		pop-tag
 		(
-			append tag compose [ type: 'hidden name: (name) value: (value) ] 
-			emit-tag tag 
+			append tag compose [ type: 'hidden name: (name) value: (value) ]
+			emit-tag tag
 		)
-	]	
+	]
 	submit: [
-		'submit 
+		'submit
 		(
 			push tag-stack tag: context [
 				element:	'button
-				type:		'submit	
-				id:			none 
+				type:		'submit
+				id:			none
 				class: copy [btn btn-default]
 			]
 		)
 		some [
-			set label string! 
+			set label string!
 		|	style
 		]
 		pop-tag
@@ -812,7 +959,7 @@ emit-html: funct [
 			switch/default form-type [
 				horizontal [
 					emit <div class="form-group">
-					emit <div class="col-sm-offset-2 col-sm-10">				
+					emit <div class="col-sm-offset-2 col-sm-10">
 					emit-tag tag
 					emit [ label </button> </div> </div> ]
 
@@ -826,7 +973,7 @@ emit-html: funct [
 
 	form-content: [
 		[
-			br	
+			br
 		|	input
 		|	textarea
 		|	checkbox
@@ -838,7 +985,7 @@ emit-html: funct [
 		]
 	]
 	form-type: none
-	form: [ 
+	form: [
 		set name 'form
 		( form-type: none )
 		init-tag
@@ -847,79 +994,478 @@ emit-html: funct [
 			( form-type: 'horizontal )
 		]
 		(
-			append tag compose [ 
-				action:	(value) 
+			append tag compose [
+				action:	(value)
 				method:	'post
 ;				role:	'form
 			]
 			if form-type [ append tag/class join "form-" form-type ]
 		)
 		some [
-			set value [ file! | url! ] ( 
+			set value [ file! | url! ] (
 				append tag compose [ action: (value) ]
 			)
 		|	style
-		] 
+		]
 		pop-tag
 		( emit-tag tag )
-;		into [ some form-content ] 
-		into [ some elements ] 
+;		into [ some form-content ]
+		into [ some elements ]
 		( emit close-tag 'form )
 	]
 
-;  _____    _        _    _    _____   _____   _   _    _____ 
-; |  __ \  | |      | |  | |  / ____| |_   _| | \ | |  / ____|
-; | |__) | | |      | |  | | | |  __    | |   |  \| | | (___  
-; |  ___/  | |      | |  | | | | |_ |   | |   | . ` |  \___ \ 
-; | |      | |____  | |__| | | |__| |  _| |_  | |\  |  ____) |
-; |_|      |______|  \____/   \_____| |_____| |_| \_| |_____/ 
-;                                                             
-                                                             
-	captcha: [
-		'captcha set value string! (
-			emit replace {
-<script type="text/javascript"
-     src="http://www.google.com/recaptcha/api/challenge?k=#public-key">
-  </script>
-  <noscript>
-     <iframe src="http://www.google.com/recaptcha/api/noscript?k=#public-key"
-         height="300" width="500" frameborder="0"></iframe><br>
-     <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-     </textarea>
-     <input type="hidden" name="recaptcha_response_field"
-         value="manual_challenge">
-  </noscript>
-} #public-key value
+	; --- put it all together
+
+	elements: [
+		pos: (debug ["parse at: " index? pos "::" first pos] set 'p pos)
+		[
+			set value string! ( emit value )
+		|	page-header
+		|	basic-elems
+		|	form-content
+		|	import
+		|	do-code
+		|	repeat
+		|	user-rules
+		|	user-rule
+		|	heading
+		|	form
+		|	script
+		|	bootstrap-elems
+		|	plugins
+		]
+		(
+			; cleanup buffer
+			value: none
 		)
 	]
-	ga: [ 
+
+;
+;  ____     ____     ____    _______    _____   _______   _____               _____
+; |  _ \   / __ \   / __ \  |__   __|  / ____| |__   __| |  __ \      /\     |  __ \
+; | |_) | | |  | | | |  | |    | |    | (___      | |    | |__) |    /  \    | |__) |
+; |  _ <  | |  | | | |  | |    | |     \___ \     | |    |  _  /    / /\ \   |  ___/
+; | |_) | | |__| | | |__| |    | |     ____) |    | |    | | \ \   / ____ \  | |
+; |____/   \____/   \____/     |_|    |_____/     |_|    |_|  \_\ /_/    \_\ |_|
+;
+
+
+	bootstrap-elems: [
+		grid-elems
+	|	col
+	|	bar
+	|	panel
+	|	glyphicon
+	|	dropdown
+	|	carousel
+	|	modal
+	|	address
+	]
+
+	close-div: [
+		(
+			tag: pop tag-stack
+			emit </div>
+		)
+	]
+
+	grid-elems: [
+		set type [ 'row | 'container ]
+		( name: 'div )
+		init-tag
+		opt style
+		(
+			insert tag/class type
+			emit-tag tag
+		)
+		into [ some elements ]
+		close-div
+	]
+
+	col: [
+		'col
+		(
+			name: 'div
+			grid-size: 'md
+			width: 2
+			offset: none
+		)
+		init-tag
+		some [
+			'offset set offset integer!
+		|	set grid-size [ 'xs | 'sm | 'md | 'lg ]
+		|	set width integer!
+		]
+		opt style
+		(
+			append tag/class rejoin [ "col-" grid-size "-" width ]
+			if offset [
+				append tag/class rejoin [ "col-" grid-size "-offset-" offset ]
+			]
+			emit-tag tag
+		)
+		into [ some elements ]
+		close-div
+	]
+
+	bar: [
+		'bar
+	]
+
+	panel: [
+
+; TODO NOTE: FOOTER is all wrong. Currently it's not added to the end of panel.
+;	this would require marking position in the output and moving that position
+;	for content/footer OR changng the rules so the panel's footer is _after_
+;	the panel content. First posibilit is harder to write, but preferable.
+
+		'panel
+		(
+			name: 'div
+			panel-type: 'default
+		)
+		init-tag
+		opt [
+			[ not ['heading | 'footer] ]
+			and
+			[set panel-type word!]
+			skip
+		]
+		(
+			repend tag/class [
+				'panel
+				to word! join 'panel- panel-type
+			]
+			emit-tag tag
+		)
+		any [
+			[
+				'heading
+				( name: 'div )
+				init-tag
+				(
+					append tag/class 'panel-heading
+					emit-tag tag
+				)
+				[
+					set value string!
+					( emit ajoin [<h3 class="panel-title"> value </h3>] )
+				|	into [ some elements ]
+				]
+				end-tag
+			]
+		|	[
+				'footer
+				( name: 'div )
+				init-tag
+				(
+					append tag/class 'panel-footer
+					emit-tag tag
+				)
+				into [ some elements ]
+				end-tag
+			]
+		]
+		into [ some elements ]
+		end-tag
+
+	]
+
+	glyphicon: [
+		'glyphicon
+		set name word!
+		(
+			debug ["==GLYPHICON: " name]
+			emit rejoin [ {<span class="glyphicon glyphicon-} name {"></span>} ]
+		)
+	]
+
+	address: [
+		'address
+		(
+			emit <address>
+			first-line?: true
+		)
+		into [
+			some [
+				set value string! (
+					emit rejoin either first-line? [
+						first-line?: false
+						[ "" <strong> value </strong> <br> ]
+					] [
+						[ value <br> ]
+					]
+				)
+			|	'email set value string! (
+					emit rejoin [{<a href="mailto:} value {">} value </a> <br> ]
+				)
+			|	'phone set value string! (
+					; TODO: hardcoded localization
+					emit rejoin ["" <abbr title="Telefon"> "Tel: " </abbr> value <br>]
+				)
+			]
+		]
+		( emit </address> )
+	]
+
+	carousel: [
+		;
+		;
+		;	There are three types of CAROUSEL INDICATORS:
+		;	1. default (CAROUSE name [...carousel items...]) - dafult indicators that can be styled using CSS
+		;	2. custom (CAROUSEL name INDICATORS [...indicators...] [...carousel items...]) -
+		;		replace default indicators
+		;	3. no indicators (CAROUSEL name NO INDICATORS [...carousel items...]) -
+		;		do not add indicators to carousel - controls can be outside of carousel
+		;
+		;
+		'carousel
+		init-tag
+		(
+			debug "==CAROUSEL"
+			append tag compose [
+				element: div
+				inner-html: ( copy {} )
+				items: 0
+				active: 0
+				data-ride: carousel
+				class: [ carousel slide ]
+			]
+			carousel-menu: none
+		)
+		set name word!
+		( tag/id: name )
+		any [
+			style
+		|	'no 'indicators	( carousel-menu: false )
+		|	'indicators set carousel-menu block!
+		]
+		into [ some carousel-item ]
+		pop-tag
+		(
+			if none? carousel-menu [
+				; create default carousel indicators
+				carousel-menu: copy [ ol #carousel-indicators ]
+				; NOTE: REPEAT was redefined with rule of same name, so we use original from LIB context
+				lib/repeat i tag/items [
+					append carousel-menu reduce [
+						'li 'with compose [
+							data-target: ( to issue! tag/id )
+							data-slide-to: ( i - 1 )
+							( either i = tag/active [ [ class: active ] ] [] )
+						]
+						""
+					]
+				]
+			]
+			data: tag/inner-html
+			tag/items:
+			tag/active:
+			tag/inner-html: none
+			emit [
+				make-tag tag
+				either carousel-menu [
+					;default or custom indicators
+					emit-html carousel-menu
+				][
+					; no indicators
+					""
+				]
+				<div class="carousel-inner">
+				data
+				</div>
+				emit-html compose [
+					a ( to file! to issue! tag/id ) #left #carousel-control with [ data-slide: prev ] [ glyphicon chevron-left ]
+					a ( to file! to issue! tag/id ) #right #carousel-control with [ data-slide: next ] [ glyphicon chevron-right ]
+				]
+				close-tag 'div
+			]
+		)
+	]
+
+	carousel-item: [
+		'item
+		( active?: false )
+		opt [
+			'active
+			( active?: true )
+		]
+		set data block!
+		(
+			append tag/inner-html rejoin [
+				{<div class="item}
+				either active? [ " active" ] [ "" ]
+				{">}
+				emit-html data
+				</div>
+			]
+			tag/items: tag/items + 1
+			if active? [ tag/active: tag/items ]
+		)
+	]
+
+	dropdown: [
+		'dropdown
+		init-tag
+		copy label string!
+		(
+			tag/element: 'div
+			tag/class: [ btn-group ]
+			emit [
+				make-tag tag
+				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+				label
+				<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+			]
+		)
+		some [
+			menu-item
+		|	menu-divider
+		]
+		( emit close-tag 'ul )
+		close-div
+	]
+	menu-item: [
+		set label string!
+		set target [ file! | url! ]
+		( emit [ {<li><a href="} target {">} label {</a></li>} ] )
+	]
+	menu-divider: [
+		'divider
+		( emit [ "" <li class="divider"></li> ] )
+	]
+
+	modal: [
+		'modal
+		init-tag
+		( label: 'modal-label )
+		set name word!
+		opt [ 'label set label word! ]
+		(
+			debug "==MODAL"
+			tag/element: 'div
+			tag/id: name
+			append tag/class [ modal fade ]
+			append tag [
+				tabindex: -1
+				role: dialog
+				aria-labelledby: label
+				aria-hidden: true
+			]
+			emit-tag tag
+		)
+		init-tag
+		(
+			tag/element: 'div
+			append tag/class 'modal-dialog
+			emit-tag tag
+		)
+		init-tag
+		(
+			tag/element: 'div
+			append tag/class 'modal-content
+			emit-tag tag
+		)
+		opt modal-header
+		modal-body
+		opt modal-footer
+		end-tag	; modal-content
+		end-tag	; modal-dialog
+		end-tag	; modal
+	]
+	modal-header: [
+		'header
+		init-tag
+		(
+			tag/element: 'div
+			append tag/class 'modal-header
+			emit-tag tag
+			emit {<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>}
+		)
+		into [ some elements ]
+		end-tag
+	]
+	modal-body: [
+		opt 'body
+		init-tag
+		(
+			tag/element: 'div
+			append tag/class 'modal-body
+			emit-tag tag
+		)
+		into [ some elements ]
+		end-tag
+	]
+	modal-footer: [
+		'header
+		init-tag
+		(
+			tag/element: 'div
+			append tag/class 'modal-footer
+			emit-tag tag
+		)
+		into [ some elements ]
+		end-tag
+	]
+
+;  _____    _        _    _    _____   _____   _   _    _____
+; |  __ \  | |      | |  | |  / ____| |_   _| | \ | |  / ____|
+; | |__) | | |      | |  | | | |  __    | |   |  \| | | (___
+; |  ___/  | |      | |  | | | | |_ |   | |   | . ` |  \___ \
+; | |      | |____  | |__| | | |__| |  _| |_  | |\  |  ____) |
+; |_|      |______|  \____/   \_____| |_____| |_| \_| |_____/
+;
+
+	captcha: [
+		'captcha set value string! (
+			emit reword {
+<script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=$public-key"></script>
+<noscript>
+	<iframe src="http://www.google.com/recaptcha/api/noscript?k=$public-key" height="300" width="500" frameborder="0"></iframe>
+	<br>
+	<textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+	<input type="hidden" name="recaptcha_response_field" value="manual_challenge">
+</noscript>
+} reduce [ 'public-key value ]
+		)
+	]
+	ga: [
 		; google analytics
-		'ga set value word! (
-			emit replace {
+		'ga
+		set value word!
+		set web word!
+		(
+			debug ["==GOOGLE ANALYTICS:" value web]
+			append add-plugins reword {
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', '#value', 'mraky.net');
+  ga('create', '$value', '$web');
   ga('send', 'pageview');
 
 </script>
-} #value value
+} [
+	'value value
+	'web web
+]
 		)
 	]
 
 	map: [
 		; google maps
-		'map 
+		'map
 		set location pair!
 		(
 			emit rejoin [ ""
-   				<div id="contact" class="map"> newline 
+   				<div id="contact" class="map"> newline
    					<div id="map_canvas"></div> newline
    				</div> newline
-   				<script> 
+   				<script>
    				{google.maps.event.addDomListener(window, 'load', setMapPosition(} location/x #"," location/y {));}
    				</script>
     		]
@@ -930,11 +1476,12 @@ emit-html: funct [
 		'google-font
 		set name string!
 		(
+			debug ["==GFONT:" name]
 			; TODO: character sets
 			repend stylesheets [
-				{<link href='http://fonts.googleapis.com/css?family=} 
+				{<link href='http://fonts.googleapis.com/css?family=}
 				replace/all name #" " #"+"
-				{&subset=latin,latin-ext' rel='stylesheet' type='text/css'>}
+				{:400,300&subset=latin,latin-ext' rel='stylesheet' type='text/css'>}
 			]
 
 		)
@@ -942,24 +1489,63 @@ emit-html: funct [
 
 	fa-icon: [
 		; TODO: add link for font awesome CSS to header
-		'fa-icon 
-		set name word!
-		( emit rejoin [{<i class="fa fa-} name {"></i>}] )
+		'fa-icon
+		init-tag
+		(
+			name: none
+			fixed?: ""
+		)
+		[
+			'stack set name block!
+		|	set name word!
+		]
+		(debug ["==FA-ICON:" name])
+		any [
+			set size integer!
+		|	'fixed ( fixed?: " fa-fw" )
+		; TODO: Add ROTATE and FLIP support
+		|	'rotate set value integer!
+		|	'flip set value [ 'horizontal | 'vertical ]
+		|	style
+		]
+		pop-tag
+		(
+			size-att: case [
+				size = 1 	( { fa-lg} )
+				size 		( rejoin [ { fa-} size {x}] )
+				true 		( {} )
+			]
+			either word? name [
+				; single icon
+				emit rejoin [ {<i class="fa fa-} name size-att fixed? " " tag/class {"></i>} ]
+			][
+				; stacked icons
+				; TODO: support size for stacked icons
+				emit rejoin [
+					""
+					<span class="fa-stack fa-lg">
+					  {<i class="fa fa-} first name { fa-stack-2x} fixed? {">}</i>
+					  {<i class="fa fa-} second name { fa-stack-1x fa-inverse } fixed? catenate tag/class " " {">}</i>
+					</span>
+				]
+			]
+
+		)
 	]
 
 	password-strength: [
 		;
 		; https://github.com/ablanco/jquery.pwstrength.bootstrap
 		;
-		; USAGE: 
+		; USAGE:
 		;
 		; password-strength
 		; password-strength username user
 		; password-strength username user verdicts ["Slabé" "Normální" "Středně silné" "Silné" "Velmi silné"]
 		;
 		'password-strength
-		( 
-			verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"] 
+		(
+			verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"]
 			too-short: "<font color='red'>The Password is too short</font>"
 			same-as-user: "Your password cannot be the same as your username"
 			username: "username"
@@ -967,14 +1553,14 @@ emit-html: funct [
 		any [
 			'username
 			set username word!
-		|	'verdicts 
+		|	'verdicts
 			set verdicts block!
 		|	'too-short
 			set too-short string!
 		|	'same-as-user
 			set same-as-user string!
 		]
-		( 
+		(
 			append add-plugins trim/lines reword
 {<script type="text/javascript">
 	jQuery(document).ready(function () {
@@ -995,37 +1581,56 @@ emit-html: funct [
 		};
 		$(':password').pwstrength(options);
 	});
-</script>} 
-			compose [ 
+</script>}
+			compose [
 				verdicts		(catenate/as-is verdicts ", ")
 				too-short		(too-short)
 				same-as-user	(same-as-user)
 				username		(username)
 			]
 		)
-		
+	]
+
+	wysiwyg: [
+		'wysiwyg (debug ["==WYSIWYG matched"])
+		init-tag
+		opt style
+		(
+			debug ["==WYSIWYG"]
+			tag/element: 'textarea
+			append tag/class 'wysiwyg
+			emit-tag tag
+		)
+		end-tag
 	]
 
 	enable: [
-		'enable [
+		'enable (debug "==ENABLE") [
 			'bootstrap (
+				debug "==ENABLE BOOTSTRAP"
+				emit-stylesheet css-path/bootstrap.min.css
 				append add-plugins emit-html [
 					script js-path/jquery-1.10.2.min.js
 					script js-path/bootstrap.min.js
 				]
 			)
 		|	'smooth-scrolling (
+				debug "==ENABLE SMOOTH SCROLLING"
+				; TODO: this expect all controls to be part of UL with ID #page-nav
+				; make more generic, but do not break another anchors!!!
 				append add-plugins emit-html [
 					script {
 					  $(function() {
-					    $('a[href*=#]:not([href=#])').click(function() {
+					    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {
 					      if (location.pathname.replace(/^^\//,'') == this.pathname.replace(/^^\//,'') && location.hostname == this.hostname) {
-	
+
 					        var target = $(this.hash);
+					        var navHeight = $("#page-nav").height();
+
 					        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
 					        if (target.length) {
 					          $('html,body').animate({
-					            scrollTop: target.offset().top - 40   /* TODO: hardcoded offset, should get real navbar size */
+					            scrollTop: target.offset().top - navHeight
 					          }, 1000);
 					          return false;
 					        }
@@ -1036,6 +1641,7 @@ emit-html: funct [
 				]
 			)
 		|	'pretty-photo (
+				debug "==ENABLE PRETTY PHOTO"
 				append add-plugins emit-html [
 					script js-path/jquery.prettyPhoto.js
 					script {
@@ -1046,9 +1652,28 @@ emit-html: funct [
 				]
 			)
 		|	'password-strength (
+				debug "==ENABLE PASSWORD STRENGTH"
+				debug js-path
 				append add-plugins emit-html [
 					script js-path/pwstrength.js
 				]
+			)
+		|	'wysiwyg (
+				debug "==ENABLE WYSIWYG"
+				emit-stylesheet css-path/bootstrap-wysihtml5.css
+
+				emit-plugin js-path/wysihtml5-0.3.0.min.js
+				emit-plugin js-path/bootstrap3-wysihtml5.js
+				emit-plugin {$('.wysiwyg').wysihtml5();}
+			)
+		|	'lightbox (
+				debug "==ENABLE LIGHTBOX"
+				emit-stylesheet css-path/bootstrap-lightbox.min.css
+				emit-plugin js-path/bootstrap-lightbox.min.js
+			)
+		|	'font-awesome (
+				debug "==ENABLE FONT AWESOME"
+				emit-stylesheet css-path/font-awesome.min.css
 			)
 		]
 	]
@@ -1059,228 +1684,21 @@ emit-html: funct [
 	|	google-font			; GOOGLE FONT
 	|	fa-icon				; FONT AWESOME ICON - http://fontawesome.io/icons/
 	|	password-strength	; PASSWORD STRENGTH - bootstrap/jquery plugin
+	|	wysiwyg 			; WYSIWYG EDITOR - https://github.com/mindmup/bootstrap-wysiwyg/
 	|	enable
 	]
 
 
-	; --- put it all together
 
-	elements: [
-		[
-			set value string! ( emit value )
-		|	page-header	
-		|	basic-elems
-		|	form-content
-		|	import
-		|	do-code
-		|	repeat
-		|	user-rules
-		|	user-rule
-		|	heading
-		|	form
-		|	script
-		|	bootstrap-elems
-		|	plugins	
-		]
-		(
-			; cleanup buffer
-			value: none
-		)
-	]
-
-;
-;  ____     ____     ____    _______    _____   _______   _____               _____  
-; |  _ \   / __ \   / __ \  |__   __|  / ____| |__   __| |  __ \      /\     |  __ \ 
-; | |_) | | |  | | | |  | |    | |    | (___      | |    | |__) |    /  \    | |__) |
-; |  _ <  | |  | | | |  | |    | |     \___ \     | |    |  _  /    / /\ \   |  ___/ 
-; | |_) | | |__| | | |__| |    | |     ____) |    | |    | | \ \   / ____ \  | |     
-; |____/   \____/   \____/     |_|    |_____/     |_|    |_|  \_\ /_/    \_\ |_|     
-;
-
-
-	bootstrap-elems: [
-		grid-elems
-	|	col	
-	|	glyphicon
-	|	dropdown
-	|	carousel
-	]
-
-	close-div: [
-		( 
-			tag: pop tag-stack
-			emit </div>
-		)
-	]
-
-	grid-elems: [
-		set type [ 'row | 'container ]
-		( name: 'div )
-		init-tag
-		opt style
-		( 
-			append tag/class type
-			emit-tag tag
-		)
-		into [ some elements ]
-		close-div
-	]
-
-	col: [
-		'col
-		(
-			name: 'div 
-			grid-size: 'md
-			width: 2
-			offset: none
-		)
-		init-tag
-		some [
-			'offset set offset integer! 
-		|	set grid-size [ 'xs | 'sm | 'md | 'lg ] 
-		|	set width integer!
-		]
-		(
-			append tag/class rejoin [ "col-" grid-size "-" width ]
-			if offset [
-				append tag/class rejoin [ "col-" grid-size "-offset-" offset ]
-			]
-			emit-tag tag
-		)
-		into [ some elements ]
-		close-div
-	]
-
-	glyphicon: [
-		'glyphicon 
-		( size: none )
-		some [
-			set name word!
-		|	set size integer!
-		]
-		(
-			size-att: case [
-				size = 1 	( { fa-lg} )
-				size 		( rejoin [ { fa-} size {x}] )
-				true 		( {} )
-			]
-			emit rejoin [ {<span class="glyphicon glyphicon-} name size-att {"></span>} ]
-		)
-	]
-
-	carousel: [
-		'carousel
-		init-tag
-		(
-			append tag compose [ 
-				element: div
-				inner-html: ( copy {} )
-				items: 0 
-				active: 0
-				data-ride: carousel 
-				class: [ carousel slide ]
-			] 
-		)
-		set name word! 
-		( tag/id: name )
-		opt style
-		into [ some carousel-item ]
-		pop-tag
-		(
-  			carousel-menu: copy [ ol #carousel-indicators ]
-  			repeat i tag/items [
-  				repend carousel-menu [
-  					'li 'with compose [ 
-	  					data-target: ( tag/id )
-	  					data-slide-to: ( i - 1 ) 
-	  					( either i = tag/active [ [ class: active ] ] [] )
-  					]
-  					""
-  				]
-  			]
-			data: tag/inner-html
-			tag/items:
-			tag/active:
-			tag/inner-html: none
-			emit [
-				make-tag tag
-				emit-html carousel-menu
-				<div class="carousel-inner">
-				data
-				</div>
-				emit-html compose [
-					a ( to file! to issue! tag/id ) #left #carousel-control with [ data-slide: prev ] [ glyphicon chevron-left ]
-					a ( to file! to issue! tag/id ) #right #carousel-control with [ data-slide: next ] [ glyphicon chevron-right ]
-				]
-				close-tag 'div
-			]
-		)
-	]
-
-	carousel-item: [
-		'item
-		( active?: false )
-		opt [
-			'active
-			( active?: true )
-		]
-		set data block! 
-		(
-			append tag/inner-html rejoin [
-				{<div class="item}
-				either active? [ " active" ] [ "" ]
-				{">}
-				emit-html data
-				</div>
-			]
-			tag/items: tag/items + 1
-			if active? [ tag/active: tag/items ]
-		)
-	]
-
-	dropdown: [
-		'dropdown
-		init-tag
-		copy label string!
-		( 
-			tag/element: 'div 
-			tag/class: [ btn-group ]
-			emit [
-				make-tag tag
-				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-				label
-				<span class="caret"></span>
-				</button>
-				<ul class="dropdown-menu" role="menu">
-			]
-		)
-		some [
-			menu-item
-		|	menu-divider	
-		]
-		( emit close-tag 'ul )
-		close-div
-	]
-	menu-item: [
-		set label string!
-		set target [ file! | url! ]
-		( emit [ {<li><a href="} target {">} label {</a></li>} ] )
-	]
-	menu-divider: [
-		'divider
-		( emit [ "" <li class="divider"></li> ] )
-	]
-	
-
-;  __  __              _____   _   _ 
+;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
 ; | \  / |    /  \      | |   |  \| |
 ; | |\/| |   / /\ \     | |   | . ` |
 ; | |  | |  / ____ \   _| |_  | |\  |
 ; |_|  |_| /_/    \_\ |_____| |_| \_|
-;                                    
+;
 
-	
+
 	main-rule: either with [
 		bind custom-rule 'value
 	] [
@@ -1296,12 +1714,14 @@ emit-html: funct [
 
 	body: head buffer
 
+	debug ["Stylesheets: " mold stylesheets ]
+
 	either header? [
 		rejoin [ ""
-<!DOCTYPE html> newline 
-<html lang="en-US"> newline 
+<!DOCTYPE html> newline
+<html lang="en-US"> newline
 	<head> newline
-		<title> page/title </title> newline 
+		<title> page/title </title> newline
 		<meta charset="utf-8"> newline
 		page/meta newline
 		stylesheets
