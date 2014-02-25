@@ -6,6 +6,59 @@ REBOL [
 	]
 ]
 
+; ADD CUSTOM ERRORS TO SYSTEM CATALOG
+
+foreach [id code][
+	unknown-user 	["Unknown user:" :arg1]
+	wrong-password 	["Wrong password"]
+	user-exists 	["User" :arg1 "already exists"]
+][
+	append system/catalog/errors/access reduce [id code]
+]
+
+make-liz-error: func [
+	err-type
+	err-id
+	args
+][
+	make error! [
+		type: err-type
+		id: err-id
+		arg1: args/1
+		arg2: args/2
+		arg3: args/3
+	]
+]
+
+; ==============
+
+serve-page: func [
+	"Serve HTML page (add propper header)"
+	page
+][
+	print "Content-type: text/html^/"
+	print page
+]
+
+dehex: funct [
+    "Converts URL-style hex encoded (%xx) strings. Process Unicode characters properly."
+    value [ any-string! ] "The string to dehex"
+][
+
+    parse value: to binary! value [
+        some [
+        	change #"+" #" "
+        |	[
+	            m: #"%"
+	            ( change/part m load rejoin [ "#{" to string! copy/part next m 2 "}" ] 3 )
+        	]
+        | skip
+        ]
+    ]
+    to string! value
+]
+
+
 read-string: func [
 	"Return file content as string! or return empty string! when file not found"
 	filename
@@ -55,7 +108,7 @@ make-password: funct [
 	symbols:			"!@#$%^^&*()+-=-/|\()[]{}'§"
 
 	; normalize REQUIRED block!
-	unless block? required [ required: append copy [] required ]	
+	unless block? required [ required: append copy [] required ]
 	if any [
 		not with
 		find required 'all
@@ -64,15 +117,15 @@ make-password: funct [
 	]
 
 	; check for errors
-	unless parse required [ 
-		some [ 'uppercase | 'lowercase | 'numbers | 'symbols ] 
+	unless parse required [
+		some [ 'uppercase | 'lowercase | 'numbers | 'symbols ]
 	][
 		return make error! "Invalid charset in WITH block. Allowed charsets are: uppercase, lowercase, numbers, symbols, all."
 	]
-	if all [ 
-		with 
+	if all [
+		with
 		length < length? required
-	][ 
+	][
 		return make error! rejoin [ "Password is too short, at least " length? required " characters are expected." ]
 	]
 
@@ -84,7 +137,7 @@ make-password: funct [
 	; this does what it says
 	this:	func [what][get bind what 'out]
 
-	; create pool of chars to choose from 
+	; create pool of chars to choose from
 	foreach set required [
 		append chars this set
 	]
@@ -93,7 +146,7 @@ make-password: funct [
 	random/seed now/time/precise
 
 	; create password and check if all required chars were used
-	loop length [ 
+	loop length [
 		char: random/secure/only chars
 		append out char
 		repeat i length? required [
@@ -105,7 +158,7 @@ make-password: funct [
 
 	; if something's missing, create new password
 	if all [
-		with 
+		with
 		not all used
 	][
 		out: make-password/with length required
@@ -160,7 +213,7 @@ make-key: func [
 
 store-password: funct [
 	port 		"Redis database"
-	username 			
+	username
 	password
 ][
 	salt: make-salt
@@ -186,7 +239,7 @@ check-password: funct [
 ]
 
 store-new-user: func [
-	port 
+	port
 	username
 	password
 ][
