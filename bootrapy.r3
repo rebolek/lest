@@ -86,7 +86,7 @@ Phrasing-elements: [
 
 
 debug:
-;:print
+:print
 none
 
 ; SETTINGS
@@ -234,11 +234,9 @@ emit-html: funct [
 	value:		copy ""
 	default:	copy ""
 	size: 		50x4
-	temp:		none
 	tag:		none
 	type: 		none
 	add-plugins: copy {}
-	grid-size: 'md
 
 	tag-stack: copy []
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't (why?)
@@ -248,13 +246,7 @@ emit-html: funct [
 		meta: copy {}
 	]
 
-	form-data: context [
-		action: none
-		method: 'post
-	]
-
 	output: copy ""
-	temp: copy ""
 	buffer: copy ""
 	form-buffer: copy ""
 
@@ -265,7 +257,7 @@ emit-html: funct [
 	emit: func [
 		data [ string! block! tag! ]
 	][
-		if block? data	[ data: rejoin data ]
+		if block? data	[ data: ajoin data ]
 		if tag? data	[ data: mold data ]
 		append buffer data ;join data newline
 	]
@@ -299,14 +291,6 @@ emit-html: funct [
 			append out join #" " lib/form attributes
 		]
 		append out #">"
-	]
-
-	emit-tag: funct [
-		tag [object!]
-		/special
-			attributes
-	][
-		append buffer apply :make-tag [ tag special attributes ]
 	]
 
 	emit-label: func [
@@ -398,6 +382,7 @@ emit-html: funct [
 		)
 	]
 
+	;FIXME:
 	make-row: [
 		'row
 		'with
@@ -462,11 +447,11 @@ emit-html: funct [
 
 	]
 
+	; FIXME
+
 	repeat: [
 		'repeat
-		(
-			offset: none
-		)
+		( offset: none )
 		opt [
 			'offset
 			set offset integer!
@@ -507,33 +492,63 @@ emit-html: funct [
 		(
 			value:		none
 			default:	copy ""
-			temp: 		none
 			target:		none
 			push tag-stack tag: context [ id: none class: copy [] element: name ]
 		)
 	]
 
 	pop-tag: [ ( tag: pop tag-stack ) ]
+
+	emit-tag: [ ( debug ["emit:" tag/element] emit make-tag tag ) ]
+
 	end-tag: [
 		pop-tag
 		( emit close-tag tag/element )
 	]
 
-	style: [
-		some [
-			'id set temp word! ( tag/id: temp )
-		|	set temp issue! ( append tag/class to word! temp )
-		|	'with set temp block! ( append tag temp )
+	init-div: [
+		( name: 'div )
+		init-tag
+	]
+
+	close-div: [
+		(
+			tag: pop tag-stack
+			emit </div>
+		)
+	]
+
+	style: use [ word continue ] [
+		[
+			any [
+				set word issue! ( tag/id: next lib/form word )
+			|	[
+					pos: set word word!
+					(
+						continue: either #"." = take lib/form word [
+							append tag/class next lib/form word
+							[]
+						][
+							[end skip]
+						]
+					)
+					continue
+				]
+			|	'with set word block! ( append tag word )
+			]
 		]
+
 	]
 
 	comment: [
 		'comment [ block! | string! ]
 	]
 
-	debug-rule: [
-		'debug set value string!
-		( print ["DEBUG:" value])
+	debug-rule: use [ value ] [
+		[
+			'debug set value string!
+			( print ["DEBUG:" value])
+		]
 	]
 
 	script: [
@@ -602,7 +617,7 @@ emit-html: funct [
 	hr: [ 'hr ( emit <hr> ) ]
 
 	match-content: [
-		set value string!
+		basic-string		; must match string! first, or INTO will eat it!
 	|	into [ some elements ]
 	]
 
@@ -611,12 +626,8 @@ emit-html: funct [
 		set name paired-tags
 		init-tag
 		opt style
-		(
-			debug ["==PAIRED:" tag/element]
-			emit-tag tag
-		)
+		emit-tag
 		match-content
-		( if value [ emit value ] )
 		end-tag
 	]
 
@@ -628,12 +639,19 @@ emit-html: funct [
 		)
 		init-tag
 		some [
-			set target [ file! | url! ] ( append tag compose [ src: (target) ] )
+			set value [ file! | url! ] (
+				append tag compose [ src: (value) ]
+			)
+		|	set value pair! (
+				append tag compose [
+					width: (to integer! value/x)
+					height: (to integer! value/y)
+				]
+			)
 		|	style
-		|	set value pair! ( append tag compose [ width: (value/x) height: (value/y) ] )
 		]
 		pop-tag
-		( emit-tag tag )
+		emit-tag
 	]
 
 	; <a>
@@ -641,20 +659,12 @@ emit-html: funct [
 		['a | 'link] ( name: 'a )
 		init-tag
 		some [
-			set target [ file! | url! ] ( append tag compose [ href: (target) ] )
+			set value [ file! | url! ] ( append tag compose [ href: (value) ] )
 		|	style
 		]
-		(
-			debug "==LINK"
-			emit-tag tag
-		)
+		emit-tag
 		match-content
-		pop-tag
-		(
-			debug "==LINK close"
-			if value [ emit value ]
-			emit close-tag 'a
-		)
+		end-tag
 	]
 
 	; lists - UL, OL, LI, DL
@@ -663,41 +673,32 @@ emit-html: funct [
 		set name 'li
 		init-tag
 		opt style
-		( emit-tag tag )
+		emit-tag
 		match-content
-		pop-tag
-		(
-			if value [emit value]
-			emit close-tag 'li
-		)
+		( if value [emit value] )
+		end-tag
 	]
 
 	ul: [
-		set name 'ul (debug "ul matched")
+		set name 'ul
 		init-tag
 		opt style
-		(
-			debug "==UL"
-			emit-tag tag
-		)
+		emit-tag
 		some li
-		pop-tag
-		( emit close-tag 'ul )
+		end-tag
 	]
 
 	ol: [
-		; TODO: uses some custom values, make better handling
 		set name 'ol
 		init-tag
 		any [
-			style
-		|	set start integer! ( append tag compose [ start: (start) ] )
+			; NOTE: if I change order of rules, it stops working. Not sure why
+			set value integer! ( append tag compose [ start: (value) ] )
+		|	style
 		]
-		( emit-tag tag )
+		emit-tag
 		some li
-		pop-tag
-		( emit close-tag 'ol )
-
+		end-tag
 	]
 
 	dl: [
@@ -707,7 +708,7 @@ emit-html: funct [
 			'horizontal ( append tag/class 'dl-horizontal )
 		|	style
 		]
-		( emit-tag tag )
+		emit-tag
 		some [
 			set value string!
 			( emit ajoin [ <dt> value </dt> ] )
@@ -742,23 +743,14 @@ emit-html: funct [
 	]
 
 	; --- headings
-
+	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
 	heading: [
 		set name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
 		init-tag
-		some [
-			set value string!	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
-		|	style
-		]
-		pop-tag
-		(
-			debug "==HEADING"
-			emit-tag tag
-			emit [
-				value
-				close-tag tag/element
-			]
-		)
+		opt style
+		emit-tag
+		match-content
+		end-tag
 	]
 
 	; table
@@ -767,10 +759,8 @@ emit-html: funct [
 		set name 'table
 		init-tag
 		style
-		(
-			insert tag/class 'table
-			emit-tag tag
-		)
+		( insert tag/class 'table )
+		emit-tag
 		opt [
 			'header
 			( emit <tr> )
@@ -824,7 +814,7 @@ emit-html: funct [
 					emit <div class="col-sm-10">
 					tag: pop tag-stack
 					append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
-					emit-tag tag
+					emit make-tag tag
 					emit </div>
 				]
 			][
@@ -833,7 +823,7 @@ emit-html: funct [
 				]
 				tag: pop tag-stack
 				append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
-				emit-tag tag
+				emit make-tag tag
 			]
 		)
 	]
@@ -866,8 +856,7 @@ emit-html: funct [
 		pop-tag
 		(
 			append tag compose [ type: (type) name: (name) ]
-			emit-tag tag
-			emit [label </label> </div> ]
+			emit [ make-tag tag label </label> </div> ]
 		)
 	]
 	radio: [
@@ -888,8 +877,12 @@ emit-html: funct [
 		pop-tag
 		(
 			append tag compose [ type: (type) name: (name) value: (value) ]
-			emit-tag/special tag special
-			emit [ "" {<label for="} tag/id {">} label </label> </div> ]
+			emit [
+				make-tag/special tag special
+					{<label for="} tag/id {">} label
+					</label>
+				</div>
+			]
 		)
 	]
 	textarea: [
@@ -921,7 +914,7 @@ emit-html: funct [
 				name: (name)
 ;				id: (id)
 			]
-			emit-tag tag
+			emit make-tag tag
 			emit value
 			emit close-tag tag/element
 		)
@@ -935,10 +928,8 @@ emit-html: funct [
 		|	style
 		]
 		pop-tag
-		(
-			append tag compose [ type: 'hidden name: (name) value: (value) ]
-			emit-tag tag
-		)
+		( append tag compose [ type: 'hidden name: (name) value: (value) ] )
+		emit-tag
 	]
 	submit: [
 		'submit
@@ -960,12 +951,12 @@ emit-html: funct [
 				horizontal [
 					emit <div class="form-group">
 					emit <div class="col-sm-offset-2 col-sm-10">
-					emit-tag tag
+					emit make-tag tag
 					emit [ label </button> </div> </div> ]
 
 				]
 			][
-				emit-tag tag
+				emit make-tag tag
 				emit [ label </button> ]
 			]
 		)
@@ -1008,8 +999,7 @@ emit-html: funct [
 		|	style
 		]
 		pop-tag
-		( emit-tag tag )
-;		into [ some form-content ]
+		emit-tag
 		into [ some elements ]
 		( emit close-tag 'form )
 	]
@@ -1060,52 +1050,44 @@ emit-html: funct [
 	|	carousel
 	|	modal
 	|	address
-	]
-
-	close-div: [
-		(
-			tag: pop tag-stack
-			emit </div>
-		)
+	|	navbar
 	]
 
 	grid-elems: [
 		set type [ 'row | 'container ]
-		( name: 'div )
-		init-tag
+		init-div
 		opt style
-		(
-			insert tag/class type
-			emit-tag tag
-		)
+		( insert tag/class type	)
+		emit-tag
 		into [ some elements ]
 		close-div
 	]
 
-	col: [
-		'col
-		(
-			name: 'div
-			grid-size: 'md
-			width: 2
-			offset: none
-		)
-		init-tag
-		some [
-			'offset set offset integer!
-		|	set grid-size [ 'xs | 'sm | 'md | 'lg ]
-		|	set width integer!
-		]
-		opt style
-		(
-			append tag/class rejoin [ "col-" grid-size "-" width ]
-			if offset [
-				append tag/class rejoin [ "col-" grid-size "-offset-" offset ]
+	col: use [ grid-size width offset ] [
+		[
+			'col
+			(
+				grid-size: 'md
+				width: 2
+				offset: none
+			)
+			init-div
+			some [
+				'offset set offset integer!
+			|	set grid-size [ 'xs | 'sm | 'md | 'lg ]
+			|	set width integer!
 			]
-			emit-tag tag
-		)
-		into [ some elements ]
-		close-div
+			opt style
+			(
+				append tag/class rejoin [ "col-" grid-size "-" width ]
+				if offset [
+					append tag/class rejoin [ "col-" grid-size "-offset-" offset ]
+				]
+			)
+			emit-tag
+			into [ some elements ]
+			close-div
+		]
 	]
 
 	bar: [
@@ -1136,17 +1118,14 @@ emit-html: funct [
 				'panel
 				to word! join 'panel- panel-type
 			]
-			emit-tag tag
 		)
+		emit-tag
 		any [
 			[
 				'heading
-				( name: 'div )
-				init-tag
-				(
-					append tag/class 'panel-heading
-					emit-tag tag
-				)
+				init-div
+				( append tag/class 'panel-heading )
+				emit-tag
 				[
 					set value string!
 					( emit ajoin [<h3 class="panel-title"> value </h3>] )
@@ -1156,12 +1135,9 @@ emit-html: funct [
 			]
 		|	[
 				'footer
-				( name: 'div )
-				init-tag
-				(
-					append tag/class 'panel-footer
-					emit-tag tag
-				)
+				init-div
+				( append tag/class 'panel-footer )
+				emit-tag
 				into [ some elements ]
 				end-tag
 			]
@@ -1206,6 +1182,43 @@ emit-html: funct [
 			]
 		]
 		( emit </address> )
+	]
+
+	navbar: [
+		'navbar
+		init-div
+		(
+			append tag/class [navbar navbar-fixed-top navtext]
+			append tag [ role: navigation ]
+		)
+		some [
+			'inverse ( append tag/class 'navbar-inverse )
+		|	style
+		]
+		emit-tag
+		( emit [
+			<div class="container">
+			<div class="navbar-collapse collapse">
+			<ul id="page-nav" class="nav navbar-nav">
+		] )
+		; TODO: add divider
+		into [
+			some [
+				'link ( active?: false )
+				opt [ 'active ( active?: true ) ]
+				set target [ file! | url! | issue! ]
+				set value string!
+				( emit ajoin [
+					{<li}
+					either active? [ { class="active">}] [ #">" ]
+					{<a href="} target {">} value
+					</a>
+					</li>
+				] )
+			]
+		]
+		( emit [ </ul></div></div> ] )
+		end-tag
 	]
 
 	carousel: [
@@ -1306,10 +1319,9 @@ emit-html: funct [
 
 	dropdown: [
 		'dropdown
-		init-tag
+		init-div
 		copy label string!
 		(
-			tag/element: 'div
 			tag/class: [ btn-group ]
 			emit [
 				make-tag tag
@@ -1354,20 +1366,20 @@ emit-html: funct [
 				aria-labelledby: label
 				aria-hidden: true
 			]
-			emit-tag tag
 		)
+		emit-tag
 		init-tag
 		(
 			tag/element: 'div
 			append tag/class 'modal-dialog
-			emit-tag tag
 		)
+		emit-tag
 		init-tag
 		(
 			tag/element: 'div
 			append tag/class 'modal-content
-			emit-tag tag
 		)
+		emit-tag
 		opt modal-header
 		modal-body
 		opt modal-footer
@@ -1381,7 +1393,7 @@ emit-html: funct [
 		(
 			tag/element: 'div
 			append tag/class 'modal-header
-			emit-tag tag
+			emit make-tag tag
 			emit {<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>}
 		)
 		into [ some elements ]
@@ -1393,8 +1405,8 @@ emit-html: funct [
 		(
 			tag/element: 'div
 			append tag/class 'modal-body
-			emit-tag tag
 		)
+		emit-tag
 		into [ some elements ]
 		end-tag
 	]
@@ -1404,8 +1416,8 @@ emit-html: funct [
 		(
 			tag/element: 'div
 			append tag/class 'modal-footer
-			emit-tag tag
 		)
+		emit-tag
 		into [ some elements ]
 		end-tag
 	]
@@ -1458,6 +1470,11 @@ emit-html: funct [
 
 	map: [
 		; google maps
+
+;
+; TODO: worked, now does not. Probably needs some requirements.
+;
+; currently uses iframe method (but that's not dynamic)
 		'map
 		set location pair!
 		(
@@ -1607,8 +1624,8 @@ emit-html: funct [
 			debug ["==WYSIWYG"]
 			tag/element: 'textarea
 			append tag/class 'wysiwyg
-			emit-tag tag
 		)
+		emit-tag
 		end-tag
 	]
 
