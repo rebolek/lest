@@ -239,7 +239,7 @@ emit-html: funct [
 	add-plugins: copy {}
 
 	tag-stack: copy []
-	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't (why?)
+	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
 
 	page: reduce/no-set [
 		title: "Page generated with Bootrapy"
@@ -343,6 +343,7 @@ emit-html: funct [
 	user-rule: [
 		set name set-word!
 		(
+			print ["custom rule:" name]
 			parameters: copy [ ]
 			add-rule user-rules reduce [
 				to set-word! 'pos
@@ -378,7 +379,7 @@ emit-html: funct [
 					emit emit-html temp
 				]
 			]
-			user-rules
+			probe user-rules
 		)
 	]
 
@@ -727,6 +728,7 @@ emit-html: funct [
 		basic-string
 	|	comment
 	|	debug-rule
+	|	stop
 	|	br
 	|	hr
 	|	table
@@ -739,6 +741,11 @@ emit-html: funct [
 	basic-string: [
 		set value string!
 		( emit value )
+	]
+
+	stop: [
+		'stop
+		to end
 	]
 
 	; --- headings
