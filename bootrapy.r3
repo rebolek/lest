@@ -675,7 +675,6 @@ emit-html: funct [
 		opt style
 		emit-tag
 		match-content
-		( if value [emit value] )
 		end-tag
 	]
 
