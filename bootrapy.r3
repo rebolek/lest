@@ -334,10 +334,19 @@ emit-html: funct [
 		( emit emit-html load value )
 	]
 
-	do-code: [
-		; DO PAREN! AND EMIT LAST VALUE
-		set value paren!
-		( emit emit-html do value )
+; NOTE: this works
+
+;	parse [ ( [print "a"] ) ] [
+;		[set value paren! (value result: to paren! first value) result]
+;	]
+
+	do-code: use [p] [
+		[
+			; DO PAREN! AND EMIT LAST VALUE
+			p: set value paren!
+			( p/1: append clear [] do value )
+			:p into basic-elems
+		]
 	]
 
 	user-rule: [
@@ -660,7 +669,8 @@ emit-html: funct [
 		['a | 'link] ( name: 'a )
 		init-tag
 		some [
-			set value [ file! | url! ] ( append tag compose [ href: (value) ] )
+			set value [ file! | url! | issue! ]
+			( append tag compose [ href: (value) ] )
 		|	style
 		]
 		emit-tag
@@ -1013,7 +1023,7 @@ emit-html: funct [
 	; --- put it all together
 
 	elements: [
-		pos: (debug ["parse at: " index? pos "::" first pos] set 'p pos)
+		pos: (debug ["parse at: " index? pos "::" mold first pos] set 'p pos)
 		[
 			set value string! ( emit value )
 		|	page-header
