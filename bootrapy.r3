@@ -8,6 +8,18 @@ REBOL[
 		"HTML entities"
 		"Cleanup variables in emit-html"
 		"Change header rules to emit to main data"
+		{
+get rid of EMIT-HTML in rules
+
+currently used in:
+	EMIT-PLUGIN
+	IMPORT
+	USER-RULE (very important!)
+	MAKE-ROW, REPEAT
+	CAROUSEL, CAROUSEL-ITEM
+	ENABLE: BOOTSTRAP, SMOOTH-SCROLLING, PRETTY-PHOTO, PASSWORD-STRENGTH
+
+		}
 	]
 	Notes: [
 		source: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
@@ -330,8 +342,9 @@ emit-html: funct [
 
 	import: [
 		; LOAD AND EMIT FILE
-		'import set value [ file! | url! ]
-		( emit emit-html load value )
+		'import p: set value [ file! | url! ]
+		( p/1: load value )
+		:p into basic-elems
 	]
 
 ; NOTE: this works
