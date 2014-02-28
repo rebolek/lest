@@ -13,7 +13,6 @@ get rid of EMIT-HTML in rules
 
 currently used in:
 	EMIT-PLUGIN
-	IMPORT
 	USER-RULE (very important!)
 	MAKE-ROW, REPEAT
 	CAROUSEL, CAROUSEL-ITEM
@@ -344,7 +343,7 @@ emit-html: funct [
 		; LOAD AND EMIT FILE
 		'import p: set value [ file! | url! ]
 		( p/1: load value )
-		:p into basic-elems
+		:p into elements
 	]
 
 ; NOTE: this works
@@ -358,51 +357,36 @@ emit-html: funct [
 			; DO PAREN! AND EMIT LAST VALUE
 			p: set value paren!
 			( p/1: append clear [] do value )
-			:p into basic-elems
+			:p into elements
 		]
 	]
 
-	user-rule: [
-		set name set-word!
-		(
-			print ["custom rule:" name]
-			parameters: copy [ ]
-			add-rule user-rules reduce [
-				to set-word! 'pos
-				to lit-word! name
-			]
-		)
-		any [
-			set label word!
-			set type word!
+	simple-user-rule: use [pos][
+		[
+			set name set-word!
 			(
-				add-rule parameters reduce [ 'change to lit-word! label label ]
-				repend user-rules [ 'set label type ]
+				parameters: copy [ ]
+				add-rule user-rules reduce [
+					to set-word! 'pos
+					to lit-word! name
+				]
+			)
+			set value block!
+			(
+				append user-rules reduce [
+					to paren! compose/only [
+						; TODO: move rule outside
+						rule: (compose [
+							any-string!
+						|	into [ some rule ]
+						|	skip
+						])
+						pos/1: ( value )
+					]
+					to get-word! 'pos 'into 'elements
+				]
 			)
 		]
-		set value block!
-		(
-			; TODO: currently cannot use user-rules within user-rules
-			;		it should be possible with EMIT-HTML/WITH ... custom-rule
-			;
-			append user-rules reduce [
-				to paren! compose/only [
-					debug ["user rule match" pos/1 ]
-					debug ["params: " (mold parameters)]
-					; TODO: move rule outside
-					rule: (compose [
-						any-string!
-					|	into [ some rule ]
-					|	(parameters)
-					|	skip
-					])
-					temp: copy/deep ( value )
-					parse temp [ some rule ]
-					emit emit-html temp
-				]
-			]
-			probe user-rules
-		)
 	]
 
 	;FIXME:
@@ -1046,7 +1030,7 @@ emit-html: funct [
 		|	do-code
 		|	repeat
 		|	user-rules
-		|	user-rule
+		|	simple-user-rule
 		|	heading
 		|	form
 		|	script
