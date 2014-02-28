@@ -185,7 +185,7 @@ add-rule: func [
 	unless empty? rules [
 		append rules '|
 	]
-	append rules rule
+	append/only rules rule
 ]
 
 to-www-form: func [
@@ -364,27 +364,18 @@ emit-html: funct [
 	simple-user-rule: use [pos][
 		[
 			set name set-word!
+			set value block!
 			(
-				parameters: copy [ ]
+				parameters: copy []
 				add-rule user-rules reduce [
 					to set-word! 'pos
 					to lit-word! name
-				]
-			)
-			set value block!
-			(
-				append user-rules reduce [
 					to paren! compose/only [
-						; TODO: move rule outside
-						rule: (compose [
-							any-string!
-						|	into [ some rule ]
-						|	skip
-						])
 						pos/1: ( value )
 					]
 					to get-word! 'pos 'into 'elements
 				]
+				print ["##" mold user-rules]
 			)
 		]
 	]
