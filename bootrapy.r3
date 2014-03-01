@@ -342,48 +342,39 @@ emit-html: funct [
 		]
 	]
 
-	simple-user-rule: use [name value pos] [
+	user-rule: use [ name label type ] [
 		[
 			set name set-word!
-			set value block!
 			(
-				add-rule user-rules probe compose/deep [
-					pos: ( to lit-word! name )
-					( to paren! compose/only [ pos/1: ( value ) ] )
-					:pos into elements
+				parameters: copy [ ]
+				add-rule user-rules reduce [
+					to set-word! 'pos
+					to lit-word! name
 				]
 			)
-		]
-	]
-
-	complex-user-rule: use [name value  val-name val-type params] [
-		[
-			set name set-word!
-			( params: copy [] )
 			any [
-				set val-name word!
-				set val-type word!
-				( repend params [val-name val-type] )
+				set label word!
+				set type word!
+				(
+					add-rule parameters reduce [ 'change to lit-word! label label ]
+					repend last user-rules [ 'set label to set-word! 'pos type ]
+				)
 			]
 			set value block!
 			(
-				print [ "***" val-name val-type ]
-				print [ "PR*" mold params ]
-				add-rule user-rules probe compose/deep [
-					pos: ( to lit-word! name )
-					(
-						either empty? params [
-							[]
-						] [
-							reduce [ 'set val-name to set-word! 'pos val-type ]
-						]
-					)
-					( to paren! compose/only [
-						print "asdf"
-						print mold (val-name)
-						pos/1: ( value )
-					] )
-					:pos into elements
+				append last user-rules reduce [
+					to paren! compose/only [
+						; TODO: move rule outside
+						rule: (compose [
+							any-string!
+						|	into [ some rule ]
+						|	(parameters)
+						|	skip
+						])
+						parse temp: copy/deep (value) [ some rule ]
+						change/only pos temp
+					]
+					to get-word! 'pos 'into [some elements]
 				]
 			)
 		]
@@ -1030,8 +1021,7 @@ emit-html: funct [
 		|	do-code
 		|	repeat
 		|	user-rules
-		|	complex-user-rule
-		|	simple-user-rule
+		|	user-rule
 		|	heading
 		|	form
 		|	script
