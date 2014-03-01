@@ -121,25 +121,6 @@ css-path: %css/
 ; |_____/   \____/  |_|      |_|       \____/  |_|  \_\    |_|      |_|       \____/  |_| \_|  \_____| |_____/
 ;
 
-push: funct [
-	stack
-	value
-][
-	insert stack value
-]
-
-pop: funct [
-	stack
-][
-	also first stack remove stack
-]
-
-peek: funct [
-	stack
-][
-	first stack
-]
-
 catenate: funct [
 	"Joins values with delimiter."
     src [ block! ]
@@ -361,21 +342,49 @@ emit-html: funct [
 		]
 	]
 
-	simple-user-rule: use [pos][
+	simple-user-rule: use [name value pos] [
 		[
 			set name set-word!
 			set value block!
 			(
-				parameters: copy []
-				add-rule user-rules reduce [
-					to set-word! 'pos
-					to lit-word! name
-					to paren! compose/only [
-						pos/1: ( value )
-					]
-					to get-word! 'pos 'into 'elements
+				add-rule user-rules probe compose/deep [
+					pos: ( to lit-word! name )
+					( to paren! compose/only [ pos/1: ( value ) ] )
+					:pos into elements
 				]
-				print ["##" mold user-rules]
+			)
+		]
+	]
+
+	complex-user-rule: use [name value  val-name val-type params] [
+		[
+			set name set-word!
+			( params: copy [] )
+			any [
+				set val-name word!
+				set val-type word!
+				( repend params [val-name val-type] )
+			]
+			set value block!
+			(
+				print [ "***" val-name val-type ]
+				print [ "PR*" mold params ]
+				add-rule user-rules probe compose/deep [
+					pos: ( to lit-word! name )
+					(
+						either empty? params [
+							[]
+						] [
+							reduce [ 'set val-name to set-word! 'pos val-type ]
+						]
+					)
+					( to paren! compose/only [
+						print "asdf"
+						print mold (val-name)
+						pos/1: ( value )
+					] )
+					:pos into elements
+				]
 			)
 		]
 	]
@@ -491,16 +500,16 @@ emit-html: funct [
 			value:		none
 			default:	copy ""
 			target:		none
-			push tag-stack tag: context [ id: none class: copy [] element: name ]
+			insert tag-stack tag: context [ id: none class: copy [] element: name ]
 		)
 	]
 
-	pop-tag: [ ( tag: pop tag-stack ) ]
+	take-tag: [ ( tag: take tag-stack ) ]
 
 	emit-tag: [ ( debug ["emit:" tag/element] emit make-tag tag ) ]
 
 	end-tag: [
-		pop-tag
+		take-tag
 		( emit close-tag tag/element )
 	]
 
@@ -511,7 +520,7 @@ emit-html: funct [
 
 	close-div: [
 		(
-			tag: pop tag-stack
+			tag: take tag-stack
 			emit </div>
 		)
 	]
@@ -648,7 +657,7 @@ emit-html: funct [
 			)
 		|	style
 		]
-		pop-tag
+		take-tag
 		emit-tag
 	]
 
@@ -806,7 +815,7 @@ emit-html: funct [
 			default: none
 		)
 		init-tag
-		( tag: peek tag-stack )
+		( tag: first tag-stack )
 	]
 	emit-input: [
 		(
@@ -816,7 +825,7 @@ emit-html: funct [
 						emit-label/class label name	[col-sm-2 control-label]
 					]
 					emit <div class="col-sm-10">
-					tag: pop tag-stack
+					tag: take tag-stack
 					append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
 					emit make-tag tag
 					emit </div>
@@ -825,7 +834,7 @@ emit-html: funct [
 				unless empty? label [
 					emit-label label name
 				]
-				tag: pop tag-stack
+				tag: take tag-stack
 				append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
 				emit make-tag tag
 			]
@@ -857,7 +866,7 @@ emit-html: funct [
 		( emit [ "" <div class="checkbox"> <label> ] )
 		init-input
 		input-parameters
-		pop-tag
+		take-tag
 		(
 			append tag compose [ type: (type) name: (name) ]
 			emit [ make-tag tag label </label> </div> ]
@@ -878,7 +887,7 @@ emit-html: funct [
 		|	'checked ( append special 'checked )
 		|	style
 		]
-		pop-tag
+		take-tag
 		(
 			append tag compose [ type: (type) name: (name) value: (value) ]
 			emit [
@@ -909,7 +918,7 @@ emit-html: funct [
 		|	'value set value string!
 		|	style
 		]
-		pop-tag
+		take-tag
 		(
 			unless empty? label [ emit-label label name ]
 			append tag compose [
@@ -931,14 +940,14 @@ emit-html: funct [
 			set value string!
 		|	style
 		]
-		pop-tag
+		take-tag
 		( append tag compose [ type: 'hidden name: (name) value: (value) ] )
 		emit-tag
 	]
 	submit: [
 		'submit
 		(
-			push tag-stack tag: context [
+			insert tag-stack tag: context [
 				element:	'button
 				type:		'submit
 				id:			none
@@ -949,7 +958,7 @@ emit-html: funct [
 			set label string!
 		|	style
 		]
-		pop-tag
+		take-tag
 		(
 			switch/default form-type [
 				horizontal [
@@ -1002,7 +1011,7 @@ emit-html: funct [
 			)
 		|	style
 		]
-		pop-tag
+		take-tag
 		emit-tag
 		into [ some elements ]
 		( emit close-tag 'form )
@@ -1021,6 +1030,7 @@ emit-html: funct [
 		|	do-code
 		|	repeat
 		|	user-rules
+		|	complex-user-rule
 		|	simple-user-rule
 		|	heading
 		|	form
@@ -1258,7 +1268,7 @@ emit-html: funct [
 		|	'indicators set carousel-menu block!
 		]
 		into [ some carousel-item ]
-		pop-tag
+		take-tag
 		(
 			if none? carousel-menu [
 				; create default carousel indicators
@@ -1537,7 +1547,7 @@ emit-html: funct [
 		|	'flip set value [ 'horizontal | 'vertical ]
 		|	style
 		]
-		pop-tag
+		take-tag
 		(
 			size-att: case [
 				size = 1 	( { fa-lg} )
