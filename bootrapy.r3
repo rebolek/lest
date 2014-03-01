@@ -12,9 +12,7 @@ REBOL[
 get rid of EMIT-HTML in rules
 
 currently used in:
-	EMIT-PLUGIN
-	USER-RULE (very important!)
-	MAKE-ROW, REPEAT
+	EMIT-PLUGIN (func)
 	CAROUSEL, CAROUSEL-ITEM
 	ENABLE: BOOTSTRAP, SMOOTH-SCROLLING, PRETTY-PHOTO, PASSWORD-STRENGTH
 
@@ -232,6 +230,7 @@ emit-html: funct [
 
 	tag-stack: copy []
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
+	user-words: object []
 
 	page: reduce/no-set [
 		title: "Page generated with Bootrapy"
@@ -342,6 +341,15 @@ emit-html: funct [
 		]
 	]
 
+	set-rule: [
+		'set
+		set label word!
+		set value any-type!
+		(
+			repend user-words [to set-word! label value]
+		)
+	]
+
 	user-rule: use [ name label type ] [
 		[
 			set name set-word!
@@ -406,7 +414,7 @@ emit-html: funct [
 		set value tag!
 		[
 			'from
-			set data [ block! | word! | file! | url! ]
+			set data pos: [ block! | word! | file! | url! ]
 			(
 				out: make block! length? data
 				switch type?/word data [
@@ -423,24 +431,26 @@ emit-html: funct [
 					]
 					append out current
 				]
-				emit emit-html compose/deep [ row [ (out) ] ]
+				change/only pos compose/deep [ row [ (out) ] ]
 			)
+			:pos into [some elements]
 		|	'with
-			set data block!
+			pos: set data block!
 			(
 				out: make block! length? data
 				; replace <filename> with [ rejoin [ %img/image- index %.jpg ] ]
-				repeat index cols [
-					current: copy/deep element
-					replace-deep current value do bind data 'index
+				lib/repeat index cols [
+					current: probe copy/deep element
+					replace-deep current value probe do bind data 'index
 					if offset [
 						insert skip find current 'col 2 reduce [ 'offset offset ]
 						offset: none
 					]
 					append out current
 				]
-				emit emit-html compose/deep [ row [ (out) ] ]
+				change/only pos compose/deep [ row [ (out) ] ]
 			)
+			:pos into [some elements]
 		]
 
 	]
@@ -1020,8 +1030,10 @@ emit-html: funct [
 		|	import
 		|	do-code
 		|	repeat
+		|	make-row
 		|	user-rules
 		|	user-rule
+		|	set-rule
 		|	heading
 		|	form
 		|	script
