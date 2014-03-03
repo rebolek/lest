@@ -29,7 +29,7 @@ home: pwd
 
 print "===Test Bootrapy==="
 do %bootrapy.r3
-test-file %tests/main-test.r3 %bootrapy.r3
+test-file %tests/main-test.reb %bootrapy.r3
 change-dir home
 
 halt

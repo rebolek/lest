@@ -8,23 +8,13 @@ p #lead "This is lead, whatever it means."
 p [ "Some glyph: " glyphicon eye-open  b " hope you've seen it"]
 container [
 	row [
-		col 2 [br]
+		col 4 [br]
 		col 8 [
-			form %script [
-				text name "Your name:"
-				email mail "Email:"
-				password pass "Password:"
-				checkbox cb1 "Check me out!"
-				submit "Okay"
+			form horizontal %script [
+				email login "login (your email):"
+				password pass "pass:"
+				submit "log in"
 			]
-		]
-		col 2 [br]
-	]
-	row [
-		form horizontal %script [
-			email login "login (your email):"
-			password pass "pass:"
-			submit "log in"
 		]
 	]
 ]

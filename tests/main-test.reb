@@ -32,20 +32,20 @@
 
 ; styles (id & class)
 
-[ {<b id="bold-style">bold</b>} = tf [ b id bold-style "bold" ] ]
-[ {<b class="bold-style">bold</b>} = tf [ b #bold-style "bold" ] ]
-[ {<b class="bold style">bold</b>} = tf [ b #bold #style "bold" ] ]
-[ {<b id="bold-text" class="bold style">bold</b>} = tf [ b id bold-text #bold #style "bold" ] ]
+[ {<b id="bold-style">bold</b>} = tf [ b #bold-style "bold" ] ]
+[ {<b class="bold-style">bold</b>} = tf [ b .bold-style "bold" ] ]
+[ {<b class="bold style">bold</b>} = tf [ b .bold .style "bold" ] ]
+[ {<b id="bold-text" class="bold style">bold</b>} = tf [ b #bold-text .bold .style "bold" ] ]
 
 ; tag nesting
 
 [ {<b><i>bold italic</i></b>} = tf [ b [ i "bold italic" ] ] ]
-[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b id bold [ i id italic "bold italic" ] ] ]
-[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i id italic "bold italic" ] ] ]
-[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b id bold [ i #italic "bold italic" ] ] ]
-[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ]
-[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b #bold #style [ i #italic "bold italic" ] ] ]
-[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b #bold #style [ i #italic #style "bold italic" ] ] ]
+[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ]
+[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b .bold [ i #italic "bold italic" ] ] ]
+[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i .italic "bold italic" ] ] ]
+[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b .bold [ i .italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b .bold .style [ i .italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b .bold .style [ i .italic .style "bold italic" ] ] ]
 
 
 ; SCRIPT tag
@@ -53,7 +53,7 @@
 [ {<script src="script.js"></script>} = tf [ script %script.js ] ]
 [ {<script src="http://iluminat.cz/script.js"></script>} = tf [ script http://iluminat.cz/script.js ] ]
 [ {<script src="script.js"></script>} = tf [ script %script.js ] ]
-[ {<script>alert("hello world");</script>} = tf [ script {alert("hello world");} ] ]
+[ {<script type="text/javascript">alert("hello world");</script>} = tf [ script {alert("hello world");} ] ]
 
 ; LINK tag
 
@@ -62,21 +62,21 @@
 [ {<a href="#about">about</a>} = tf [ link %#about "about" ] ]
 [ {<a href="about">about file</a>} = tf [ link %about "about file" ] ]
 [ {<a href="http://www.about.at">about web</a>} = tf [ link http://www.about.at "about web" ] ]
-[ {<a class="blue" href="#">home</a>} = tf [ link %# #blue "home"] ]
-[ {<a id="blue" href="#">home</a>} = tf [ link %# id blue "home"] ]
-[ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# id blue #main "home"] ]
+[ {<a class="blue" href="#">home</a>} = tf [ link %# .blue "home"] ]
+[ {<a id="blue" href="#">home</a>} = tf [ link %# #blue "home"] ]
+[ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# #blue .main "home"] ]
 [ equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>}
 	tf [
-		link %# id blue #main [
-			div #link-class id link "home"
+		link %# #blue .main [
+			div .link-class #link "home"
 		]
 	]
 ]
 [ equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>}
 	tf [
-		div id outer #border [
-			link %# id blue #main [
-				div #link-class id link "home"
+		div #outer .border [
+			link %# #blue .main [
+				div .link-class #link "home"
 			]
 		]
 	]
@@ -86,13 +86,13 @@
 
 [ {<img src="brno.jpg">} = tf [ img %brno.jpg ] ]
 [ {<img src="brno.jpg">} = tf [ image %brno.jpg ] ]
-[ {<img class="adamov" src="brno.jpg">} = tf [ image %brno.jpg #adamov] ]
-[ {<img id="adamov" src="brno.jpg">} = tf [ image id adamov %brno.jpg] ]
-[ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov] ]
-[ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov #ivancice ] ]
+[ {<img class="adamov" src="brno.jpg">} = tf [ image %brno.jpg .adamov] ]
+[ {<img id="adamov" src="brno.jpg">} = tf [ image #adamov %brno.jpg] ]
+[ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image #obr %brno.jpg .adamov] ]
+[ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image #obr %brno.jpg .adamov .ivancice ] ]
 [ equal?
 		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>}
-		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ]
+		tf [ div .border #okraj .small [image #obr %brno.jpg .adamov .ivancice] ]
 ]
 
 ; LISTS
@@ -101,7 +101,7 @@
 [ "<ul><li>jedna</li><li>dva</li></ul>" = tf [ ul li "jedna" li "dva"] ]
 [ equal?
 	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
-	tf [ ul id list li #item id first "jedna" li id second #item "dva" ]
+	tf [ ul #list li .item #first "jedna" li #second .item "dva" ]
 ]
 
 ; HEADINGS
@@ -112,18 +112,18 @@
 [ {<h4>Brno</h4>} = tf [ h4 "Brno" ] ]
 [ {<h5>Brno</h5>} = tf [ h5 "Brno" ] ]
 [ {<h6>Brno</h6>} = tf [ h6 "Brno" ] ]
-[ {<h1 class="city">Brno</h1>} = tf [ h1 #city "Brno" ] ]
-[ {<h2 class="city">Brno</h2>} = tf [ h2 #city "Brno" ] ]
-[ {<h3 class="city">Brno</h3>} = tf [ h3 #city "Brno" ] ]
-[ {<h4 class="city">Brno</h4>} = tf [ h4 #city "Brno" ] ]
-[ {<h5 class="city">Brno</h5>} = tf [ h5 #city "Brno" ] ]
-[ {<h6 class="city">Brno</h6>} = tf [ h6 #city "Brno" ] ]
-[ {<h1 id="city">Brno</h1>} = tf [ h1 id city "Brno" ] ]
-[ {<h2 id="city">Brno</h2>} = tf [ h2 id city "Brno" ] ]
-[ {<h3 id="city">Brno</h3>} = tf [ h3 id city "Brno" ] ]
-[ {<h4 id="city">Brno</h4>} = tf [ h4 id city "Brno" ] ]
-[ {<h5 id="city">Brno</h5>} = tf [ h5 id city "Brno" ] ]
-[ {<h6 id="city">Brno</h6>} = tf [ h6 id city "Brno" ] ]
+[ {<h1 class="city">Brno</h1>} = tf [ h1 .city "Brno" ] ]
+[ {<h2 class="city">Brno</h2>} = tf [ h2 .city "Brno" ] ]
+[ {<h3 class="city">Brno</h3>} = tf [ h3 .city "Brno" ] ]
+[ {<h4 class="city">Brno</h4>} = tf [ h4 .city "Brno" ] ]
+[ {<h5 class="city">Brno</h5>} = tf [ h5 .city "Brno" ] ]
+[ {<h6 class="city">Brno</h6>} = tf [ h6 .city "Brno" ] ]
+[ {<h1 id="city">Brno</h1>} = tf [ h1 #city "Brno" ] ]
+[ {<h2 id="city">Brno</h2>} = tf [ h2 #city "Brno" ] ]
+[ {<h3 id="city">Brno</h3>} = tf [ h3 #city "Brno" ] ]
+[ {<h4 id="city">Brno</h4>} = tf [ h4 #city "Brno" ] ]
+[ {<h5 id="city">Brno</h5>} = tf [ h5 #city "Brno" ] ]
+[ {<h6 id="city">Brno</h6>} = tf [ h6 #city "Brno" ] ]
 
 ; FORMS
 
@@ -199,5 +199,47 @@
 		"Something else here" %#
 		divider
 		"Separated link" %#
+	]
+]
+
+; USER tags
+
+[ {<span>nazdar</span>} = tf [ nazdar: [ span "nazdar" ] nazdar ] ]
+[ {<div><span>nazdar</span></div>} = tf [ nazdar: [ span "nazdar" ] div [ nazdar ] ] ]
+[ {<div><span>nazdar</span></div>} = tf [ nazdar: [ div [ span "nazdar" ] ] nazdar ] ]
+[ {<span>ahoj</span>, <span>nazdar</span>!} = tf [ ahoj: [ span "ahoj" ] nazdar: [ span "nazdar" ] ahoj ", " nazdar "!" ] ]
+
+[ {<div class="red">Rebol</div>} = tf [ red-div: value string! [ div .red value ] red-div "Rebol" ] ]
+[ {<div class="red"><span>Rebol</span></div>} = tf [ red-div: value block! [ div .red value ] red-div [ span "Rebol" ] ] ]
+[ equal?
+	{<div class="red"><span id="lang">Rebol</span></div>}
+	tf [
+		red-div: value block! [ div .red value ]
+		lang-span: value string! [ span #lang value ]
+		red-div [ lang-span "Rebol" ]
+	]
+]
+[ equal?
+	{<div class="red"><span id="lang">Rebol</span></div>}
+	tf [
+		red-div: value block! [ div .red value ]
+		lang-span: value string! [ span #lang value ]
+		red-lang: value string! [ red-div [ lang-span value ] ]
+		red-lang "Rebol"
+	]
+]
+[ {<span>Hello world</span>} = tf [ greeting: what string! who string! [ span [ what " " who ] ] greeting "Hello" "world" ] ]
+[ {<span>Hello world</span>} = tf [ greeting: who string! what string! [ span [ what " " who ] ] greeting "world" "Hello" ] ]
+[ equal?
+	{<span class="greeting">Hello</span>, <span class="name">world</span>!}
+	tf [
+		exclamation: ["!"]
+		greeting: salute string! name string! [
+			span .greeting salute
+			", "
+			span .name name
+			exclamation
+		]
+		greeting "Hello" "world"
 	]
 ]
