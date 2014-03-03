@@ -217,8 +217,7 @@ build-tag: funct [
 ;	unless empty? attributes [
 ;		append out join #" " form attributes
 ;	]
-
-
+;
 	head change back tail tag #">"
 ]
 
@@ -264,6 +263,7 @@ emit-html: funct [
 	]
 
 	styles:		copy []
+	tag-name:	none
 	name:		copy ""
 	value:		copy ""
 	default:	copy ""
@@ -422,14 +422,14 @@ emit-html: funct [
 				append last user-rules probe reduce [
 					to paren! compose/only [
 						; TODO: move rule outside
-						rule: (probe compose [
+						rule: ( compose [
 ;							UNCOMMENT FOR DEBUG
 ;							posx: (to paren! [probe posx])
 							any-string!
 						|	into [ some rule ]
 						|	(parameters)
 						|	skip
-						])
+						] )
 						probe parse temp: probe copy/deep (value) [ some rule ]
 						change/only pos probe temp
 					]
@@ -552,7 +552,7 @@ emit-html: funct [
 			value:		none
 			default:	copy ""
 			target:		none
-			insert tag-stack tag: context [ id: none class: copy [] element: name ]
+			insert tag-stack tag: context [ id: none class: copy [] ]
 		)
 	]
 
@@ -566,7 +566,7 @@ emit-html: funct [
 	]
 
 	init-div: [
-		( name: 'div )
+		( tag-name: 'div )
 		init-tag
 	]
 
@@ -682,7 +682,7 @@ emit-html: funct [
 
 	paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 	paired-tag: [
-		set name paired-tags
+		set tag-name paired-tags
 		init-tag
 		opt style
 		emit-tag
@@ -694,7 +694,7 @@ emit-html: funct [
 		['img | 'image]
 		(
 			debug "==IMAGE"
-			name: 'img
+			tag-name: 'img
 		)
 		init-tag
 		some [
@@ -715,7 +715,7 @@ emit-html: funct [
 
 	; <a>
 	link: [
-		['a | 'link] ( name: 'a )
+		['a | 'link] ( tag-name: 'a )
 		init-tag
 		set value [ file! | url! | issue! ]
 		( append tag compose [ href: (value) ] )
@@ -728,7 +728,7 @@ emit-html: funct [
 	; lists - UL, OL, LI, DL
 
 	li: [
-		set name 'li
+		set tag-name 'li
 		init-tag
 		opt style
 		emit-tag
@@ -737,7 +737,7 @@ emit-html: funct [
 	]
 
 	ul: [
-		set name 'ul
+		set tag-name 'ul
 		init-tag
 		opt style
 		emit-tag
@@ -746,7 +746,7 @@ emit-html: funct [
 	]
 
 	ol: [
-		set name 'ol
+		set tag-name 'ol
 		init-tag
 		any [
 			; NOTE: if I change order of rules, it stops working. Not sure why
@@ -759,7 +759,7 @@ emit-html: funct [
 	]
 
 	dl: [
-		set name 'dl
+		set tag-name 'dl
 		init-tag
 		opt [
 			'horizontal ( append tag/class 'dl-horizontal )
@@ -808,7 +808,7 @@ emit-html: funct [
 	; --- headings
 	; TODO: headings can contain Phrasing elements (see HEADER/NOTE)
 	heading: [
-		set name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
+		set tag-name [ 'h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6 ]
 		init-tag
 		opt style
 		emit-tag
@@ -819,7 +819,7 @@ emit-html: funct [
 	; table
 
 	table: [
-		set name 'table
+		set tag-name 'table
 		init-tag
 		style
 		( insert tag/class 'table )
@@ -861,7 +861,7 @@ emit-html: funct [
 
 	init-input: [
 		(
-			name: 'input
+			tag-name: 'input
 			default: none
 		)
 		init-tag
@@ -950,7 +950,7 @@ emit-html: funct [
 	]
 	textarea: [
 		; TODO: DEFAULT
-		set name 'textarea
+		set tag-name 'textarea
 		(
 			size: 50x4
 			label: ""
@@ -1044,7 +1044,7 @@ emit-html: funct [
 	]
 	form-type: none
 	form-rule: [
-		set name 'form
+		set tag-name 'form
 		( form-type: none )
 		init-tag
 		opt [
@@ -1172,7 +1172,7 @@ emit-html: funct [
 
 		'panel
 		(
-			name: 'div
+			tag-name: 'div
 			panel-type: 'default
 		)
 		init-tag
@@ -1425,7 +1425,8 @@ emit-html: funct [
 		opt [ 'label set label word! ]
 		(
 			debug "==MODAL"
-			tag/element: 'div
+;			tag/element: 'div
+			tag-name: 'div
 			tag/id: name
 			append tag/class [ modal fade ]
 			append tag [
@@ -1436,17 +1437,11 @@ emit-html: funct [
 			]
 		)
 		emit-tag
-		init-tag
-		(
-			tag/element: 'div
-			append tag/class 'modal-dialog
-		)
+		init-div
+		( append tag/class 'modal-dialog )
 		emit-tag
-		init-tag
-		(
-			tag/element: 'div
-			append tag/class 'modal-content
-		)
+		init-div
+		( append tag/class 'modal-content )
 		emit-tag
 		opt modal-header
 		modal-body
@@ -1457,34 +1452,31 @@ emit-html: funct [
 	]
 	modal-header: [
 		'header
-		init-tag
+		init-div
 		(
-			tag/element: 'div
 			append tag/class 'modal-header
-			emit make-tag tag
-			emit {<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>}
+			emit [
+				build-tag tag-name tag
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+				&times;
+				</button>
+			]
 		)
 		into [ some elements ]
 		end-tag
 	]
 	modal-body: [
 		opt 'body
-		init-tag
-		(
-			tag/element: 'div
-			append tag/class 'modal-body
-		)
+		init-div
+		( append tag/class 'modal-body )
 		emit-tag
 		into [ some elements ]
 		end-tag
 	]
 	modal-footer: [
 		'header
-		init-tag
-		(
-			tag/element: 'div
-			append tag/class 'modal-footer
-		)
+		init-div
+		( append tag/class 'modal-footer )
 		emit-tag
 		into [ some elements ]
 		end-tag
@@ -1690,7 +1682,7 @@ emit-html: funct [
 		opt style
 		(
 			debug ["==WYSIWYG"]
-			tag/element: 'textarea
+			tag-name: 'textarea
 			append tag/class 'wysiwyg
 		)
 		emit-tag
