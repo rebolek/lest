@@ -18,6 +18,8 @@ currently used in:
 
 		}
 		"support char! as basic input (beside string!)"
+		"add anything! type for user rules that will parse anything parsable in bootrapy"
+		"REPEAT: support multiple variables"
 	]
 	Notes: [
 		source: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
@@ -406,11 +408,10 @@ emit-html: funct [
 				set label word!
 				set type word!
 				(
-;					add-rule parameters reduce [ 'change to lit-word! label label ]
+					; TODO: PX should be local
 					add-rule parameters probe reduce [
 						to set-word! 'px to lit-word! label
 						to paren! reduce/no-set [ to set-path! 'px/1 label ]
-						to get-word! 'px
 					]
 
 					repend last user-rules [ 'set label to set-word! 'pos type ]
@@ -418,16 +419,18 @@ emit-html: funct [
 			]
 			set value block!
 			(
-				append last user-rules reduce [
+				append last user-rules probe reduce [
 					to paren! compose/only [
 						; TODO: move rule outside
-						rule: (compose [
+						rule: (probe compose [
+;							UNCOMMENT FOR DEBUG
+;							posx: (to paren! [probe posx])
 							any-string!
 						|	into [ some rule ]
 						|	(parameters)
 						|	skip
 						])
-						parse temp: probe copy/deep (value) [ some rule ]
+						probe parse temp: probe copy/deep (value) [ some rule ]
 						change/only pos probe temp
 					]
 					to get-word! 'pos 'into [some elements]
