@@ -1,6 +1,6 @@
 ; CONFIGURATION: simple test function
 [
-	function? tf: func [data][parse-html data]
+	function? tf: func [data][emit-html data]
 ]
 
 ;;-----------------------
@@ -39,13 +39,13 @@
 
 ; tag nesting
 
-[ {<b><i>bold italic</i></b>} = tf [ b [ i "bold italic" ] ] ] 
-[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b id bold [ i id italic "bold italic" ] ] ] 
-[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i id italic "bold italic" ] ] ] 
-[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b id bold [ i #italic "bold italic" ] ] ] 
-[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ] 
-[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b #bold #style [ i #italic "bold italic" ] ] ] 
-[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b #bold #style [ i #italic #style "bold italic" ] ] ] 
+[ {<b><i>bold italic</i></b>} = tf [ b [ i "bold italic" ] ] ]
+[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b id bold [ i id italic "bold italic" ] ] ]
+[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i id italic "bold italic" ] ] ]
+[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b id bold [ i #italic "bold italic" ] ] ]
+[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b #bold #style [ i #italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b #bold #style [ i #italic #style "bold italic" ] ] ]
 
 
 ; SCRIPT tag
@@ -57,29 +57,29 @@
 
 ; LINK tag
 
-[ {<a href="#">home</a>} = tf [ a %# "home" ] ] 
-[ {<a href="#">home</a>} = tf [ link %# "home" ] ] 
+[ {<a href="#">home</a>} = tf [ a %# "home" ] ]
+[ {<a href="#">home</a>} = tf [ link %# "home" ] ]
 [ {<a href="#about">about</a>} = tf [ link %#about "about" ] ]
 [ {<a href="about">about file</a>} = tf [ link %about "about file" ] ]
 [ {<a href="http://www.about.at">about web</a>} = tf [ link http://www.about.at "about web" ] ]
 [ {<a class="blue" href="#">home</a>} = tf [ link %# #blue "home"] ]
 [ {<a id="blue" href="#">home</a>} = tf [ link %# id blue "home"] ]
 [ {<a id="blue" class="main" href="#">home</a>} = tf [ link %# id blue #main "home"] ]
-[ equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>} 
-	tf [ 
-		link %# id blue #main [ 
+[ equal? {<a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a>}
+	tf [
+		link %# id blue #main [
 			div #link-class id link "home"
 		]
-	] 
+	]
 ]
-[ equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>} 
+[ equal? {<div id="outer" class="border"><a id="blue" class="main" href="#"><div id="link" class="link-class">home</div></a></div>}
 	tf [
-		div id outer #border [ 
-			link %# id blue #main [ 
+		div id outer #border [
+			link %# id blue #main [
 				div #link-class id link "home"
 			]
 		]
-	] 
+	]
 ]
 
 ; IMG tag
@@ -90,9 +90,9 @@
 [ {<img id="adamov" src="brno.jpg">} = tf [ image id adamov %brno.jpg] ]
 [ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov] ]
 [ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image id obr %brno.jpg #adamov #ivancice ] ]
-[ equal? 
-		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>} 
-		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ] 
+[ equal?
+		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>}
+		tf [ div #border id okraj #small [image id obr %brno.jpg #adamov #ivancice] ]
 ]
 
 ; LISTS
@@ -101,7 +101,7 @@
 [ "<ul><li>jedna</li><li>dva</li></ul>" = tf [ ul li "jedna" li "dva"] ]
 [ equal?
 	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
-	tf [ ul id list li #item id first "jedna" li id second #item "dva" ] 
+	tf [ ul id list li #item id first "jedna" li id second #item "dva" ]
 ]
 
 ; HEADINGS
@@ -141,12 +141,12 @@
 ]
 [ equal?
 	{<form action="script" method="post" role="form"><div class="form-group"><label for="name">Your name:</label><input class="form-control" type="text" name="name"></div><div class="form-group"><label for="pass">Password:</label><input class="form-control" type="password" name="pass"></div><div class="form-group"><label for="mail">Your email:</label><input class="form-control" type="email" name="mail"></div></form>}
-	tf [ 
-		form %script [ 
-			text name "Your name:" 
+	tf [
+		form %script [
+			text name "Your name:"
 			password pass "Password:"
 			email mail "Your email:"
-		] 
+		]
 	]
 ]
 [
@@ -188,3 +188,16 @@
 ]
 
 [ {<span class="glyphicon glyphicon-eye-open"></span>} = tf [ glyphicon eye-open ] ]
+
+[
+	equal?
+	{<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">Action<span class="caret"></span></button><ul class="dropdown-menu" role="menu"><li><a href="#">Action</a></li><li><a href="#">Another action</a></li><li><a href="#">Something else here</a></li><li class="divider"></li><li><a href="#">Separated link</a></li></ul></div>}
+	tf [
+		dropdown "Action"
+		"Action" %#
+		"Another action" %#
+		"Something else here" %#
+		divider
+		"Separated link" %#
+	]
+]
