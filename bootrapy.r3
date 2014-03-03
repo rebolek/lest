@@ -17,6 +17,7 @@ currently used in:
 	ENABLE: BOOTSTRAP, SMOOTH-SCROLLING, PRETTY-PHOTO, PASSWORD-STRENGTH
 
 		}
+		"support char! as basic input (beside string!)"
 	]
 	Notes: [
 		source: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
@@ -405,7 +406,13 @@ emit-html: funct [
 				set label word!
 				set type word!
 				(
-					add-rule parameters reduce [ 'change to lit-word! label label ]
+;					add-rule parameters reduce [ 'change to lit-word! label label ]
+					add-rule parameters probe reduce [
+						to set-word! 'px to lit-word! label
+						to paren! reduce/no-set [ to set-path! 'px/1 label ]
+						to get-word! 'px
+					]
+
 					repend last user-rules [ 'set label to set-word! 'pos type ]
 				)
 			]
@@ -420,8 +427,8 @@ emit-html: funct [
 						|	(parameters)
 						|	skip
 						])
-						parse temp: copy/deep (value) [ some rule ]
-						change/only pos temp
+						parse temp: probe copy/deep (value) [ some rule ]
+						change/only pos probe temp
 					]
 					to get-word! 'pos 'into [some elements]
 				]
