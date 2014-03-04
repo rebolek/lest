@@ -5,9 +5,17 @@
 
 ;;-----------------------
 
+; string
+
+[ "bootrapy" = tf [ "bootrapy" ] ]
+
 ; comment
 
 [ {} = tf [ comment [ b "bold" ] ] ]
+
+; stop
+
+[ {<div>hello</div>} = tf [ div "hello" stop div "world" ] ]
 
 ; paired tags
 
@@ -103,6 +111,19 @@
 	{<ul id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ul>}
 	tf [ ul #list li .item #first "jedna" li #second .item "dva" ]
 ]
+[ "<ul><li><span>inner element</span></li></ul>" = tf [ ul li [ span "inner element" ] ] ]
+[ "<ol><li>jedna</li></ol>" = tf [ ol li "jedna" ] ]
+[ "<ol><li>jedna</li><li>dva</li></ol>" = tf [ ol li "jedna" li "dva" ] ]
+[ equal?
+	{<ol id="list"><li id="first" class="item">jedna</li><li id="second" class="item">dva</li></ol>}
+	tf [ ol #list li .item #first "jedna" li #second .item "dva" ]
+]
+[ equal?
+	{<ul><li><ul><li>nested</li><li>this too</li></ul></li><li>back on surface</li></ul>}
+	tf [ ul li [ ul li "nested" li "this too" ] li "back on surface" ]
+]
+[ "<dl><dt>def</dt><dd>val</dd></dl>" = tf [ dl "def" "val" ] ]
+[ "<dl><dt>def 1</dt><dd>val 1</dd><dt>def 2</dt><dd>val 2</dd></dl>" = tf [ dl "def 1" "val 1" "def 2" "val 2" ] ]
 
 ; HEADINGS
 

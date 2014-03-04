@@ -20,6 +20,7 @@ currently used in:
 		"support char! as basic input (beside string!)"
 		"add anything! type for user rules that will parse anything parsable in bootrapy"
 		"REPEAT: support multiple variables"
+		"REPEAT: support for lists (or vice versa - lists, support for repeat"
 	]
 	Notes: [
 		source: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/HTML5/HTML5_element_list
@@ -768,9 +769,9 @@ emit-html: funct [
 		emit-tag
 		some [
 			set value string!
-			( emit ajoin [ <dt> value </dt> ] )
+			( emit entag value 'dt )
 			set value string!
-			( emit ajoin [ <dd> value </dd> ] )
+			( emit entag value 'dd )
 		]
 		end-tag
 	]
