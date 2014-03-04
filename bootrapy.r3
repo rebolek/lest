@@ -552,17 +552,17 @@ emit-html: funct [
 			value:		none
 			default:	copy ""
 			target:		none
-			insert tag-stack tag: context [ id: none class: copy [] ]
+			insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
 		)
 	]
 
-	take-tag: [ ( tag: take tag-stack ) ]
+	take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
 
-	emit-tag: [ ( debug ["emit:" tag/element] emit make-tag tag ) ]
+	emit-tag: [ ( debug [ "emit:" tag-name ] emit build-tag tag-name tag ) ]
 
 	end-tag: [
 		take-tag
-		( emit close-tag tag/element )
+		( emit close-tag tag-name )
 	]
 
 	init-div: [
@@ -572,7 +572,7 @@ emit-html: funct [
 
 	close-div: [
 		(
-			tag: take tag-stack
+			tag: take/part tag-stack 2
 			emit </div>
 		)
 	]
@@ -865,7 +865,10 @@ emit-html: funct [
 			default: none
 		)
 		init-tag
-		( tag: first tag-stack )
+		(
+			tag-name: first tag-stack
+			tag: second tag-stack
+		)
 	]
 	emit-input: [
 		(
@@ -875,18 +878,18 @@ emit-html: funct [
 						emit-label/class label name	[col-sm-2 control-label]
 					]
 					emit <div class="col-sm-10">
-					tag: take tag-stack
+					set [tag-name tag] take/part tag-stack 2
 					append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
-					emit make-tag tag
+					emit build-tag tag-name tag
 					emit </div>
 				]
 			][
 				unless empty? label [
 					emit-label label name
 				]
-				tag: take tag-stack
+				set [tag-name tag] take/part tag-stack 2
 				append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
-				emit make-tag tag
+				emit build-tag tag-name tag
 			]
 		)
 	]
@@ -919,7 +922,7 @@ emit-html: funct [
 		take-tag
 		(
 			append tag compose [ type: (type) name: (name) ]
-			emit [ make-tag tag label </label> </div> ]
+			emit [ build-tag tag-name tag label </label> </div> ]
 		)
 	]
 	radio: [
@@ -977,9 +980,10 @@ emit-html: funct [
 				name: (name)
 ;				id: (id)
 			]
-			emit make-tag tag
-			emit value
-			emit close-tag tag/element
+;			emit make-tag tag
+;			emit value
+;			emit close-tag tag/element
+			emit entag/with value tag-name tag
 		)
 	]
 	hidden: [
@@ -997,11 +1001,13 @@ emit-html: funct [
 	submit: [
 		'submit
 		(
-			insert tag-stack tag: context [
-				element:	'button
-				type:		'submit
-				id:			none
-				class: copy [btn btn-default]
+			insert tag-stack reduce [
+				'button
+				context [
+					type:		'submit
+					id:			none
+					class: copy [btn btn-default]
+				]
 			]
 		)
 		some [
@@ -1015,7 +1021,7 @@ emit-html: funct [
 					emit [
 						<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
-						make-tag tag
+						build-tag tag-name tag
 						label
 						</button>
 						</div>
@@ -1024,7 +1030,7 @@ emit-html: funct [
 
 				]
 			][
-				emit [ make-tag tag label </button> ]
+				emit [ build-tag tag-name tag label </button> ]
 			]
 		)
 	]
@@ -1305,8 +1311,8 @@ emit-html: funct [
 		init-tag
 		(
 			debug "==CAROUSEL"
+			tag-name: 'div
 			append tag compose [
-				element: div
 				inner-html: ( copy {} )
 				items: 0
 				active: 0
@@ -1344,7 +1350,7 @@ emit-html: funct [
 			tag/active:
 			tag/inner-html: none
 			emit [
-				make-tag tag
+				build-tag tag-name tag
 				either carousel-menu [
 					;default or custom indicators
 					emit-html carousel-menu
@@ -1392,7 +1398,7 @@ emit-html: funct [
 		(
 			tag/class: [ btn-group ]
 			emit [
-				make-tag tag
+				build-tag tag-name tag
 				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 				label
 				<span class="caret"></span>
@@ -1425,7 +1431,6 @@ emit-html: funct [
 		opt [ 'label set label word! ]
 		(
 			debug "==MODAL"
-;			tag/element: 'div
 			tag-name: 'div
 			tag/id: name
 			append tag/class [ modal fade ]
