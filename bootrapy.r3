@@ -343,7 +343,7 @@ emit-html: funct [
 						to paren! reduce/no-set [ to set-path! 'px/1 label ]
 					]
 
-					repend last user-rules [ 'set label to set-word! 'pos type ]
+					repend last user-rules [ to set-word! 'pos 'set label type ]
 				)
 			]
 			set value block!
