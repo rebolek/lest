@@ -8,6 +8,7 @@ REBOL[
 	]
 	Known-bugs: [
 	]
+	Notes: ["For mardown specification, see http://johnmacfarlane.net/babelmark2/faq.html"]
 ]
 
 xml?: true
@@ -29,6 +30,15 @@ entities: [
 	#"<" (emit "&lt;")
 |	#">" (emit "&gt;")
 |	#"&" (emit "&amp;")
+]
+escape-set: charset "\`*_{}[]()#+-.!"
+escapes: use [escape] [
+	[
+		#"\"
+		(start-para)
+		set escape escape-set
+		(emit escape)
+	]
 ]
 numbers: charset [#"0" - #"9"]
 ; some "longer, but readable" stuff
@@ -255,6 +265,30 @@ inline-code-rule: use [code] [
 	]
 ]
 
+code-line: use [value][
+	[
+		some [
+			entities
+		|	[newline | end] (emit newline) break
+		|	set value skip (emit value)	
+		]
+	]
+]
+
+code-rule: use [text] [
+	[
+		4 space
+		(emit ajoin [<pre><code>])
+		code-line
+		any [
+			4 space
+			code-line
+		]
+		(emit ajoin [</code></pre>])
+		(end-para?: false)
+	]
+]
+
 asterisk-rule: ["\*" (emit "*")]
 
 newline-rule: [
@@ -310,10 +344,12 @@ rules: [
 	|	list-rule
 	|	blockquote-rule
 	|	inline-code-rule
+	|	code-rule
 	|	asterisk-rule
 	|	em-rule
 	|	horizontal-rule
 	|	entities
+	|	escapes
 	|	line-break-rule
 	|	newline-rule
 	|	end (if end-para? [end-para?: false emit </p>])
