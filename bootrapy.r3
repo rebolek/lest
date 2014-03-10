@@ -1,8 +1,8 @@
 REBOL[
 	Title:		"BOOTRAPY - HTML/Bootstrap dialect"
 	Author:		"Boleslav Brezovsky"
-	Version:	0.0.2
-	Date:		14-1-2013
+	Version:	0.0.3
+	Date:		10-3-2013
 	Started:	7-12-2013
 	To-do: [
 		"HTML entities"
@@ -1693,6 +1693,11 @@ emit-html: funct [
 		|	'font-awesome (
 				debug "==ENABLE FONT AWESOME"
 				emit-stylesheet css-path/font-awesome.min.css
+			)
+		|	'markdown (
+				debug "==ENABLE MARKDOWN"
+				do %md.reb
+				add-rule user-rules [ 'markdown set value string! ( emit markdown value ) ]
 			)
 		]
 	]
