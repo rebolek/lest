@@ -54,17 +54,36 @@ Let's be fancy:
 	]
 	== <div><span class="action">Hello</span>, <span class="name">world</span>!</div><div><span class="action">Cheer up</span>, <span class="name">Brian</span>!</div>
 
-And also recursive:
+These user templates can be used to construct complex layouts:
 
-	>> emit html [
-		red-div: value block! [div .red value]
-		red-info: title string! content block! [div .info [h1 title red-div content]]
-		red-info "First thing" [span "this is first thing"]
-		red-info "Second thing" [div [b "first thing is not enough"]]
-		red-info "Last thing" [div [h2 "This is subtitle!" p "But are three things enough?"]]
+	>> emit-html [
+		post-stamp: timestamp date! [
+			div .timestamp ["Sent: " span .sent timestamp]
+		]
+		user-post: name string! avatar url! timestamp date! title string! content string! [
+			div .user-post [
+				div .user-info [
+					div .user-name name
+					img avatar
+					post-stamp timestamp
+				]
+				div .message [
+					h3 .post-title title
+					p .post-content content
+				]
+			]
+		]
+		user-post "Karel" http://myface.com/karel.jpg 23-Mar-2014/13:37 "First Message" "Hello, this is my first message"
+		user-post "Jana" http://myface.com/jana.jpg 23-Mar-2014/14:20 "You are a Hero!" "I'm glad you've made it!"
+		user-post "Bot" http://myface.com/default.jpg 1-Apr-2014/0:00 "Broadcast to all" "Please, don't polute this channel."
 	]
 
+So this is how you construct your templates, instead of repeating the same stuff over and over.
 
+But this is still somehow static. So you can get the data from file or database:
+
+	...
+	 
 
 
 Example code:
