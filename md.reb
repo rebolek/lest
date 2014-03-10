@@ -253,14 +253,22 @@ inline-code-rule: use [code] [
 		[
 			"``" 
 			(start-para)
-			copy code to "``" 2 skip
-			(emit ajoin [<code> code </code>])
+			(emit <code>)
+			some [
+				"``" (emit </code>) break ; end rule
+			|	entities
+			|	set value skip (emit value)
+			]
 		]
 	|	[
 			"`"
 			(start-para)
-			copy code to "`" skip
-			(emit ajoin [<code> code </code>])			
+			(emit <code>)
+			some [
+				"`" (emit </code>) break ; end rule
+			|	entities
+			|	set value skip (emit value)
+			]
 		]	
 	]
 ]
