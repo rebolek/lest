@@ -1,0 +1,341 @@
+REBOL[
+	Title: "Rebol Markdown Parser"
+	File: %markdown.reb
+	Author: "Boleslav Březovský"
+	Date: 7-3-2014
+	To-do: [
+		"function to produce rule wheter to continue on start-para or not"
+	]
+	Known-bugs: [
+	]
+]
+
+xml?: true
+
+buffer: make string! 1000
+
+emit: func [data] [append buffer data]
+close-tag: func [tag] [head insert copy tag #"/"]
+
+start-para: does [
+	if start-para? [
+		start-para?: false 
+		end-para?: true
+		emit <p>
+	]
+]
+
+entities: [
+	#"<" (emit "&lt;")
+|	#">" (emit "&gt;")
+|	#"&" (emit "&amp;")
+]
+numbers: charset [#"0" - #"9"]
+; some "longer, but readable" stuff
+plus: #"+"
+minus: #"-"
+asterisk: #"*"
+underscore: #"_"
+hash: #"#"
+dot: #"."
+eq: #"="
+lt: #"<"
+gt: #">"
+
+header-underscore: use [text tag] [
+	[
+		copy text to newline 
+		newline
+		some [eq (tag: <h1>) | minus (tag: <h2>)]
+		[newline | end]
+		(
+			end-para?: false
+			start-para?: true
+			emit ajoin [tag text close-tag tag]
+		)
+	]
+]
+
+header-hash: use [text here continue trailing mark length] [
+	[
+		pos:
+		(
+			continue: either/only start-para? [not space] [fail]
+			tag: 0
+			mark: clear ""
+		)
+		continue
+		copy mark some hash
+		space 
+		; TODO: rewrite using SKIP and end rules
+		copy text to [mark | newline | end]
+		pos: 
+		(
+			trailing: either equal? "  " skip tail text -2 newline ""
+			end-para?: false
+			start-para?: true
+			length: length? mark
+			mark: to tag! compose [h (length)]
+			emit ajoin [mark trim text close-tag mark trailing]
+			if equal? hash first pos [pos: skip pos length]
+		)
+		:pos
+	]
+]
+
+header-rule: [
+	header-underscore
+|	header-hash	
+]
+
+autolink-rule: use [address] [
+	[
+		lt
+		copy address ; TODO: Parse address to match email
+		to gt skip
+		(
+			start-para
+			emit ajoin [{<a href="} address {">} address </a>]
+		)
+	]
+]
+
+link-rule: use [text address value title] [
+	[
+		#"["
+		copy text
+		to #"]" skip
+		#"("
+		(
+			address: clear ""
+			title: none
+		)
+		some [
+			not [space | #")"]
+			set value skip
+			(append address value)
+		]
+		opt [
+			space
+			#"^""
+			copy title to #"^""
+			skip
+		]
+		skip
+		(
+			start-para
+			title: either title [ajoin [space {title="} title {"}]][""]
+			emit ajoin [{<a href="} address {"} title {>} text </a>]
+		)
+	]
+]
+
+em-rule: use [mark text] [
+	[
+		copy mark ["**" | "__" | "*" | "_"]
+		not space
+		copy text
+		to mark mark
+		(
+			start-para
+			mark: either equal? length? mark 1 <em> <strong>
+			emit ajoin [mark text close-tag mark]
+		)
+	]
+]
+
+img-rule: use [text address] [
+	[
+		#"!"
+		#"["
+		copy text
+		to #"]" skip
+		#"("
+		copy address
+		to #")" skip
+		(
+			start-para
+			emit ajoin [{<img src="} address {" alt="} text {"} either xml? { /} {} {>}]
+		)
+	]
+]
+
+; TODO: make it bitset!
+horizontal-mark: [minus | asterisk | underscore]
+
+horizontal-rule: [
+	horizontal-mark
+	any space
+	horizontal-mark
+	any space
+	horizontal-mark
+	any [
+		horizontal-mark
+	|	space
+	]
+	(
+		end-para?: false
+		emit either xml? <hr /><hr>
+	)
+]
+
+unordered: [any space [asterisk | plus | minus] space]
+ordered: [any space some numbers dot space]
+
+; TODO: recursion for lists
+
+list-rule: use [continue tag item] [
+	[
+		some [
+			(
+				continue: either start-para? [
+					[
+						ordered (item: ordered tag: <ol>)
+					|	unordered (item: unordered tag: <ul>)
+					]
+				] [
+					[fail]
+				]
+			)
+			continue
+			(start-para?: end-para?: false)
+			(emit ajoin [tag newline <li>])
+			line-rules
+			newline
+			(emit ajoin [</li> newline])
+			some [
+				item
+				(emit <li>)
+				line-rules
+				[newline | end]
+				(emit ajoin [</li> newline])
+			]
+			(emit close-tag tag)
+		]
+	]
+]
+
+blockquote-rule: use [continue] [
+	[
+		(
+			continue: either/only start-para? [gt any space] [fail]
+		)
+		continue
+		(emit ajoin [<blockquote> newline])
+		line-rules
+		[[newline (emit newline)] | end]
+		any [
+			; FIXME: what an ugly hack
+			[newline ] (remove back tail buffer emit ajoin [</p> newline newline <p>])
+		|	[
+				continue
+				opt line-rules
+				[newline (emit newline) | end]
+			]
+		]
+		(end-para?: false)
+		(emit ajoin [</p> newline </blockquote>])
+	]
+]
+
+inline-code-rule: use [code] [
+	[
+		[
+			"``" 
+			(start-para)
+			copy code to "``" 2 skip
+			(emit ajoin [<code> code </code>])
+		]
+	|	[
+			"`"
+			(start-para)
+			copy code to "`" skip
+			(emit ajoin [<code> code </code>])			
+		]	
+	]
+]
+
+asterisk-rule: ["\*" (emit "*")]
+
+newline-rule: [
+	newline 
+	any [space | tab] 
+	some newline 
+	any [space | tab]
+	(
+		emit ajoin [</p> newline newline]
+		start-para?: true
+	)
+|	newline (emit newline)	
+]
+
+line-break-rule: [
+	space
+	some space
+	newline
+	(emit ajoin [either xml? <br /> <br> newline])
+]
+
+leading-spaces: use [continue] [
+	[
+		(continue: either/only start-para? [some space] [fail])
+		continue
+		(start-para)
+	]
+]
+
+; simplified rules used as sub-rule in some rules
+
+line-rules: [
+	some [
+		em-rule
+	|	link-rule
+	|	header-rule
+	|	not newline set value skip (
+		start-para
+		emit value
+	)
+	]
+]
+
+; main rules
+
+rules: [
+;	any space
+	some [
+		header-rule
+	|	link-rule
+	|	autolink-rule
+	|	img-rule
+	|	list-rule
+	|	blockquote-rule
+	|	inline-code-rule
+	|	asterisk-rule
+	|	em-rule
+	|	horizontal-rule
+	|	entities
+	|	line-break-rule
+	|	newline-rule
+	|	end (if end-para? [end-para?: false emit </p>])
+	|	leading-spaces
+	|	set value skip (
+			start-para
+			emit value
+		)	
+	]
+]
+
+markdown: func [
+	"Parse markdown source to HTML or XHTML"
+	data
+	; TODO:
+	/only "Return result without newlines"
+	; TODO:
+	/xml "Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)"
+] [
+	start-para?: true
+	end-para?: true
+	buffer: make string! 1000
+	parse data [some rules]
+	buffer
+]
