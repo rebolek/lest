@@ -66,30 +66,28 @@ header-underscore: use [text tag] [
 	]
 ]
 
-header-hash: use [text here continue trailing mark length] [
+header-hash: use [value continue trailing mark tag] [
 	[
-		pos:
 		(
 			continue: either/only start-para? [not space] [fail]
-			tag: 0
 			mark: clear ""
 		)
 		continue
 		copy mark some hash
 		space 
-		; TODO: rewrite using SKIP and end rules
-		copy text to [mark | newline | end]
-		pos: 
-		(
-			trailing: either equal? "  " skip tail text -2 newline ""
-			end-para?: false
-			start-para?: true
-			length: length? mark
-			mark: to tag! compose [h (length)]
-			emit ajoin [mark trim text close-tag mark trailing]
-			if equal? hash first pos [pos: skip pos length]
-		)
-		:pos
+		(emit tag: to tag! compose [h (length? mark)])
+		some [
+			[
+				(trailing: "")
+				[[any space mark] | [opt [2 space (trailing: newline)]]]
+				[newline | end] 
+				(end-para?: false)
+				(start-para?: true)
+				(emit ajoin [close-tag tag trailing])
+			]
+			break
+		|	set value skip (emit value)	
+		]
 	]
 ]
 
