@@ -79,7 +79,7 @@ header-hash: use [value continue trailing mark tag] [
 		some [
 			[
 				(trailing: "")
-				[[any space mark] | [opt [2 space (trailing: newline)]]]
+				[[any space mark] | [opt [2 space (trailing: join newline newline)]]]
 				[newline | end] 
 				(end-para?: false)
 				(start-para?: true)
@@ -118,13 +118,13 @@ link-rule: use [text address value title] [
 			address: clear ""
 			title: none
 		)
-		some [
-			not [space | #")"]
+		any [
+			not [space | tab | #")"]
 			set value skip
 			(append address value)
 		]
 		opt [
-			space
+			some [space | tab]
 			#"^""
 			copy title to #"^""
 			skip
