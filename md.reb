@@ -277,11 +277,11 @@ code-line: use [value][
 
 code-rule: use [text] [
 	[
-		4 space
+		[4 space | tab]
 		(emit ajoin [<pre><code>])
 		code-line
 		any [
-			4 space
+			[4 space | tab]
 			code-line
 		]
 		(emit ajoin [</code></pre>])
