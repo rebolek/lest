@@ -1,35 +1,34 @@
-bootrapy
-========
+LEST - Low Entropy System for Templating
+========================================
 
-Bootrapy is a template engine with extremly low entropy. It removes unnecessary
-visual noise as `<`and `>` or end tags. Instead it uses efficient and rich
-Rebol syntax to describe the document. Bootrapy is optimized for Bootstrap
-with direct support for its components, but not limited to. Custom rules can
-be added directly in Bootrapy documents to support other toolkits or write
-a custom one.
+**Lest** is template engine/static site generator/whatever with low entropy and
+high customization. It removes unnecessary visual noise as `<`and `>` or end tags. 
+Instead it uses efficient and rich Rebol syntax to describe the document.
+Custom plugins can be added very easily and basic distribution includes plugin
+for advanced [Bootstrap](http://www.getbootstrap.com) support.
 
 # Overview
 
-Bootrapy describes HTML document in clutter-free way that is then translated
-to the mess that rules the world. See some examples *(Bootrapy source is
+**Lest** describes HTML document in clutter-free way that is then translated
+to the mess that rules the world. See some examples *(Lest source is
 prefixed with `>>` and HTML output with `==`):*
 
-	>> emit-html [div "Hello World"]
+	>> lest [div "Hello World"]
 	== <div>Hello World</div>
 
-	>> emit-html [div #example "Hello World"]
+	>> lest [div #example "Hello World"]
 	== <div id="example">Hello World"</div>
 
-	>> emit-html [div #example .big .outline "Hello World"]
+	>> lest [div #example .big .outline "Hello World"]
 	== <div id="example" class="big outline">Hello World"</div>
 
-	>> emit-html [div with [custom-tag: "custom value"] "Hello World"]
+	>> lest [div with [custom-tag: "custom value"] "Hello World"]
 	== <div custom-tag="custom value">Hello World</div>
 
 Ok, the last example is getting bit out of hand, so let's rewrite this using
 custom tags:
 
-	>> emit-html [
+	>> lest [
 		custom: value string! [div with [custom-tag: "custom value"] value]
 		custom "Hello World"
 	]
@@ -38,7 +37,7 @@ custom tags:
 Now we have this nonsense carried in custom tag, cleverly called CUSTOM,
 that accepts one parameter of STRING! datatype, called VALUE. So we can do this:
 
-	>> emit-html [
+	>> lest [
 		custom: value string! [div with [custom-tag: "custom value"] value]
 		custom "Hello World" 
 		custom "Hello completely unrelated World"
@@ -47,7 +46,7 @@ that accepts one parameter of STRING! datatype, called VALUE. So we can do this:
 
 Let's be fancy:
 
-	>> emit-html [
+	>> lest [
 		custom: what string! who string! [div [span .action what ", " span .name who "!"]]
 		custom "Hello" "world"
 		custom "Cheer up" "Brian"
@@ -56,7 +55,7 @@ Let's be fancy:
 
 These user templates can be used to construct complex layouts:
 
-	>> emit-html [
+	>> lest [
 		post-stamp: timestamp date! [
 			div .timestamp ["Sent: " span .sent timestamp]
 		]
@@ -82,17 +81,20 @@ So this is how you construct your templates, instead of repeating the same stuff
 
 But this is still somehow static. So you can get the data from file or database:
 
-	...
+	... TODO: add example
 	 
+# Requirements
 
+**Lest** is written in [Rebol](http://www.rebol.com) language. YOu can get latest Rebol binaries from
+http://www.rebolsource.com or build a binary yourself from [source at GitHub](https://github.com/rebol/rebol).
 
-Example code:
+# Example code
 
 	head
 
 	enable bootstrap
 	enable smooth-scrolling
-	stylesheet css-path/bootrapy.css
+	stylesheet css-path/lest.css
 	google-font "Exo 2"
 	title "Hello world!"
 
@@ -111,7 +113,7 @@ Example code:
 	    div "Div in div"
 	]
 
-	h2 "Why bootrapy?"
+	h2 "Why Lest?"
 	ul
 	li "fast"
 	li "small"
@@ -138,7 +140,7 @@ Example code:
 
 	h1 #plugins "Plugins"
 
-	p {Bootrapy supports different plugins:}
+	p {Lest supports different plugins:}
 
 	ul
 	li "Google fonts"
