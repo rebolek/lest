@@ -1,5 +1,8 @@
-LEST - Low Entropy System for Templating
-========================================
+LEST
+====
+
+Low Entropy System for Templating
+---------------------------------
 
 **Lest** is template engine/static site generator/whatever with low entropy and
 high customization. It removes unnecessary visual noise as `<`and `>` or end tags. 
