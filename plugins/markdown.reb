@@ -11,5 +11,9 @@ REBOL[
 startup: [
 	debug "==ENABLE MARKDOWN"
 	do %md.reb
-	add-rule user-rules [ 'markdown set value string! ( emit markdown value ) ]
+]
+
+rule: [ 
+	'markdown 
+	set value string! ( emit markdown value ) 
 ]

@@ -8,8 +8,7 @@ REBOL[
 ]
 
 startup: [
-	debug "==ENABLE FONT AWESOME"
-	emit-stylesheet css-path/font-awesome.min.css
+	stylesheet css-path/font-awesome.min.css
 ]
 
 rule: use [name fixed? size value size-att] [

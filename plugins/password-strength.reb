@@ -12,11 +12,7 @@ REBOL[
 ]
 
 startup: [
-	debug "==ENABLE PASSWORD STRENGTH"
-	debug js-path
-	append includes/body-end lest [
-		script js-path/pwstrength.js
-	]
+	append script js-path/pwstrength.js
 ]
 
 rule: use [verdicts too-short same-as-user username] [

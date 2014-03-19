@@ -8,13 +8,10 @@ REBOL[
 ]
 
 startup: [
-	debug "==ENABLE PRETTY PHOTO"
-	append includes/body-end lest [
-		script js-path/jquery.prettyPhoto.js
-		script {
-		  $(document).ready(function(){
-		    $("a[rel^='prettyPhoto']").prettyPhoto();
-		  });
-		}
-	]
+	append script js-path/jquery.prettyPhoto.js
+	append script {
+	  $(document).ready(function(){
+	    $("a[rel^='prettyPhoto']").prettyPhoto();
+	  });
+	}
 ]

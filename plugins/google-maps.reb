@@ -1,10 +1,11 @@
 REBOL[
 	Title: "Google Maps plugin for LEST"
 	Type: 'lest-plugin
+	Name: 'google-map
 ]
 
 
-google-map: [
+rule: [
 	; google maps
 
 ;

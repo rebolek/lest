@@ -8,17 +8,12 @@ REBOL[
 ]
 
 startup: [
-	debug "==ENABLE BOOTSTRAP"
-	emit-stylesheet css-path/bootstrap.min.css
-	append includes/body-end lest [
-		script js-path/jquery-2.1.0.min.js
-		script js-path/bootstrap.min.js
-	]
+	stylesheet css-path/bootstrap.min.css 
+	append script js-path/jquery-2.1.0.min.js 
+	append script js-path/bootstrap.min.js 
 ]
 
-do [
-
-bootstrap-elems: [
+rule: [
 	grid-elems
 |	col
 |	bar
@@ -30,6 +25,8 @@ bootstrap-elems: [
 |	address
 |	navbar
 ]
+
+do [
 
 grid-elems: [
 	set type [ 'row | 'container ]

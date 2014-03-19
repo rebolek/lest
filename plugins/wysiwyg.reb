@@ -6,12 +6,10 @@ REBOL[
 ]
 
 startup: [
-	debug "==ENABLE WYSIWYG"
-	emit-stylesheet css-path/bootstrap-wysihtml5.css
-
-	emit-plugin js-path/wysihtml5-0.3.0.min.js
-	emit-plugin js-path/bootstrap3-wysihtml5.js
-	emit-plugin {$('.wysiwyg').wysihtml5();}
+	stylesheet css-path/bootstrap-wysihtml5.css
+	append plugin js-path/wysihtml5-0.3.0.min.js
+	append plugin js-path/bootstrap3-wysihtml5.js
+	append plugin {$('.wysiwyg').wysihtml5();}
 ]
 
 rule: [
