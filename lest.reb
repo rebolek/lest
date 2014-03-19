@@ -1,10 +1,14 @@
 REBOL[
 	Title:		"LEST - Low Entropy System for Templating"
 	Author:		"Boleslav Brezovsky"
+	Name: 		'lest	
 	Version:	0.0.4
 	Date:		18-3-2013
 	Started:	7-12-2013
-	To-do: [
+;	Type: 		'module
+;	Exports: 	[lest]
+;	Options: 	[isolate]
+	To-do: 		[
 		"HTML entities"
 		"Cleanup variables in lest"
 		"Change header rules to emit to main data"
@@ -29,12 +33,14 @@ Add webserver that can serve pages directly:
 	when run without argument, it will open in current directory with list of files and some help
 	... other ideas
 		}
+		"plugin design: instead of startup just list required css and js files"
 	]
 ]
 
+;ctx-lest: object [
 
 debug:
-;:print
+:print
 none
 
 ; SETTINGS
@@ -511,6 +517,10 @@ page-header: [
 
 ]
 
+load-plugin-rule: [
+	'load-plugin set name word! (print "matched" load-plugin name)
+]
+
 ;  ____                _____   _____    _____     ______   _        ______   __  __    _____
 ; |  _ \      /\      / ____| |_   _|  / ____|   |  ____| | |      |  ____| |  \/  |  / ____|
 ; | |_) |    /  \    | (___     | |   | |        | |__    | |      | |__    | \  / | | (___
@@ -882,6 +892,8 @@ submit: [
 	)
 ]
 
+; FIXME: plugins (user-rules) must be enabled in forms
+
 form-content: [
 	[
 		br
@@ -891,7 +903,7 @@ form-content: [
 	|	radio
 	|	submit
 	|	hidden
-	|	captcha
+;	|	captcha
 	|	password-strength
 	]
 ]
@@ -1342,73 +1354,6 @@ modal-footer: [
 ; |_|      |______|  \____/   \_____| |_____| |_| \_| |_____/
 ;
 
-captcha: [
-	'captcha set value string! (
-		emit reword {
-<script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=$public-key"></script>
-<noscript>
-<iframe src="http://www.google.com/recaptcha/api/noscript?k=$public-key" height="300" width="500" frameborder="0"></iframe>
-<br>
-<textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
-<input type="hidden" name="recaptcha_response_field" value="manual_challenge">
-</noscript>
-} reduce [ 'public-key value ]
-	)
-]
-ga: [
-	; google analytics
-	'ga
-	set value word!
-	set web word!
-	(
-		debug ["==GOOGLE ANALYTICS:" value web]
-		append includes/body-end reword {
-<script>
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-ga('create', '$value', '$web');
-ga('send', 'pageview');
-
-</script>
-} [
-'value value
-'web web
-]
-	)
-]
-
-map: [
-	; google maps
-
-;
-; TODO: worked, now does not. Probably needs some requirements.
-;
-; currently uses iframe method (but that's not dynamic)
-	'map
-	set location pair!
-	(
-;			emit rejoin [ ""
-;   				<div id="contact" class="map"> newline
-;   					<div id="map_canvas"></div> newline
-;   				</div> newline
-;   				<script>
-;   				{google.maps.event.addDomListener(window, 'load', setMapPosition(} location/x #"," location/y {));}
-;   				</script>
-;    		]
-		emit ajoin [
-{<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?f=q&amp;source=s_q&amp;hl=cs&amp;geocode=&amp;sll=} location/x #"," location/y {&amp;sspn=0.035292,0.066175&amp;t=h&amp;ie=UTF8&amp;hq=&amp;z=14&amp;ll=} location/x #"," location/y {&amp;output=embed">}
-</iframe><br /><small>
-{<a href="https://maps.google.com/maps?f=q&amp;source=embed&amp;hl=cs&amp;geocode=&amp;aq=&amp;sll=} location/x #"," location/y {&amp;sspn=0.035292,0.066175&amp;t=h&amp;ie=UTF8&amp;hq=&amp;hnear=Mez%C3%ADrka,+Brno,+%C4%8Cesk%C3%A1+republika&amp;z=14&amp;ll=} location/x #"," location/y {" style="color:#0000FF;text-align:left">Zvětšit mapu}
-</a></small>
-		]
-
-
-	)
-]
-
 google-font: [
 	'google-font
 	set name string!
@@ -1495,108 +1440,104 @@ wysiwyg: [
 	end-tag
 ]
 
-enable: [
-	'enable (debug "==ENABLE") [
-		'bootstrap (
-			debug "==ENABLE BOOTSTRAP"
-			emit-stylesheet css-path/bootstrap.min.css
-			append includes/body-end lest [
-				script js-path/jquery-2.1.0.min.js
-				script js-path/bootstrap.min.js
-			]
-		)
-	|	'smooth-scrolling (
-			debug "==ENABLE SMOOTH SCROLLING"
-			; TODO: this expect all controls to be part of UL with ID #page-nav
-			; make more generic, but do not break another anchors!!!
-			append includes/body-end lest [
-				script {
-				  $(function() {
-				    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {
-				      if (location.pathname.replace(/^^\//,'') == this.pathname.replace(/^^\//,'') && location.hostname == this.hostname) {
+enable: [ 'enable (debug "==ENABLE") enables ]
 
-				        var target = $(this.hash);
-				        var navHeight = $("#page-nav").height();
+enables: [
+	'bootstrap (
+		debug "==ENABLE BOOTSTRAP"
+		emit-stylesheet css-path/bootstrap.min.css
+		append includes/body-end lest [
+			script js-path/jquery-2.1.0.min.js
+			script js-path/bootstrap.min.js
+		]
+	)
+|	'smooth-scrolling (
+		debug "==ENABLE SMOOTH SCROLLING"
+		; TODO: this expect all controls to be part of UL with ID #page-nav
+		; make more generic, but do not break another anchors!!!
+		append includes/body-end lest [
+			script {
+			  $(function() {
+			    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {
+			      if (location.pathname.replace(/^^\//,'') == this.pathname.replace(/^^\//,'') && location.hostname == this.hostname) {
 
-				        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
-				        if (target.length) {
-				          $('html,body').animate({
-				            scrollTop: target.offset().top - navHeight
-				          }, 1000);
-				          return false;
-				        }
-				      }
-				    });
-				  });
-				}
-			]
-		)
-	|	'pretty-photo (
-			debug "==ENABLE PRETTY PHOTO"
-			append includes/body-end lest [
-				script js-path/jquery.prettyPhoto.js
-				script {
-				  $(document).ready(function(){
-				    $("a[rel^='prettyPhoto']").prettyPhoto();
-				  });
-				}
-			]
-		)
-	|	'password-strength (
-			debug "==ENABLE PASSWORD STRENGTH"
-			debug js-path
-			append includes/body-end lest [
-				script js-path/pwstrength.js
-			]
-		)
-	|	'wysiwyg (
-			debug "==ENABLE WYSIWYG"
-			emit-stylesheet css-path/bootstrap-wysihtml5.css
+			        var target = $(this.hash);
+			        var navHeight = $("#page-nav").height();
 
-			emit-plugin js-path/wysihtml5-0.3.0.min.js
-			emit-plugin js-path/bootstrap3-wysihtml5.js
-			emit-plugin {$('.wysiwyg').wysihtml5();}
-		)
-	|	'lightbox (
-			debug "==ENABLE LIGHTBOX"
-			emit-stylesheet css-path/bootstrap-lightbox.min.css
-			emit-plugin js-path/bootstrap-lightbox.min.js
-		)
-;		|	'font-awesome (
-;				debug "==ENABLE FONT AWESOME"
-;				emit-stylesheet css-path/font-awesome.min.css
-;			)
-	|	'markdown (
-			debug "==ENABLE MARKDOWN"
-			do %md.reb
-			add-rule user-rules [ 'markdown set value string! ( emit markdown value ) ]
-		)
-	]
+			        target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+			        if (target.length) {
+			          $('html,body').animate({
+			            scrollTop: target.offset().top - navHeight
+			          }, 1000);
+			          return false;
+			        }
+			      }
+			    });
+			  });
+			}
+		]
+	)
+|	'pretty-photo (
+		debug "==ENABLE PRETTY PHOTO"
+		append includes/body-end lest [
+			script js-path/jquery.prettyPhoto.js
+			script {
+			  $(document).ready(function(){
+			    $("a[rel^='prettyPhoto']").prettyPhoto();
+			  });
+			}
+		]
+	)
+|	'password-strength (
+		debug "==ENABLE PASSWORD STRENGTH"
+		debug js-path
+		append includes/body-end lest [
+			script js-path/pwstrength.js
+		]
+	)
+|	'wysiwyg (
+		debug "==ENABLE WYSIWYG"
+		emit-stylesheet css-path/bootstrap-wysihtml5.css
+
+		emit-plugin js-path/wysihtml5-0.3.0.min.js
+		emit-plugin js-path/bootstrap3-wysihtml5.js
+		emit-plugin {$('.wysiwyg').wysihtml5();}
+	)
+|	'lightbox (
+		debug "==ENABLE LIGHTBOX"
+		emit-stylesheet css-path/bootstrap-lightbox.min.css
+		emit-plugin js-path/bootstrap-lightbox.min.js
+	)
+|	'markdown (
+		debug "==ENABLE MARKDOWN"
+		do %md.reb
+		add-rule user-rules [ 'markdown set value string! ( emit markdown value ) ]
+	)
 ]
 
 plugins: [
-	ga 					; GOOGLE ANALYTICS
-|	map 				; GOOGLE MAP (TODO: more engines?)
-|	google-font			; GOOGLE FONT
-;	|	fa-icon				; FONT AWESOME ICON - http://fontawesome.io/icons/
+	google-font			; GOOGLE FONT
 |	password-strength	; PASSWORD STRENGTH - bootstrap/jquery plugin
 |	wysiwyg 			; WYSIWYG EDITOR - https://github.com/mindmup/bootstrap-wysiwyg/
 |	enable
+|	load-plugin-rule
 ]
-
-; TODO: move to separate function
 
 ; FIXME: because of testing in separate directory, we need absolute path
 plugin-path: %/home/sony/repo/bootrapy/plugins/
-plugin-files: read plugin-path
-foreach file plugin-files [
-	file: load/header join plugin-path probe file
-	header: file/1
+
+load-plugin: func [
+	name
+	/local plugin header
+] [
+	print ["load plugin" name]
+	plugin: load/header rejoin [plugin-path name %.reb]
+	header: take plugin
+	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
+	plugin: object plugin
 	if equal? 'lest-plugin header/type [
-		plugin: construct next file
-		add-rule enable	reduce [to lit-word! header/name to paren! plugin/enable]
+		if plugin/startup [do plugin/startup]
 		add-rule plugins plugin/rule
-		print ["Plugin" header/name "loaded"]
 	]
 ]
 
@@ -1615,7 +1556,7 @@ includes: object [
 
 ; === parse fucntions
 
-lest: func [
+set 'lest func [
 	"Parse simple HTML dialect"
 	data
 ][
@@ -1754,3 +1695,6 @@ lest: func [
 		body
 	]
 ]
+
+
+;] ; --- end main object
