@@ -27,9 +27,9 @@ test-file: func [
 
 home: pwd
 
-print "===Test Bootrapy==="
-do %bootrapy.r3
-test-file %tests/main-test.reb %bootrapy.r3
+print "===Test Lest==="
+do %lest.reb
+test-file %tests/main-test.reb %lest.reb
 change-dir home
 
 halt

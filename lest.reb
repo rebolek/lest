@@ -1,15 +1,15 @@
 REBOL[
-	Title:		"BOOTRAPY - HTML/Bootstrap dialect"
+	Title:		"LEST - Low Entropy System for Templating"
 	Author:		"Boleslav Brezovsky"
-	Version:	0.0.3
-	Date:		10-3-2013
+	Version:	0.0.4
+	Date:		18-3-2013
 	Started:	7-12-2013
 	To-do: [
 		"HTML entities"
-		"Cleanup variables in emit-html"
+		"Cleanup variables in lest"
 		"Change header rules to emit to main data"
 		{
-get rid of EMIT-HTML in rules
+get rid of lest in rules
 
 currently used in:
 	EMIT-PLUGIN (func)
@@ -21,13 +21,20 @@ currently used in:
 		"add anything! type for user rules that will parse anything parsable in bootrapy"
 		"REPEAT: support multiple variables"
 		"REPEAT: support for lists (or vice versa - lists, support for repeat"
+		"REPEAT should be universal"
 		"Bootstrap BOX component"
+		{
+Add webserver that can serve pages directly:
+	when run with argument (serve index.page) it will open browser and show page
+	when run without argument, it will open in current directory with list of files and some help
+	... other ideas
+		}
 	]
 ]
 
 
 debug:
-:print
+;:print
 none
 
 ; SETTINGS
@@ -175,13 +182,11 @@ close-tag: func [
 
 ; === parse fucntions
 
-emit-html: funct [
+lest: funct [
 	"Parse simple HTML dialect"
 	data
-	/with
-		custom-rule
 ][
-;	print "emit-html"
+;	print "lest"
 	; === variables
 
 	includes: object [
@@ -279,7 +284,7 @@ emit-html: funct [
 	emit-plugin: func [
 		plugin
 	][
-		append includes/body-end emit-html reduce [ 'script plugin ]
+		append includes/body-end lest reduce [ 'script plugin ]
 	]
 
 ;  _____    _    _   _        ______    _____
@@ -463,7 +468,7 @@ emit-html: funct [
 						]
 						append out current
 					]
-					emit emit-html compose/deep [ row [ (out) ] ]
+					emit lest compose/deep [ row [ (out) ] ]
 				)
 			]
 		|	[
@@ -1282,7 +1287,7 @@ emit-html: funct [
 				build-tag tag-name tag
 				either carousel-menu [
 					;default or custom indicators
-					emit-html carousel-menu
+					lest carousel-menu
 				][
 					; no indicators
 					""
@@ -1290,7 +1295,7 @@ emit-html: funct [
 				<div class="carousel-inner">
 				data
 				</div>
-				emit-html compose [
+				lest compose [
 					a ( to file! to issue! tag/id ) #left #carousel-control with [ data-slide: prev ] [ glyphicon chevron-left ]
 					a ( to file! to issue! tag/id ) #right #carousel-control with [ data-slide: next ] [ glyphicon chevron-right ]
 				]
@@ -1312,7 +1317,7 @@ emit-html: funct [
 				{<div class="item}
 				either active? [ " active" ] [ "" ]
 				{">}
-				emit-html data
+				lest data
 				</div>
 			]
 			tag/items: tag/items + 1
@@ -1506,52 +1511,6 @@ emit-html: funct [
 		)
 	]
 
-	fa-icon: [
-		; TODO: add link for font awesome CSS to header
-		'fa-icon
-		init-tag
-		(
-			name: none
-			fixed?: ""
-		)
-		[
-			'stack set name block!
-		|	set name word!
-		]
-		(debug ["==FA-ICON:" name])
-		any [
-			set size integer!
-		|	'fixed ( fixed?: " fa-fw" )
-		; TODO: Add ROTATE and FLIP support
-		|	'rotate set value integer!
-		|	'flip set value [ 'horizontal | 'vertical ]
-		|	style
-		]
-		take-tag
-		(
-			size-att: case [
-				size = 1 	( { fa-lg} )
-				size 		( rejoin [ { fa-} size {x}] )
-				true 		( {} )
-			]
-			either word? name [
-				; single icon
-				emit rejoin [ {<i class="fa fa-} name size-att fixed? " " tag/class {"></i>} ]
-			][
-				; stacked icons
-				; TODO: support size for stacked icons
-				emit rejoin [
-					""
-					<span class="fa-stack fa-lg">
-					  {<i class="fa fa-} first name { fa-stack-2x} fixed? {">}</i>
-					  {<i class="fa fa-} second name { fa-stack-1x fa-inverse } fixed? catenate tag/class " " {">}</i>
-					</span>
-				]
-			]
-
-		)
-	]
-
 	password-strength: [
 		;
 		; https://github.com/ablanco/jquery.pwstrength.bootstrap
@@ -1628,8 +1587,8 @@ emit-html: funct [
 			'bootstrap (
 				debug "==ENABLE BOOTSTRAP"
 				emit-stylesheet css-path/bootstrap.min.css
-				append includes/body-end emit-html [
-					script js-path/jquery-1.10.2.min.js
+				append includes/body-end lest [
+					script js-path/jquery-2.1.0.min.js
 					script js-path/bootstrap.min.js
 				]
 			)
@@ -1637,7 +1596,7 @@ emit-html: funct [
 				debug "==ENABLE SMOOTH SCROLLING"
 				; TODO: this expect all controls to be part of UL with ID #page-nav
 				; make more generic, but do not break another anchors!!!
-				append includes/body-end emit-html [
+				append includes/body-end lest [
 					script {
 					  $(function() {
 					    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {
@@ -1661,7 +1620,7 @@ emit-html: funct [
 			)
 		|	'pretty-photo (
 				debug "==ENABLE PRETTY PHOTO"
-				append includes/body-end emit-html [
+				append includes/body-end lest [
 					script js-path/jquery.prettyPhoto.js
 					script {
 					  $(document).ready(function(){
@@ -1673,7 +1632,7 @@ emit-html: funct [
 		|	'password-strength (
 				debug "==ENABLE PASSWORD STRENGTH"
 				debug js-path
-				append includes/body-end emit-html [
+				append includes/body-end lest [
 					script js-path/pwstrength.js
 				]
 			)
@@ -1690,10 +1649,10 @@ emit-html: funct [
 				emit-stylesheet css-path/bootstrap-lightbox.min.css
 				emit-plugin js-path/bootstrap-lightbox.min.js
 			)
-		|	'font-awesome (
-				debug "==ENABLE FONT AWESOME"
-				emit-stylesheet css-path/font-awesome.min.css
-			)
+;		|	'font-awesome (
+;				debug "==ENABLE FONT AWESOME"
+;				emit-stylesheet css-path/font-awesome.min.css
+;			)
 		|	'markdown (
 				debug "==ENABLE MARKDOWN"
 				do %md.reb
@@ -1706,12 +1665,27 @@ emit-html: funct [
 		ga 					; GOOGLE ANALYTICS
 	|	map 				; GOOGLE MAP (TODO: more engines?)
 	|	google-font			; GOOGLE FONT
-	|	fa-icon				; FONT AWESOME ICON - http://fontawesome.io/icons/
+;	|	fa-icon				; FONT AWESOME ICON - http://fontawesome.io/icons/
 	|	password-strength	; PASSWORD STRENGTH - bootstrap/jquery plugin
 	|	wysiwyg 			; WYSIWYG EDITOR - https://github.com/mindmup/bootstrap-wysiwyg/
 	|	enable
 	]
 
+; TODO: move to separate function
+
+	; FIXME: because of testing in separate directory, we need absolute path
+	plugin-path: %/home/sony/repo/bootrapy/plugins/
+	plugin-files: read plugin-path
+	foreach file plugin-files [
+		file: load/header join plugin-path probe file
+		header: file/1
+		if equal? 'lest-plugin header/type [
+			plugin: construct next file
+			add-rule enable	reduce [to lit-word! header/name to paren! plugin/enable]
+			add-rule plugins plugin/rule
+			print ["Plugin" header/name "loaded"]
+		]
+	]
 
 
 ;  __  __              _____   _   _
@@ -1723,14 +1697,7 @@ emit-html: funct [
 ;
 
 
-	main-rule: either with [
-		bind custom-rule 'value
-	] [
-		[
-;			opt page-header
-			some elements
-		]
-	]
+	main-rule: [ some elements ]
 
 	unless parse data main-rule [
 		return none!

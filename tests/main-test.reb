@@ -1,13 +1,13 @@
 ; CONFIGURATION: simple test function
 [
-	function? tf: func [data][emit-html data]
+	function? tf: func [data][lest data]
 ]
 
 ;;-----------------------
 
 ; string
 
-[ "bootrapy" = tf [ "bootrapy" ] ]
+[ "lest" = tf [ "lest" ] ]
 
 ; comment
 
