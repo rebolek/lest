@@ -10,7 +10,7 @@ Instead it uses efficient and rich Rebol syntax to describe the document.
 Custom plugins can be added very easily and basic distribution includes plugin
 for advanced [Bootstrap](http://www.getbootstrap.com) support.
 
-# Overview
+### Overview
 
 **Lest** describes HTML document in clutter-free way that is then translated
 to the mess that rules the world. See some examples *(Lest source is
@@ -45,7 +45,8 @@ that accepts one parameter of STRING! datatype, called VALUE. So we can do this:
 		custom "Hello World" 
 		custom "Hello completely unrelated World"
 	]
-	== <div custom-tag="custom value">Hello World</div>	<div custom-tag="custom value">Hello completely unrelated World</div>
+	== <div custom-tag="custom value">Hello World</div>	
+	== <div custom-tag="custom value">Hello completely unrelated World</div>
 
 Let's be fancy:
 
@@ -54,20 +55,17 @@ Let's be fancy:
 		custom "Hello" "world"
 		custom "Cheer up" "Brian"
 	]
-	== <div><span class="action">Hello</span>, <span class="name">world</span>!</div><div><span class="action">Cheer up</span>, <span class="name">Brian</span>!</div>
+	== <div><span class="action">Hello</span>, <span class="name">world</span>!</div>
+	== <div><span class="action">Cheer up</span>, <span class="name">Brian</span>!</div>
 
 These user templates can be used to construct complex layouts:
 
 	>> lest [
-		post-stamp: timestamp date! [
-			div .timestamp ["Sent: " span .sent timestamp]
-		]
-		user-post: name string! avatar url! timestamp date! title string! content string! [
+		user-post: name string! avatar url! title string! content string! [
 			div .user-post [
 				div .user-info [
 					div .user-name name
 					img avatar
-					post-stamp timestamp
 				]
 				div .message [
 					h3 .post-title title
@@ -75,23 +73,85 @@ These user templates can be used to construct complex layouts:
 				]
 			]
 		]
-		user-post "Karel" http://myface.com/karel.jpg 23-Mar-2014/13:37 "First Message" "Hello, this is my first message"
-		user-post "Jana" http://myface.com/jana.jpg 23-Mar-2014/14:20 "You are a Hero!" "I'm glad you've made it!"
-		user-post "Bot" http://myface.com/default.jpg 1-Apr-2014/0:00 "Broadcast to all" "Please, don't polute this channel."
+
+		user-post "Karel" http://myface.com/karel.jpg "First Message" "Hello, this is my first message"
+		user-post "Jana" http://myface.com/jana.jpg "You are a Hero!" "I'm glad you've made it!"
+		user-post "Bot" http://myface.com/default.jpg "Broadcast to all" "Please, don't polute this channel."
 	]
+
+	==	<div class="user-post">
+	== 		<div class="user-info">
+	==			<div class="user-name">Karel</div>
+	==			<img src="http://myface.com/karel.jpg">
+	==		</div>
+	==		<div class="message">
+	==			<h3 class="post-title">First Message</h3>
+	== 			<p class="post-content">Hello, this is my first message</p>
+	== 		</div>
+	== 	</div>
+	== 	<div class="user-post">
+	==		<div class="user-info">
+	==			<div class="user-name">Jana</div>
+	== 			<img src="http://myface.com/jana.jpg">
+	==		</div>
+	==		<div class="message">
+	==			<h3 class="post-title">You are a Hero!</h3>
+	== 			<p class="post-content">I'm glad you've made it!</p>
+	==		</div>
+	==	</div>
+	==	<div class="user-post">
+	==		<div class="user-info">
+	==			<div class="user-name">Bot</div>
+	==			<img src="http://myface.com/default.jpg">
+	==		</div>
+	==		<div class="message">
+	==			<h3 class="post-title">Broadcast to all</h3>
+	==			<p class="post-content">Please, don't polute this channel.</p>
+	==		</div>
+	==	</div>
 
 So this is how you construct your templates, instead of repeating the same stuff over and over.
 
 But this is still somehow static. So you can get the data from file or database:
 
 	... TODO: add example
-	 
-# Requirements
 
-**Lest** is written in [Rebol](http://www.rebol.com) language. YOu can get latest Rebol binaries from
+### Plugins
+
+Plugins are easy-to-write extensions that add more functionaliy than user rules.
+Lest come with plugins that add support for Bootstrap, different Google services
+(Maps, Analytics, Fonts, ...) and others.
+
+	>> lest [
+		enable bootstrap 
+		container [
+			row [col 6 .upper "left column" col 6 .upper "right column"] 
+			row [col 4 offset 4 .lower "middle column with 1/3 width"]
+		]
+	]
+
+	==	<div class="container">
+	==		<div class="row">
+	==			<div class="upper col-md-6">
+	==				<span>left column</span>
+	==			</div>
+	==			<div class="upper col-md-6">
+	==				<span>right column</span>
+	==			</div>
+	==		</div>
+	==		<div class="row">
+	==			<div class="lower col-md-4 col-md-offset-4">
+	==				<span>middle column with 1/3 width</span>
+	==			</div>
+	==		</div>
+	==	</div>
+
+### Requirements
+
+**Lest** is written in [Rebol](http://www.rebol.com) language. You can get latest Rebol binaries from
 http://www.rebolsource.com or build a binary yourself from [source at GitHub](https://github.com/rebol/rebol).
 
-# Example code
+### Example code
 
 	head
 
@@ -154,17 +214,17 @@ http://www.rebolsource.com or build a binary yourself from [source at GitHub](ht
 
 	footer [ "more later" ]
 
-#Basic usage
+### Basic usage
 
-#REPEAT
+#### REPEAT
 
-# ROW
+#### ROW
 
-ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
+	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
 
-(block: ["Venus" "Earth" "Mars"] ...)
-ROW WITH 3 COLS [span <name>] REPLACE <name> FROM block
+	(block: ["Venus" "Earth" "Mars"] ...)
+	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM block
 
-ROW WITH 3 COLS [span <name>] REPLACE <name> FROM %data.r
+	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM %data.r
 
-ROW WITH 3 COLS [span <name>] REPLACE <name> FROM http://www.mraky.net/data.r
+	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM http://www.mraky.net/data.r

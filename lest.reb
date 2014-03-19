@@ -1130,7 +1130,7 @@ set 'lest func [
 	main-rule: [ some elements ]
 
 	unless parse data main-rule [
-		return make error! ajoin ["LEST: there was error in LEST dialect at: " pos]
+		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 	]
 
 	body: head buffer
