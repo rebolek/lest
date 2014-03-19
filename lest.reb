@@ -260,7 +260,7 @@ user-rule: use [ name label type ] [
 			set type word!
 			(
 				; TODO: PX should be local
-				add-rule parameters probe reduce [
+				add-rule parameters reduce [
 					to set-word! 'px to lit-word! label
 					to paren! reduce/no-set [ to set-path! 'px/1 label ]
 				]
@@ -270,7 +270,7 @@ user-rule: use [ name label type ] [
 		]
 		set value block!
 		(
-			append last user-rules probe reduce [
+			append last user-rules reduce [
 				to paren! compose/only [
 					; TODO: move rule outside
 					rule: ( compose [
@@ -281,8 +281,8 @@ user-rule: use [ name label type ] [
 					|	(parameters)
 					|	skip
 					] )
-					probe parse temp: probe copy/deep (value) [ some rule ]
-					change/only pos probe temp
+					parse temp: copy/deep (value) [ some rule ]
+					change/only pos temp
 				]
 				to get-word! 'pos 'into [some elements]
 			]
@@ -342,8 +342,8 @@ make-row: [
 			out: make block! length? data
 			; replace <filename> with [ rejoin [ %img/image- index %.jpg ] ]
 			repeat index cols [
-				current: probe copy/deep element
-				replace-deep current value probe do bind data 'index
+				current: copy/deep element
+				replace-deep current value do bind data 'index
 				if offset [
 					insert skip find current 'col 2 reduce [ 'offset offset ]
 					offset: none
@@ -461,10 +461,10 @@ debug-rule: use [ value ] [
 	]
 ]
 
-script: use [append?] [
+script: use [type value] [
 	[
-		opt ['append ( append?: true )]
-		'script
+		opt [ set type ['insert | 'append] ]
+		'script (print "script matched")
 		init-tag
 		set value [ string! | file! | url! | path! ]
 		(
@@ -475,7 +475,10 @@ script: use [append?] [
 				[{<script src="} value {">} ]
 			]
 			append value close-tag 'script
-			either append? [ append includes/body-end value ] [ emit value ]
+			switch/default probe type [
+				insert [ append includes/body-start value ]
+				append [ append includes/body-end value ]
+			] [ emit value ]
 		)
 	]
 ]
@@ -485,16 +488,23 @@ script: use [append?] [
 ; TODO: better META
 ; TODO: use EMIT
 
+stylesheet: use [value] [
+	[
+		pos:
+		'stylesheet set value [ file! | url! | path! ] (
+			if path? value [ value: get value ]
+			emit-stylesheet value
+			debug ["==STYLESHEET:" value]
+		)
+	]
+]
+
 page-header: [
 	'head (debug "==HEAD")
 	(header?: true)
 	some [
 		'title set value string! (page/title: value debug "==TITLE")
-	|	'stylesheet set value [ file! | url! | path! ] (
-			if path? value [ value: get value ]
-			emit-stylesheet value
-			debug ["==STYLESHEET:" value]
-		)
+	|	stylesheet
 	|	'style set value string! (
 			append includes/stylesheet ajoin [ <style> value </style> ]
 		)
@@ -950,6 +960,7 @@ elements: [
 	|	heading
 	|	form-rule
 	|	script
+	|	stylesheet
 	|	plugins
 	]
 	(
@@ -957,17 +968,6 @@ elements: [
 		value: none
 	)
 ]
-
-;
-;  ____     ____     ____    _______    _____   _______   _____               _____
-; |  _ \   / __ \   / __ \  |__   __|  / ____| |__   __| |  __ \      /\     |  __ \
-; | |_) | | |  | | | |  | |    | |    | (___      | |    | |__) |    /  \    | |__) |
-; |  _ <  | |  | | | |  | |    | |     \___ \     | |    |  _  /    / /\ \   |  ___/
-; | |_) | | |__| | | |__| |    | |     ____) |    | |    | | \ \   / ____ \  | |
-; |____/   \____/   \____/     |_|    |_____/     |_|    |_|  \_\ /_/    \_\ |_|
-;
-
-
 
 ;  _____    _        _    _    _____   _____   _   _    _____
 ; |  __ \  | |      | |  | |  / ____| |_   _| | \ | |  / ____|
@@ -977,11 +977,13 @@ elements: [
 ; |_|      |______|  \____/   \_____| |_____| |_| \_| |_____/
 ;
 
-
-
-
-plugins: [
-	'enable set name word! (debug "matched" load-plugin name)
+plugins: use [pos] [
+	[
+		'enable pos: set name word! (
+			either t: load-plugin name [pos/1: t] [pos: next pos]
+		)
+		:pos into [some elements]
+	]
 ]
 
 ; FIXME: because of testing in separate directory, we need absolute path
@@ -997,8 +999,8 @@ load-plugin: func [
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
 	plugin: object plugin
 	if equal? 'lest-plugin header/type [
-		if plugin/startup [do plugin/startup]
 		add-rule plugins plugin/rule
+		if plugin/startup [return plugin/startup]
 	]
 ]
 
@@ -1133,6 +1135,8 @@ set 'lest func [
 	]
 
 	body: head buffer
+
+print header?
 
 	either header? [
 		ajoin [
