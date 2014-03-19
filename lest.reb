@@ -184,7 +184,14 @@ close-tag: func [
 	ajoin ["</" type ">"]
 ]
 
+lest: use [
+	output
+	buffer
+	form-buffer
+	header?
+	emit
 
+] [
 
 output: copy ""
 buffer: copy ""
@@ -212,6 +219,8 @@ emit: func [
 ; |_|  \_\  \____/  |______| |______| |_____/
 ;
 
+rules: object [
+
 ; --- subrules
 
 import: [
@@ -236,13 +245,15 @@ do-code: use [p] [
 	]
 ]
 
-set-rule: [
-	'set
-	set label word!
-	set value any-type!
-	(
-		repend user-words [to set-word! label value]
-	)
+set-rule: use [label value][
+	[
+		'set
+		set label word!
+		set value any-type!
+		(
+			repend user-words [to set-word! label value]
+		)
+	]
 ]
 
 user-rule: use [ name label type ] [
@@ -986,6 +997,8 @@ plugins: use [pos] [
 	]
 ]
 
+] ; -- end rules context
+
 ; FIXME: because of testing in separate directory, we need absolute path
 plugin-path: %/home/sony/repo/bootrapy/plugins/
 
@@ -1017,22 +1030,20 @@ includes: object [
 ]
 
 
-; === parse functions
+;  __  __              _____   _   _
+; |  \/  |     /\     |_   _| | \ | |
+; | \  / |    /  \      | |   |  \| |
+; | |\/| |   / /\ \     | |   | . ` |
+; | |  | |  / ____ \   _| |_  | |\  |
+; |_|  |_| /_/    \_\ |_____| |_| \_|
+;
 
-set 'lest func [
+func [
 	"Parse simple HTML dialect"
 	data
 ][
 	; === variables
 
-	styles:		copy []
-	tag-name:	none
-	name:		copy ""
-	value:		copy ""
-	default:	copy ""
-	size: 		50x4
-	tag:		none
-	type: 		none
 
 ; init outside vars
 
@@ -1116,20 +1127,9 @@ set 'lest func [
 		append includes/body-end lest reduce [ 'script plugin ]
 	]
 
-
-
-;  __  __              _____   _   _
-; |  \/  |     /\     |_   _| | \ | |
-; | \  / |    /  \      | |   |  \| |
-; | |\/| |   / /\ \     | |   | . ` |
-; | |  | |  / ____ \   _| |_  | |\  |
-; |_|  |_| /_/    \_\ |_____| |_| \_|
-;
-
-
 	main-rule: [ some elements ]
 
-	unless parse data main-rule [
+	unless parse data bind main-rule rules [
 		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 	]
 
@@ -1159,4 +1159,4 @@ set 'lest func [
 ]
 
 
-;] ; --- end main object
+] ; --- end main context
