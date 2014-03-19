@@ -33,6 +33,8 @@ Add webserver that can serve pages directly:
 	... other ideas
 		}
 		"plugin design: instead of startup just list required css and js files"
+		"FORM is Bootstrap optimized, divide"
+		"FIX: form leaks default, value, name"
 	]
 ]
 
@@ -88,7 +90,7 @@ replace-deep: funct [
 	target
 ]
 
-make-rule: func [
+rule: func [
 	"Make PARSE rule with local variables"
 	local 	[word! block!]  "Local variable(s)"
 	rule 	[block!]		"PARSE rule"
@@ -184,10 +186,15 @@ close-tag: func [
 lest: use [
 	output
 	buffer
+	tag
 	tag-stack
 	rules
 	includes
 	header?
+
+	name
+	value
+	default
 
 	emit
 	emit-label
@@ -258,69 +265,61 @@ import: [
 ;		[set value paren! (value result: to paren! first value) result]
 ;	]
 
-do-code: use [p] [
-	[
-		; DO PAREN! AND EMIT LAST VALUE
-		p: set value paren!
-		( p/1: append clear [] do value )
-		:p into elements
+do-code: rule [ p ] [
+	; DO PAREN! AND EMIT LAST VALUE
+	p: set value paren!
+	( p/1: append clear [] do value )
+	:p into elements
 	]
+
+set-rule: rule [ label value ] [
+	'set
+	set label word!
+	set value any-type!
+	( repend user-words [to set-word! label value] )
 ]
 
-set-rule: use [label value][
-	[
-		'set
-		set label word!
-		set value any-type!
-		(
-			repend user-words [to set-word! label value]
-		)
-	]
-]
-
-user-rule: use [ name label type ] [
-	[
-		set name set-word!
-		(
-			parameters: copy [ ]
-			add-rule user-rules reduce [
-				to set-word! 'pos
-				to lit-word! name
-			]
-		)
-		any [
-			set label word!
-			set type word!
-			(
-				; TODO: PX should be local
-				add-rule parameters reduce [
-					to set-word! 'px to lit-word! label
-					to paren! reduce/no-set [ to set-path! 'px/1 label ]
-				]
-
-				repend last user-rules [ to set-word! 'pos 'set label type ]
-			)
+user-rule: rule [ name label type value ] [
+	set name set-word!
+	(
+		parameters: copy [ ]
+		add-rule user-rules reduce [
+			to set-word! 'pos
+			to lit-word! name
 		]
-		set value block!
+	)
+	any [
+		set label word!
+		set type word!
 		(
-			append last user-rules reduce [
-				to paren! compose/only [
-					; TODO: move rule outside
-					rule: ( compose [
+			; TODO: PX should be local
+			add-rule parameters reduce [
+				to set-word! 'px to lit-word! label
+				to paren! reduce/no-set [ to set-path! 'px/1 label ]
+			]
+
+			repend last user-rules [ to set-word! 'pos 'set label type ]
+		)
+	]
+	set value block!
+	(
+		append last user-rules reduce [
+			to paren! compose/only [
+				; TODO: move rule outside
+				urule: ( compose [
 ;							UNCOMMENT FOR DEBUG
 ;							posx: (to paren! [probe posx])
-						any-string!
-					|	into [ some rule ]
-					|	(parameters)
-					|	skip
-					] )
-					parse temp: copy/deep (value) [ some rule ]
-					change/only pos temp
-				]
-				to get-word! 'pos 'into [some elements]
+					any-string!
+				|	into [ some urule ]
+				|	(parameters)
+				|	skip
+				] )
+				parse temp: copy/deep (value) [ some urule ]
+				change/only pos temp
 			]
-		)
-	]
+			to get-word! 'pos 'into [some elements]
+		]
+	)
 ]
 
 ;FIXME:
@@ -433,9 +432,7 @@ repeat-rule: [
 
 init-tag: [
 	(
-		value:		none
-		default:	copy ""
-		target:		none
+;		value:		none
 		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
 	)
 ]
@@ -487,33 +484,29 @@ comment: [
 	'comment [ block! | string! ]
 ]
 
-debug-rule: use [ value ] [
-	[
-		'debug set value string!
-		( print ["DEBUG:" value])
-	]
+debug-rule: rule [ value ] [
+	'debug set value string!
+	( print ["DEBUG:" value])
 ]
 
-script: use [type value] [
-	[
-		opt [ set type ['insert | 'append] ]
-		'script
-		init-tag
-		set value [ string! | file! | url! | path! ]
-		(
-			if path? value [ value: get value ]
-			value: ajoin either string? value [
-				[<script type="text/javascript"> value ]
-			] [
-				[{<script src="} value {">} ]
-			]
-			append value close-tag 'script
-			switch/default probe type [
-				insert [ append includes/body-start value ]
-				append [ append includes/body-end value ]
-			] [ emit value ]
-		)
-	]
+script: rule [type value] [
+	opt [ set type ['insert | 'append] ]
+	'script
+	init-tag
+	set value [ string! | file! | url! | path! ]
+	(
+		if path? value [ value: get value ]
+		value: ajoin either string? value [
+			[<script type="text/javascript"> value ]
+		] [
+			[{<script src="} value {">} ]
+		]
+		append value close-tag 'script
+		switch/default probe type [
+			insert [ append includes/body-start value ]
+			append [ append includes/body-end value ]
+		] [ emit value ]
+	)
 ]
 
 ; --- header
@@ -521,18 +514,16 @@ script: use [type value] [
 ; TODO: better META
 ; TODO: use EMIT
 
-stylesheet: use [value] [
-	[
-		pos:
-		'stylesheet set value [ file! | url! | path! ] (
-			if path? value [ value: get value ]
-			emit-stylesheet value
-			debug ["==STYLESHEET:" value]
-		)
-	]
+stylesheet: rule [value] [
+	pos:
+	'stylesheet set value [ file! | url! | path! ] (
+		if path? value [ value: get value ]
+		emit-stylesheet value
+		debug ["==STYLESHEET:" value]
+	)
 ]
 
-page-header: [
+page-header: rule [name value] [
 	'head (debug "==HEAD")
 	(header?: true)
 	some [
@@ -552,9 +543,7 @@ page-header: [
 	|	'meta set name word! set value string! (
 			repend page/meta [ {<meta name="} name {" content="} value {">}]
 		)
-	|	google-font
 	|	plugins
-	|	ga
 	]
 	'body (debug "==BODY")
 
@@ -587,7 +576,7 @@ paired-tag: [
 	end-tag
 ]
 
-image: [
+image: rule [value] [
 	['img | 'image]
 	(
 		debug "==IMAGE"
@@ -611,7 +600,7 @@ image: [
 ]
 
 ; <a>
-link: [
+link: rule [value] [
 	['a | 'link] ( tag-name: 'a )
 	init-tag
 	set value [ file! | url! | issue! ]
@@ -642,7 +631,7 @@ ul: [
 	end-tag
 ]
 
-ol: [
+ol: rule [value] [
 	set tag-name 'ol
 	init-tag
 	any [
@@ -655,7 +644,7 @@ ol: [
 	end-tag
 ]
 
-dl: [
+dl: rule [value] [
 	set tag-name 'dl
 	init-tag
 	opt [
@@ -692,8 +681,8 @@ basic-elems: [
 |	list-elems
 ]
 
-basic-string: [
-	set value string!
+basic-string: rule [value] [
+	set value [string! | date! | time!] ; TODO: support integer?
 	( emit value )
 ]
 
@@ -715,7 +704,7 @@ heading: [
 
 ; table
 
-table: [
+table: rule [value] [
 	set tag-name 'table
 	init-tag
 	style
@@ -756,7 +745,7 @@ table: [
 ; |_|       \____/  |_|  \_\ |_|  |_| |_____/
 ;
 
-init-input: [
+init-input: rule [value] [
 	(
 		tag-name: 'input
 		default: none
@@ -776,7 +765,7 @@ emit-input: [
 				]
 				emit <div class="col-sm-10">
 				set [tag-name tag] take/part tag-stack 2
-				append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
+				append tag compose [ name: (name) placeholder: (default) value: (value) ]
 				emit build-tag tag-name tag
 				emit </div>
 			]
@@ -785,7 +774,7 @@ emit-input: [
 				emit-label label name
 			]
 			set [tag-name tag] take/part tag-stack 2
-			append tag compose [ type: (type) name: (name) placeholder: (default) value: (value) ]
+			append tag compose [ name: (name) placeholder: (default) value: (value) ]
 			emit build-tag tag-name tag
 		]
 	)
@@ -799,7 +788,7 @@ input-parameters: [
 	|	style
 	]
 ]
-input: [
+input: rule [type] [
 	set type [
 		'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
 	|	'number | 'email | 'url | 'search | 'tel | 'color
@@ -807,11 +796,12 @@ input: [
 	( emit <div class="form-group"> )
 	init-input
 	( append tag/class 'form-control )
+	( append tag reduce/no-set [type: type] )
 	input-parameters
 	emit-input
 	( emit </div> )
 ]
-checkbox: [
+checkbox: rule [type] [
 	set type 'checkbox
 	( emit [ "" <div class="checkbox"> <label> ] )
 	init-input
@@ -822,7 +812,7 @@ checkbox: [
 		emit [ build-tag tag-name tag label </label> </div> ]
 	)
 ]
-radio: [
+radio: rule [type] [
 	set type 'radio
 	(
 		debug "==RADIO"
@@ -883,7 +873,7 @@ textarea: [
 		emit entag/with value tag-name tag
 	)
 ]
-hidden: [
+hidden: rule [name value] [
 	'hidden
 	init-input
 	set name word!
@@ -895,7 +885,7 @@ hidden: [
 	( append tag compose [ type: 'hidden name: (name) value: (value) ] )
 	emit-tag
 ]
-submit: [
+submit: rule [label] [
 	'submit
 	(
 		insert tag-stack reduce [
@@ -946,7 +936,7 @@ form-content: [
 	]
 ]
 form-type: none
-form-rule: [
+form-rule: rule [value form-type] [
 	set tag-name 'form
 	( form-type: none )
 	init-tag
@@ -976,8 +966,8 @@ form-rule: [
 
 ; --- put it all together
 
-elements: [
-	pos: (debug ["parse at: " index? pos "::" mold first pos] set 'p pos)
+elements: rule [pos] [
+	pos: ( debug ["parse at: " index? pos "::" mold first pos] )
 	[
 		set value string! ( emit value )
 	|	page-header
@@ -1002,7 +992,7 @@ elements: [
 	)
 ]
 
-plugins: use [pos] [
+plugins: use [pos t] [
 	[
 		'enable pos: set name word! (
 			either t: load-plugin name [pos/1: t] [pos: next pos]
