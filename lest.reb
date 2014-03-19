@@ -16,7 +16,6 @@ REBOL[
 get rid of lest in rules
 
 currently used in:
-	EMIT-PLUGIN (func)
 	CAROUSEL, CAROUSEL-ITEM
 	ENABLE: BOOTSTRAP, SMOOTH-SCROLLING, PRETTY-PHOTO, PASSWORD-STRENGTH
 
@@ -36,8 +35,6 @@ Add webserver that can serve pages directly:
 		"plugin design: instead of startup just list required css and js files"
 	]
 ]
-
-;ctx-lest: object [
 
 debug:
 :print
@@ -187,15 +184,24 @@ close-tag: func [
 lest: use [
 	output
 	buffer
-	form-buffer
+	tag-stack
+	rules
+	includes
 	header?
-	emit
 
+	emit
+	emit-label
+	emit-stylesheet
+
+	user-rules
+	user-words
+
+	plugin-path
+	load-plugin
 ] [
 
 output: copy ""
 buffer: copy ""
-form-buffer: copy ""
 
 header?: false
 
@@ -209,7 +215,23 @@ emit: func [
 	append buffer data ;join data newline
 ]
 
+emit-label: func [
+	label
+	elem
+	/class
+	styles
+][
+	emit entag/with label 'label reduce/no-set [ for: elem class: styles ]
+]
 
+emit-stylesheet: func [
+	stylesheet
+][
+	debug ".-emit-."
+	if path? stylesheet [ stylesheet: get stylesheet ]
+	debug ["EMIT SS:" stylesheet]
+	repend includes/header [{<link href="} stylesheet {" rel="stylesheet">} newline ]
+]
 
 ;  _____    _    _   _        ______    _____
 ; |  __ \  | |  | | | |      |  ____|  / ____|
@@ -980,14 +1002,6 @@ elements: [
 	)
 ]
 
-;  _____    _        _    _    _____   _____   _   _    _____
-; |  __ \  | |      | |  | |  / ____| |_   _| | \ | |  / ____|
-; | |__) | | |      | |  | | | |  __    | |   |  \| | | (___
-; |  ___/  | |      | |  | | | | |_ |   | |   | . ` |  \___ \
-; | |      | |____  | |__| | | |__| |  _| |_  | |\  |  ____) |
-; |_|      |______|  \____/   \_____| |_____| |_| \_| |_____/
-;
-
 plugins: use [pos] [
 	[
 		'enable pos: set name word! (
@@ -1053,7 +1067,6 @@ func [
 
 	output: copy ""
 	buffer: copy ""
-	form-buffer: copy ""
 
 	includes: object [
 		stylesheets: 	copy {}
@@ -1101,30 +1114,6 @@ func [
 			append out join #" " form attributes
 		]
 		append out #">"
-	]
-
-	emit-label: func [
-		label
-		elem
-		/class
-		styles
-	][
-		emit entag/with label 'label reduce/no-set [ for: elem class: styles ]
-	]
-
-	emit-stylesheet: func [
-		stylesheet
-	][
-		debug ".-emit-."
-		if path? stylesheet [ stylesheet: get stylesheet ]
-		debug ["EMIT SS:" stylesheet]
-		repend includes/header [{<link href="} stylesheet {" rel="stylesheet">} newline ]
-	]
-
-	emit-plugin: func [
-		plugin
-	][
-		append includes/body-end lest reduce [ 'script plugin ]
 	]
 
 	main-rule: [ some elements ]
