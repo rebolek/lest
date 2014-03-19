@@ -950,7 +950,6 @@ elements: [
 	|	heading
 	|	form-rule
 	|	script
-	|	bootstrap-elems
 	|	plugins
 	]
 	(
