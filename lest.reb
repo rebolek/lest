@@ -464,7 +464,7 @@ debug-rule: use [ value ] [
 script: use [type value] [
 	[
 		opt [ set type ['insert | 'append] ]
-		'script (print "script matched")
+		'script
 		init-tag
 		set value [ string! | file! | url! | path! ]
 		(
@@ -993,7 +993,7 @@ load-plugin: func [
 	name
 	/local plugin header
 ] [
-	print ["load plugin" name]
+	debug ["load plugin" name]
 	plugin: load/header rejoin [plugin-path name %.reb]
 	header: take plugin
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
@@ -1023,7 +1023,6 @@ set 'lest func [
 	"Parse simple HTML dialect"
 	data
 ][
-;	print "lest"
 	; === variables
 
 	styles:		copy []
@@ -1131,12 +1130,10 @@ set 'lest func [
 	main-rule: [ some elements ]
 
 	unless parse data main-rule [
-		return none!
+		return make error! ajoin ["LEST: there was error in LEST dialect at: " pos]
 	]
 
 	body: head buffer
-
-print header?
 
 	either header? [
 		ajoin [
