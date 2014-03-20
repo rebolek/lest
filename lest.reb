@@ -99,7 +99,6 @@ rule: func [
 	use local reduce [ rule ]
 ]
 
-
 add-rule: func [
 	"Add new rule to PARSE rules block!"
 	rules 	[block!]
@@ -186,7 +185,9 @@ close-tag: func [
 lest: use [
 	output
 	buffer
+	page
 	tag
+	tag-name
 	tag-stack
 	rules
 	includes
@@ -194,7 +195,6 @@ lest: use [
 
 	name
 	value
-	default
 
 	emit
 	emit-label
@@ -203,6 +203,7 @@ lest: use [
 	user-rules
 	user-words
 
+	plugins
 	plugin-path
 	load-plugin
 ] [
@@ -234,7 +235,6 @@ emit-label: func [
 emit-stylesheet: func [
 	stylesheet
 ][
-	debug ".-emit-."
 	if path? stylesheet [ stylesheet: get stylesheet ]
 	debug ["EMIT SS:" stylesheet]
 	repend includes/header [{<link href="} stylesheet {" rel="stylesheet">} newline ]
@@ -252,7 +252,7 @@ rules: object [
 
 ; --- subrules
 
-import: [
+import: rule [p value] [
 	; LOAD AND EMIT FILE
 	'import p: set value [ file! | url! ]
 	( p/1: load value )
@@ -265,7 +265,7 @@ import: [
 ;		[set value paren! (value result: to paren! first value) result]
 ;	]
 
-do-code: rule [ p ] [
+do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
 	( p/1: append clear [] do value )
@@ -279,10 +279,10 @@ set-rule: rule [ label value ] [
 	( repend user-words [to set-word! label value] )
 ]
 
-user-rule: rule [ name label type value ] [
+user-rule: rule [ name label type value urule args pos ] [
 	set name set-word!
 	(
-		parameters: copy [ ]
+		args: copy [ ]
 		add-rule user-rules reduce [
 			to set-word! 'pos
 			to lit-word! name
@@ -292,8 +292,7 @@ user-rule: rule [ name label type value ] [
 		set label word!
 		set type word!
 		(
-			; TODO: PX should be local
-			add-rule parameters reduce [
+			add-rule args rule [px] reduce [
 				to set-word! 'px to lit-word! label
 				to paren! reduce/no-set [ to set-path! 'px/1 label ]
 			]
@@ -307,17 +306,16 @@ user-rule: rule [ name label type value ] [
 			to paren! compose/only [
 				; TODO: move rule outside
 				urule: ( compose [
-;							UNCOMMENT FOR DEBUG
-;							posx: (to paren! [probe posx])
 					any-string!
 				|	into [ some urule ]
-				|	(parameters)
+				; FIXME: for rules without args it returns [into [...] | | skip ] so skip cannot be reached
+				|	(args)
 				|	skip
 				] )
 				parse temp: copy/deep (value) [ some urule ]
 				change/only pos temp
 			]
-			to get-word! 'pos 'into [some elements]
+			to get-word! 'pos 'into main-rule
 		]
 	)
 ]
@@ -367,7 +365,7 @@ make-row: [
 			]
 			change/only pos compose/deep [ row [ (out) ] ]
 		)
-		:pos into [some elements]
+		:pos into main-rule
 	|	'with
 		pos: set data block!
 		(
@@ -384,7 +382,7 @@ make-row: [
 			]
 			change/only pos compose/deep [ row [ (out) ] ]
 		)
-		:pos into [some elements]
+		:pos into main-rule
 	]
 
 ]
@@ -502,7 +500,7 @@ script: rule [type value] [
 			[{<script src="} value {">} ]
 		]
 		append value close-tag 'script
-		switch/default probe type [
+		switch/default type [
 			insert [ append includes/body-start value ]
 			append [ append includes/body-end value ]
 		] [ emit value ]
@@ -514,7 +512,7 @@ script: rule [type value] [
 ; TODO: better META
 ; TODO: use EMIT
 
-stylesheet: rule [value] [
+stylesheet: rule [pos value] [
 	pos:
 	'stylesheet set value [ file! | url! | path! ] (
 		if path? value [ value: get value ]
@@ -530,14 +528,14 @@ page-header: rule [name value] [
 		'title set value string! (page/title: value debug "==TITLE")
 	|	stylesheet
 	|	'style set value string! (
-			append includes/stylesheet ajoin [ <style> value </style> ]
+			append includes/stylesheet entag value 'style ;ajoin [ <style> value </style> ]
 		)
 	|	'script [
 			set value [ file! | url! ] (
 				repend includes/header [{<script src="} value {">}</script> newline ]
 			)
 		|	set value string! (
-				append includes/header ajoin [ <script> value </script> newline ]
+				append includes/header entag value 'script ;ajoin [ <script> value </script> newline ]
 			)
 		]
 	|	'meta set name word! set value string! (
@@ -563,7 +561,7 @@ hr: [ 'hr ( emit <hr> ) ]
 
 match-content: [
 	basic-string		; must match string! first, or INTO will eat it!
-|	into [ some elements ]
+|	into main-rule
 ]
 
 paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
@@ -931,7 +929,7 @@ form-content: [
 	|	radio
 	|	submit
 	|	hidden
-	|	plugins ; to enable captcha, password-strength, etc.
+;	|	plugins ; to enable captcha, password-strength, etc.
 	; TODO: elements ?
 	]
 ]
@@ -960,7 +958,7 @@ form-rule: rule [value form-type] [
 	]
 	take-tag
 	emit-tag
-	into [ some elements ]
+	into main-rule
 	( emit close-tag 'form )
 ]
 
@@ -992,19 +990,17 @@ elements: rule [pos] [
 	)
 ]
 
-plugins: use [pos t] [
-	[
-		'enable pos: set name word! (
-			either t: load-plugin name [pos/1: t] [pos: next pos]
-		)
-		:pos into [some elements]
-	]
+plugins: rule [pos name t] [
+	'enable pos: set name word! (
+		either t: load-plugin name [pos/1: t] [pos: next pos]
+	)
+	:pos into main-rule
 ]
 
 ] ; -- end rules context
 
 ; FIXME: because of testing in separate directory, we need absolute path
-plugin-path: %/home/sony/repo/bootrapy/plugins/
+plugin-path: %/home/sony/repo/lest/plugins/
 
 load-plugin: func [
 	name
@@ -1016,12 +1012,12 @@ load-plugin: func [
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
 	plugin: object plugin
 	if equal? 'lest-plugin header/type [
-		add-rule plugins plugin/rule
+		add-rule rules/plugins plugin/rule
 		if plugin/startup [return plugin/startup]
 	]
 ]
 
-user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
+user-rules: rule [pos] [ fail ]	; fail is "empty rule", because empty block isn't
 user-words: object []
 
 tag-stack: copy []
