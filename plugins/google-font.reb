@@ -7,8 +7,12 @@ REBOL[
 	]
 ]
 
+startup: [
+	stylesheet css-path/bootstrap.min.css 
+]
+
 rule: [
-	'google-font
+	'google-font 
 	set name string!
 	(
 		debug ["==GFONT:" name]

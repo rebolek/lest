@@ -189,9 +189,10 @@ lest: use [
 	tag
 	tag-name
 	tag-stack
+	includes	
 	rules
-	includes
 	header?
+	pos
 
 	name
 	value
@@ -213,6 +214,15 @@ buffer: copy ""
 
 header?: false
 
+tag-stack: copy []
+
+includes: object [
+	stylesheets: 	copy {}
+	header:			copy {}
+	body-start:		copy {}
+	body-end: 		copy {}
+]
+
 ; === actions
 
 emit: func [
@@ -232,12 +242,22 @@ emit-label: func [
 	emit entag/with label 'label reduce/no-set [ for: elem class: styles ]
 ]
 
+emit-script: func [
+	script
+	/insert
+	/append
+][
+	if insert [lib/append includes/body-start script]
+	if append [lib/append includes/body-end script]
+]
+
 emit-stylesheet: func [
 	stylesheet
 ][
 	if path? stylesheet [ stylesheet: get stylesheet ]
-	debug ["EMIT SS:" stylesheet]
-	repend includes/header [{<link href="} stylesheet {" rel="stylesheet">} newline ]
+	unless find includes/stylesheets stylesheet [
+		repend includes/stylesheets [{<link href="} stylesheet {" rel="stylesheet">} newline ]
+	]
 ]
 
 ;  _____    _    _   _        ______    _____
@@ -249,6 +269,17 @@ emit-stylesheet: func [
 ;
 
 rules: object [
+
+; -- reference to some words: external plugins are bound to RULES, but cannot see TAG
+;		or INCLUDES so we need this references (or multiple binding, which is ugly)
+
+	tag: tag
+;	includes: object [
+;		stylesheets: 	copy {}
+;		header:			copy {}
+;		body-start:		copy {}
+;		body-end: 		copy {}
+;	]
 
 ; --- subrules
 
@@ -279,7 +310,7 @@ set-rule: rule [ label value ] [
 	( repend user-words [to set-word! label value] )
 ]
 
-user-rule: rule [ name label type value urule args pos ] [
+user-rule: rule [ name label type value urule args ] [
 	set name set-word!
 	(
 		args: copy [ ]
@@ -430,14 +461,13 @@ repeat-rule: [
 
 init-tag: [
 	(
-;		value:		none
 		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
 	)
 ]
 
 take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
 
-emit-tag: [ ( debug [ "emit:" tag-name ] emit build-tag tag-name tag ) ]
+emit-tag: [ ( emit build-tag tag-name tag ) ]
 
 end-tag: [
 	take-tag
@@ -501,8 +531,9 @@ script: rule [type value] [
 		]
 		append value close-tag 'script
 		switch/default type [
-			insert [ append includes/body-start value ]
-			append [ append includes/body-end value ]
+			; TODO: rewrite using APPLY
+			insert [ emit-script/insert value ]
+			append [ emit-script/append value ]
 		] [ emit value ]
 	)
 ]
@@ -512,7 +543,7 @@ script: rule [type value] [
 ; TODO: better META
 ; TODO: use EMIT
 
-stylesheet: rule [pos value] [
+stylesheet: rule [value] [
 	pos:
 	'stylesheet set value [ file! | url! | path! ] (
 		if path? value [ value: get value ]
@@ -521,10 +552,15 @@ stylesheet: rule [pos value] [
 	)
 ]
 
-page-header: rule [name value] [
+page-header: [
 	'head (debug "==HEAD")
 	(header?: true)
-	some [
+	header-content
+	'body (debug "==BODY")
+]
+
+header-content: rule [name value] [
+	any [
 		'title set value string! (page/title: value debug "==TITLE")
 	|	stylesheet
 	|	'style set value string! (
@@ -543,8 +579,6 @@ page-header: rule [name value] [
 		)
 	|	plugins
 	]
-	'body (debug "==BODY")
-
 ]
 
 
@@ -964,7 +998,7 @@ form-rule: rule [value form-type] [
 
 ; --- put it all together
 
-elements: rule [pos] [
+elements: rule [] [
 	pos: ( debug ["parse at: " index? pos "::" mold first pos] )
 	[
 		set value string! ( emit value )
@@ -990,11 +1024,12 @@ elements: rule [pos] [
 	)
 ]
 
-plugins: rule [pos name t] [
+plugins: rule [name t] [
+	; FIXME: very fragile
 	'enable pos: set name word! (
-		either t: load-plugin name [pos/1: t] [pos: next pos]
+		either t: load-plugin name [change/part pos t 1] [pos: next pos]
 	)
-	:pos into main-rule
+	:pos [main-rule | into main-rule]
 ]
 
 ] ; -- end rules context
@@ -1010,25 +1045,16 @@ load-plugin: func [
 	plugin: load/header rejoin [plugin-path name %.reb]
 	header: take plugin
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
-	plugin: object plugin
+	plugin: object bind plugin rules
 	if equal? 'lest-plugin header/type [
-		add-rule rules/plugins plugin/rule
-		if plugin/startup [return plugin/startup]
+		add-rule rules/plugins bind plugin/rule 'emit
+		if in plugin 'startup [return plugin/startup]
 	]
+	none
 ]
 
-user-rules: rule [pos] [ fail ]	; fail is "empty rule", because empty block isn't
+user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
 user-words: object []
-
-tag-stack: copy []
-
-includes: object [
-	stylesheets: 	copy {}
-	header:			copy {}
-	body-start:		copy {}
-	body-end: 		copy {}
-]
-
 
 ;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
@@ -1105,7 +1131,8 @@ func [
 	main-rule: [ some elements ]
 
 	unless parse data bind main-rule rules [
-		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+		return ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 	]
 
 	body: head buffer
