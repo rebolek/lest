@@ -3,6 +3,9 @@ REBOL[
 	File: %markdown.reb
 	Author: "Boleslav Březovský"
 	Date: 7-3-2014
+	Type: 'module
+	Exports: [markdown]
+	Options: [isolate]
 	To-do: [
 		"function to produce rule wheter to continue on start-para or not"
 	]
@@ -12,8 +15,21 @@ REBOL[
 ]
 
 xml?: true
-
+start-para?: true
+end-para?: true
 buffer: make string! 1000
+
+; FIXME: hacky switch to determine wheter to emit <p> or not (for snippets)
+
+para?: false
+
+set [open-para close-para] either para? [[<p></p>]][["" ""]]
+
+print [open-para close-para]
+
+; -----
+
+value: copy "" ; FIXME: leak?
 
 emit: func [data] [append buffer data]
 close-tag: func [tag] [head insert copy tag #"/"]
@@ -22,7 +38,7 @@ start-para: does [
 	if start-para? [
 		start-para?: false 
 		end-para?: true
-		emit <p>
+		emit open-para
 	]
 ]
 
@@ -234,7 +250,7 @@ blockquote-rule: use [continue] [
 		[[newline (emit newline)] | end]
 		any [
 			; FIXME: what an ugly hack
-			[newline ] (remove back tail buffer emit ajoin [</p> newline newline <p>])
+			[newline ] (remove back tail buffer emit ajoin [close-para newline newline open-para])
 		|	[
 				continue
 				opt line-rules
@@ -242,11 +258,11 @@ blockquote-rule: use [continue] [
 			]
 		]
 		(end-para?: false)
-		(emit ajoin [</p> newline </blockquote>])
+		(emit ajoin [close-para newline </blockquote>])
 	]
 ]
 
-inline-code-rule: use [code] [
+inline-code-rule: use [code value] [
 	[
 		[
 			"``" 
@@ -303,7 +319,7 @@ newline-rule: [
 	some newline 
 	any [space | tab]
 	(
-		emit ajoin [</p> newline newline]
+		emit ajoin [close-para newline newline]
 		start-para?: true
 	)
 |	newline (emit newline)	
@@ -358,7 +374,7 @@ rules: [
 	|	escapes
 	|	line-break-rule
 	|	newline-rule
-	|	end (if end-para? [end-para?: false emit </p>])
+	|	end (if end-para? [end-para?: false emit close-para])
 	|	leading-spaces
 	|	set value skip (
 			start-para
@@ -375,6 +391,7 @@ markdown: func [
 	; TODO:
 	/xml "Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)"
 ] [
+	print "markdown"
 	start-para?: true
 	end-para?: true
 	buffer: make string! 1000
