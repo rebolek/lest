@@ -52,7 +52,9 @@ css-path: %../../css/
 js-path: %js/			; we are in work dir so we need to go just one level up
 css-path: %css/
 
-
+; FIXME: should be moved to markdown plugin (once it works)
+do %md.reb
+markdown?: yes
 
 ;
 ;   _____   _    _   _____    _____     ____    _____    _______     ______   _    _   _   _    _____    _____
@@ -578,6 +580,11 @@ header-content: rule [name value] [
 	|	'meta set name word! set value string! (
 			repend page/meta [ {<meta name="} name {" content="} value {">}]
 		)
+	|	'favicon set value url! (
+			repend includes/header [
+				{<link rel="icon" type="image/png" href="} value {">}
+			]
+	)
 	|	plugins
 	]
 ]
@@ -599,7 +606,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code (markdown?: no) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
@@ -716,7 +723,9 @@ basic-elems: [
 
 basic-string: rule [value] [
 	set value [string! | date! | time!] ; TODO: support integer?
-	( emit value )
+	(
+		emit either markdown? [markdown value] [markdown?: yes value]
+	)
 ]
 
 stop: [
@@ -1002,7 +1011,7 @@ form-rule: rule [value form-type] [
 elements: rule [] [
 	pos: ( debug ["parse at: " index? pos "::" ] )
 	[
-		set value string! ( emit value )
+		basic-string
 	|	page-header
 	|	basic-elems
 	|	form-content
