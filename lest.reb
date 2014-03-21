@@ -1078,10 +1078,10 @@ user-words: object []
 
 func [
 	"Parse simple HTML dialect"
-	data
+	data [block! file! url!]
 ][
-	; === variables
 
+	if any [file? data url? data] [data: load data]
 
 ; init outside vars
 
