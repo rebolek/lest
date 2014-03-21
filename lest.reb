@@ -274,6 +274,7 @@ rules: object [
 ;		or INCLUDES so we need this references (or multiple binding, which is ugly)
 
 	tag: tag
+	tag-name: tag-name
 ;	includes: object [
 ;		stylesheets: 	copy {}
 ;		header:			copy {}
@@ -598,7 +599,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
@@ -999,7 +1000,7 @@ form-rule: rule [value form-type] [
 ; --- put it all together
 
 elements: rule [] [
-	pos: ( debug ["parse at: " index? pos "::" mold first pos] )
+	pos: ( debug ["parse at: " index? pos "::" ] )
 	[
 		set value string! ( emit value )
 	|	page-header
@@ -1025,8 +1026,10 @@ elements: rule [] [
 ]
 
 plugins: rule [name t] [
-	; FIXME: very fragile
+	; WARNING: very fragile, touch in antistatic handgloves only!
 	'enable pos: set name word! (
+		; NOTE: [change/part pos t 1] is absolute neccessity,
+		; 		because [pos/1: t] crashes Rebol!!!
 		either t: load-plugin name [change/part pos t 1] [pos: next pos]
 	)
 	:pos [main-rule | into main-rule]
