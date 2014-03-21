@@ -20,7 +20,7 @@ rule: [
 		repend includes/header [
 			{<link href='http://fonts.googleapis.com/css?family=}
 			replace/all name #" " #"+"
-			{:400,300&subset=latin,latin-ext' rel='stylesheet' type='text/css'>}
+			{:400,300&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'>}
 		]
 
 	)
