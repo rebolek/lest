@@ -2,7 +2,9 @@ REBOL[
 	Title: "Bootstrap plugin for LEST"
 	Type: 'lest-plugin
 	Name: 'bootstrap
-	Todo: []
+	Todo: [
+		"FEAT: button"
+	]
 ]
 
 startup: [
@@ -123,10 +125,15 @@ panel: [
 glyphicon: [
 	'glyphicon
 	set name word!
+	(tag-name: 'span)
+	init-tag
 	(
+		repend tag/class ['glyphicon join 'glyphicon- name]
 		debug ["==GLYPHICON: " name]
-		emit rejoin [ {<span class="glyphicon glyphicon-} name {"></span>} ]
+;		emit rejoin [ {<span class="glyphicon glyphicon-} name {"></span>} ]
 	)
+	emit-tag
+	end-tag
 ]
 
 address: [
