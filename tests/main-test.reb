@@ -222,3 +222,22 @@
 		greeting "Hello" "world"
 	]
 ]
+
+; dynamic code
+
+[ {<div>Brno</div>} = tf [ either [true] div span "Brno" ] ]
+[ {<span>Brno</span>} = tf [ either [false] div span "Brno" ] ]
+[ {<div class="city">Brno</div>} = tf [ 
+	(citizens: 400'001 "") 
+	div either [citizens > 400'000] .city .village "Brno" 
+] ]
+[ {<div class="village">Adamov</div>} = tf [ 
+	(citizens: 4'500 "") 
+	div either [citizens > 400'000] .city .village "Adamov" 
+] ]
+[ {<div id="greeting">Hello World</div>} = tf [ div #greeting either [true] "Hello World" "Hello Mars" ] ]
+[ {<div id="greeting">Hello Mars</div>} = tf [ div #greeting either [false] "Hello World" "Hello Mars" ] ]
+[ {<div>Brno</div>} = tf [ if [true] div "Brno" ] ]
+[ {<div>Brno</div>} = tf [ if [true] [ div "Brno" ] ] ]
+[ {} = tf [ if [false] [ div "Brno" ] ] ]
+[ {Brno} = tf [ if [false] div "Brno" ] ]
