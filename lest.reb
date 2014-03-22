@@ -493,6 +493,7 @@ close-div: [
 commands: [
 	if-rule
 |	either-rule
+|	switch-rule
 ]
 
 if-rule: rule [cond true-val] [
@@ -522,7 +523,29 @@ either-rule: rule [cond true-val false-val pos] [
 			pos 
 			either/only do cond true-val false-val 
 			1
-		probe pos
+	)
+	:pos
+]
+
+switch-rule: rule [value cases defval] [
+	'switch
+	(print "alala")
+	(defval: none)
+	set value word!
+	pos:
+	set cases block!
+	opt [
+		'default 
+		pos:
+		set defval block!
+	]
+	(
+		forskip cases 2 [cases/2: append/only copy [] cases/2]
+		value: get value
+		change/part
+			pos
+			apply :switch [value cases defval defval]
+			1
 	)
 	:pos
 ]
