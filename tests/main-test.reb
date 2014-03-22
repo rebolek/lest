@@ -225,8 +225,12 @@
 
 ; dynamic code
 
+[ {<div>Brno</div>} = tf [ either true div span "Brno" ] ]
+[ {<span>Brno</span>} = tf [ either false div span "Brno" ] ]
 [ {<div>Brno</div>} = tf [ either [true] div span "Brno" ] ]
 [ {<span>Brno</span>} = tf [ either [false] div span "Brno" ] ]
+[ {<div>Brno</div>} = tf [ (val: true "") either val div span "Brno" ] ]
+[ {<span>Brno</span>} = tf [ (val: false "") either val div span "Brno" ] ]
 [ {<div class="city">Brno</div>} = tf [ 
 	(citizens: 400'001 "") 
 	div either [citizens > 400'000] .city .village "Brno" 

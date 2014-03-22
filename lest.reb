@@ -497,7 +497,7 @@ commands: [
 
 if-rule: rule [cond true-val] [
 	'if
-	set cond block! 
+	set cond [logic! | word! | block!] 
 	pos:
 	set true-val any-type! 
 	(
@@ -513,7 +513,7 @@ if-rule: rule [cond true-val] [
 
 either-rule: rule [cond true-val false-val pos] [
 	'either
-	set cond block! 
+	set cond [logic! | word! | block!]
 	set true-val any-type! 
 	pos:
 	set false-val any-type! 
