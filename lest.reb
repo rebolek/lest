@@ -35,6 +35,7 @@ Add webserver that can serve pages directly:
 		"plugin design: instead of startup just list required css and js files"
 		"FORM is Bootstrap optimized, divide"
 		"FIX: form leaks default, value, name"
+		"FIX: main-rule and match-content mišmaš: one rule with all rules and one rule to match that rule, block, commands and string (not in that order)"
 	]
 ]
 
@@ -489,10 +490,32 @@ close-div: [
 	)
 ]
 
+commands: [
+	either-rule
+]
+
+either-rule: rule [cond true-val false-val pos] [
+	'either
+	(print "either matched")
+	set cond block! 
+	set true-val any-type! 
+	pos:
+	set false-val any-type! 
+	(
+		change/part 
+			pos 
+			either/only do cond true-val false-val 
+			1
+		probe pos
+	)
+	:pos
+]
+
 style: use [ word continue ] [
 	[
 		any [
-			set word issue! ( tag/id: next form word )
+			commands
+		|	set word issue! ( tag/id: next form word )
 		|	[
 				pos: set word word!
 				(
@@ -601,8 +624,13 @@ header-content: rule [name value] [
 br: [ 'br ( emit <br> ) ]
 hr: [ 'hr ( emit <hr> ) ]
 
+main-rule: [
+	some match-content
+]
 match-content: [
-	basic-string		; must match string! first, or INTO will eat it!
+	commands
+|	basic-string		; must match string! first, or INTO will eat it!
+|	elements
 |	into main-rule
 ]
 
@@ -1011,8 +1039,8 @@ form-rule: rule [value form-type] [
 elements: rule [] [
 	pos: ( debug ["parse at: " index? pos "::" ] )
 	[
-		basic-string
-	|	page-header
+;		basic-string
+		page-header
 	|	basic-elems
 	|	form-content
 	|	import
@@ -1140,9 +1168,7 @@ func [
 		append out #">"
 	]
 
-	main-rule: [ some elements ]
-
-	unless parse data bind main-rule rules [
+	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 		return ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 	]
