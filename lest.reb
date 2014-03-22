@@ -491,12 +491,28 @@ close-div: [
 ]
 
 commands: [
-	either-rule
+	if-rule
+|	either-rule
+]
+
+if-rule: rule [cond true-val] [
+	'if
+	set cond block! 
+	pos:
+	set true-val any-type! 
+	(
+		res: if/only do cond true-val
+		either res [
+			change/part pos res 1
+		] [
+			pos: next pos
+		]
+	)
+	:pos
 ]
 
 either-rule: rule [cond true-val false-val pos] [
 	'either
-	(print "either matched")
 	set cond block! 
 	set true-val any-type! 
 	pos:
