@@ -537,14 +537,16 @@ switch-rule: rule [value cases defval] [
 	opt [
 		'default 
 		pos:
-		set defval block!
+		set defval any-type!
 	]
 	(
 		forskip cases 2 [cases/2: append/only copy [] cases/2]
-		value: get value
+		probe cases
+		value: probe get value
+		probe defval
 		change/part
 			pos
-			apply :switch [value cases defval defval]
+			probe switch/default value cases append/only copy [] defval
 			1
 	)
 	:pos

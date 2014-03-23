@@ -245,3 +245,7 @@
 [ {<div>Brno</div>} = tf [ if [true] [ div "Brno" ] ] ]
 [ {} = tf [ if [false] [ div "Brno" ] ] ]
 [ {Brno} = tf [ if [false] div "Brno" ] ]
+[ {<span>value is </span>one} = tf [ (x: 1 "") span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span>many} = tf [ (x: 23 "") span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span><span>one</span>} = tf [ (x: 1 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span><span>many</span>} = tf [ (x: 23 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
