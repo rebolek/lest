@@ -529,7 +529,6 @@ either-rule: rule [cond true-val false-val pos] [
 
 switch-rule: rule [value cases defval] [
 	'switch
-	(print "alala")
 	(defval: none)
 	set value word!
 	pos:
