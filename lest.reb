@@ -55,7 +55,7 @@ css-path: %css/
 
 ; FIXME: should be moved to markdown plugin (once it works)
 do %md.reb
-markdown?: yes
+text-style: 'markdown
 
 dot: #"."
 
@@ -67,6 +67,30 @@ dot: #"."
 ;  ____) | | |__| | | |      | |      | |__| | | | \ \     | |      | |      | |__| | | |\  | | |____   ____) |
 ; |_____/   \____/  |_|      |_|       \____/  |_|  \_\    |_|      |_|       \____/  |_| \_|  \_____| |_____/
 ;
+
+escape-entities: funct [
+	"Escape HTML entities. Only partial support now."
+	data
+] [
+	output: make string! 1.1 * length? data
+	; simple map that is modified to parse rule
+	entities: [
+		#"<" "lt"
+		#">" "gt"
+		#"&" "amp"
+	]
+	rule: make block! length? entities
+	forskip entities 2 [
+		repend rule [
+			entities/1
+			to paren! reduce ['append 'output rejoin [#"&" entities/2 #";"] ] 
+			'| 
+		]
+	]
+	append rule [set value skip (append output value)]
+	parse data [some rule]
+	output
+]
 
 catenate: funct [
 	"Joins values with delimiter."
@@ -685,7 +709,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'pre | 'code (markdown?: no) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code (text-style?: 'plain) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
@@ -800,10 +824,16 @@ basic-elems: [
 |	list-elems
 ]
 
-basic-string: rule [value] [
+basic-string: rule [value style] [
+	opt [set style ['plain | 'html | 'markdown]]
 	set value [string! | date! | time!] ; TODO: support integer?
 	(
-		emit either markdown? [markdown value] [markdown?: yes value]
+		unless style [style: text-style]
+		emit switch style [
+			plain		[escape-entities value]
+			html 		[value]
+			markdown 	[markdown value]
+		]
 	)
 ]
 
