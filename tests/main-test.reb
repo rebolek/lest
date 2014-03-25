@@ -40,28 +40,36 @@
 
 ; styles (id & class)
 
-[ {<b id="bold-style">bold</b>} = tf [ b #bold-style "bold" ] ]
-[ {<b class="bold-style">bold</b>} = tf [ b .bold-style "bold" ] ]
-[ {<b class="bold style">bold</b>} = tf [ b .bold .style "bold" ] ]
-[ {<b id="bold-text" class="bold style">bold</b>} = tf [ b #bold-text .bold .style "bold" ] ]
+[ {<b id="bold-style">bold</b>} 						= tf [ b #bold-style "bold" ] ]
+[ {<b class="bold-style">bold</b>} 						= tf [ b .bold-style "bold" ] ]
+[ {<b class="bold style">bold</b>} 						= tf [ b .bold .style "bold" ] ]
+[ {<b id="bold-text" class="bold style">bold</b>} 		= tf [ b #bold-text .bold .style "bold" ] ]
+
+[ {<div id="test">test</div>} 							= tf [ (x: "test" "") div id x "test" ] ]
+[ {<div class="test">test</div>}						= tf [ (x: "test" "") div class x "test" ] ]
+[ {<div id="test-id" class="test">test</div>} 			= tf [ (xid: "test-id" x: "test" "") div id xid class x "test" ] ]
+[ {<div id="test-id" class="test my-class">test</div>} 	= tf [ (xid: "test-id" x: "test" "") div id xid class x .my-class "test" ] ]
+[ {<div class="test-1">test</div>} 						= tf [ (x: "test" "") div class [x #"-" 1] "test" ] ]
+[ {<div id="test-1">test</div>} 						= tf [ (x: "test" "") div id [x #"-" 1] "test" ] ]
+[ {<div id="my-test" class="test-1">test</div>} 		= tf [ (x: "test" "") div id ["my" #"-" 'test] class [x #"-" 1] "test" ] ]
 
 ; tag nesting
 
-[ {<b><i>bold italic</i></b>} = tf [ b [ i "bold italic" ] ] ]
-[ {<b id="bold"><i id="italic">bold italic</i></b>} = tf [ b #bold [ i #italic "bold italic" ] ] ]
-[ {<b class="bold"><i id="italic">bold italic</i></b>} = tf [ b .bold [ i #italic "bold italic" ] ] ]
-[ {<b id="bold"><i class="italic">bold italic</i></b>} = tf [ b #bold [ i .italic "bold italic" ] ] ]
-[ {<b class="bold"><i class="italic">bold italic</i></b>} = tf [ b .bold [ i .italic "bold italic" ] ] ]
-[ {<b class="bold style"><i class="italic">bold italic</i></b>} = tf [ b .bold .style [ i .italic "bold italic" ] ] ]
-[ {<b class="bold style"><i class="italic style">bold italic</i></b>} = tf [ b .bold .style [ i .italic .style "bold italic" ] ] ]
+[ {<b><i>bold italic</i></b>} 							= tf [ b [ i "bold italic" ] ] ]
+[ {<b id="bold"><i id="italic">bold italic</i></b>} 	= tf [ b #bold [ i #italic "bold italic" ] ] ]
+[ {<b class="bold"><i id="italic">bold italic</i></b>} 	= tf [ b .bold [ i #italic "bold italic" ] ] ]
+[ {<b id="bold"><i class="italic">bold italic</i></b>} 	= tf [ b #bold [ i .italic "bold italic" ] ] ]
+[ {<b class="bold"><i class="italic">bold italic</i></b>} 				= tf [ b .bold [ i .italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic">bold italic</i></b>} 		= tf [ b .bold .style [ i .italic "bold italic" ] ] ]
+[ {<b class="bold style"><i class="italic style">bold italic</i></b>} 	= tf [ b .bold .style [ i .italic .style "bold italic" ] ] ]
 
 
 ; SCRIPT tag
 
-[ {<script src="script.js"></script>} = tf [ script %script.js ] ]
-[ {<script src="http://iluminat.cz/script.js"></script>} = tf [ script http://iluminat.cz/script.js ] ]
-[ {<script src="script.js"></script>} = tf [ script %script.js ] ]
-[ {<script type="text/javascript">alert("hello world");</script>} = tf [ script {alert("hello world");} ] ]
+[ {<script src="script.js"></script>} 								= tf [ script %script.js ] ]
+[ {<script src="http://iluminat.cz/script.js"></script>} 			= tf [ script http://iluminat.cz/script.js ] ]
+[ {<script src="script.js"></script>} 								= tf [ script %script.js ] ]
+[ {<script type="text/javascript">alert("hello world");</script>} 	= tf [ script {alert("hello world");} ] ]
 
 ; LINK tag
 
@@ -249,3 +257,5 @@
 [ {<span>value is </span>many} = tf [ (x: 23 "") span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>value is </span><span>one</span>} = tf [ (x: 1 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>value is </span><span>many</span>} = tf [ (x: 23 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+
+

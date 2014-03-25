@@ -57,6 +57,8 @@ css-path: %css/
 do %md.reb
 markdown?: yes
 
+dot: #"."
+
 ;
 ;   _____   _    _   _____    _____     ____    _____    _______     ______   _    _   _   _    _____    _____
 ;  / ____| | |  | | |  __ \  |  __ \   / __ \  |  __ \  |__   __|   |  ____| | |  | | | \ | |  / ____|  / ____|
@@ -551,18 +553,21 @@ switch-rule: rule [value cases defval] [
 	:pos
 ]
 
-style-id: rule [data] [
-	'id
-	set data [word! | block!] 
+get-style: rule [pos data type] [
+	set type ['id | 'class]
+	pos:
+	set data [word! | block!] (
+		data: either word? data [get data] [rejoin data]
+		data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
+		change/part pos data 1
+	)
+	:pos
 ]
 
-style-class: rule [data] [
-]
-
-style: rule [ word continue ] [
+style: rule [ pos word continue ] [
 	any [
 		commands
-;	|	
+	|	get-style
 	|	set word issue! ( tag/id: next form word )
 	|	[
 			pos: set word word!
