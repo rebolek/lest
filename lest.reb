@@ -551,27 +551,33 @@ switch-rule: rule [value cases defval] [
 	:pos
 ]
 
-style: use [ word continue ] [
-	[
-		any [
-			commands
-		|	set word issue! ( tag/id: next form word )
-		|	[
-				pos: set word word!
-				(
-					continue: either #"." = take form word [
-						append tag/class next form word
-						[]
-					][
-						[end skip]
-					]
-				)
-				continue
-			]
-		|	'with set word block! ( append tag word )
-		]
-	]
+style-id: rule [data] [
+	'id
+	set data [word! | block!] 
+]
 
+style-class: rule [data] [
+]
+
+style: rule [ word continue ] [
+	any [
+		commands
+;	|	
+	|	set word issue! ( tag/id: next form word )
+	|	[
+			pos: set word word!
+			(
+				continue: either #"." = take form word [
+					append tag/class next form word
+					[]
+				][
+					[end skip]
+				]
+			)
+			continue
+		]
+	|	'with set word block! ( append tag word )
+	]
 ]
 
 comment: [
