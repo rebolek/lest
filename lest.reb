@@ -347,7 +347,14 @@ set-rule: rule [ label value ] [
 	'set
 	set label word!
 	set value any-type!
-	( repend user-words [to set-word! label value] )
+	(
+		value: switch/default value [
+			; predefined values
+			true yes on [lib/true]
+			false no off [lib/false]
+		][value]
+		repend user-words [to set-word! label value] 
+	)
 ]
 
 user-rule: rule [ name label type value urule args ] [
@@ -538,7 +545,7 @@ if-rule: rule [cond true-val] [
 	pos:
 	set true-val any-type! 
 	(
-		res: if/only do cond true-val
+		res: if/only do bind cond user-words true-val
 		either res [
 			change/part pos res 1
 		] [
@@ -557,7 +564,7 @@ either-rule: rule [cond true-val false-val pos] [
 	(
 		change/part 
 			pos 
-			either/only do cond true-val false-val 
+			either/only do bind cond user-words true-val false-val 
 			1
 	)
 	:pos
@@ -576,7 +583,7 @@ switch-rule: rule [value cases defval] [
 	]
 	(
 		forskip cases 2 [cases/2: append/only copy [] cases/2]
-		value: get value
+		value: get bind value user-words
 		change/part
 			pos
 			switch/default value cases append/only copy [] defval
@@ -838,6 +845,7 @@ basic-string: rule [value style] [
 	set value [string! | date! | time!] ; TODO: support integer?
 	(
 		unless style [style: text-style]
+		value: form value
 		emit switch style [
 			plain		[escape-entities value]
 			html 		[value]
