@@ -320,6 +320,16 @@ import: rule [p value] [
 	:p into elements
 ]
 
+text-settings: rule [type] [
+	set type ['plain | 'html | 'markdown]
+	'text
+	(text-style: type)
+]
+
+settings-rule: [
+	text-settings
+]
+
 ; NOTE: this works
 
 ;	parse [ ( [print "a"] ) ] [
@@ -566,12 +576,10 @@ switch-rule: rule [value cases defval] [
 	]
 	(
 		forskip cases 2 [cases/2: append/only copy [] cases/2]
-		probe cases
-		value: probe get value
-		probe defval
+		value: get value
 		change/part
 			pos
-			probe switch/default value cases append/only copy [] defval
+			switch/default value cases append/only copy [] defval
 			1
 	)
 	:pos
@@ -709,7 +717,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'pre | 'code (text-style?: 'plain) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code (text-style: 'plain) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
@@ -825,6 +833,7 @@ basic-elems: [
 ]
 
 basic-string: rule [value style] [
+	(style: none)
 	opt [set style ['plain | 'html | 'markdown]]
 	set value [string! | date! | time!] ; TODO: support integer?
 	(
@@ -1120,8 +1129,8 @@ form-rule: rule [value form-type] [
 elements: rule [] [
 	pos: ( debug ["parse at: " index? pos "::" ] )
 	[
-;		basic-string
-		page-header
+		settings-rule	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
+	|	page-header	
 	|	basic-elems
 	|	form-content
 	|	import
