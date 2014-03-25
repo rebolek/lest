@@ -589,7 +589,7 @@ get-style: rule [pos data type] [
 	set type ['id | 'class]
 	pos:
 	set data [word! | block!] (
-		data: either word? data [get data] [rejoin bind data user-words]
+		data: either word? data [get bind data user-words] [rejoin bind data user-words]
 		data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
 		change/part pos data 1
 	)
