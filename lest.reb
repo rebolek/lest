@@ -55,7 +55,7 @@ css-path: %css/
 
 ; FIXME: should be moved to markdown plugin (once it works)
 do %md.reb
-text-style: 'markdown
+text-style: 'html
 
 dot: #"."
 
@@ -339,7 +339,7 @@ settings-rule: [
 do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
-	( p/1: append clear [] do value )
+	( p/1: append clear [] do bind to block! value user-words )
 	:p into elements
 	]
 
@@ -589,7 +589,7 @@ get-style: rule [pos data type] [
 	set type ['id | 'class]
 	pos:
 	set data [word! | block!] (
-		data: either word? data [get data] [rejoin data]
+		data: either word? data [get data] [rejoin bind data user-words]
 		data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
 		change/part pos data 1
 	)
@@ -717,7 +717,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'pre | 'code (text-style: 'plain) | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
