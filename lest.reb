@@ -232,6 +232,7 @@ lest: use [
 
 	user-rules
 	user-words
+	user-values
 
 	plugins
 	plugin-path
@@ -353,7 +354,15 @@ set-rule: rule [ label value ] [
 			true yes on [lib/true]
 			false no off [lib/false]
 		][value]
+		; add rules, if not exists
+		unless in user-words label [
+			append user-values compose [ 
+				| pos: (to lit-word! label) (to paren! compose [change pos (to path! reduce ['user-words label])]) :pos
+			]
+		]
+		; extend user context with new value
 		repend user-words [to set-word! label value] 
+		probe user-values
 	)
 ]
 
@@ -842,6 +851,7 @@ basic-elems: [
 basic-string: rule [value style] [
 	(style: none)
 	opt [set style ['plain | 'html | 'markdown]]
+	opt [user-values]
 	set value [string! | date! | time!] ; TODO: support integer?
 	(
 		unless style [style: text-style]
@@ -1193,6 +1203,7 @@ load-plugin: func [
 
 user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
 user-words: object []
+user-values: [ fail ]
 
 ;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
@@ -1214,6 +1225,7 @@ func [
 	tag-stack: copy []
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
 	user-words: object []
+	user-values: copy [ fail ]
 
 	output: copy ""
 	buffer: copy ""
