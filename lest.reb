@@ -474,7 +474,25 @@ make-row: [
 
 ]
 
-; FIXME
+; FIXME: FOR set variable with user name in user-words
+; 			it doesn't clean it and can rewrite user's variable
+
+for-rule: rule [pos out var src content] [
+	'for
+	set var word!
+	'in
+	set src [word! | block!]
+	pos: set content block! (
+		out: make block! length? src
+		if word? src [src: get in user-words src]
+		forall src [
+			append out compose/only [set (var) (src/1) (copy/deep content)]
+		]
+		change/only/part pos out 1
+		print mold pos
+	)
+	:pos into main-rule
+]
 
 repeat-rule: [
 	'repeat
@@ -1153,6 +1171,7 @@ elements: rule [] [
 	|	form-content
 	|	import
 	|	do-code
+	|	for-rule 	; TOD: move to commands? or loop-commands? or something like that?
 	|	repeat-rule
 	|	make-row
 	|	user-rules

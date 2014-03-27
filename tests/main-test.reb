@@ -8,6 +8,9 @@
 ; string
 
 [ "lest" = tf [ "lest" ] ]
+[ "&lt;lest&gt;" = tf [ plain "<lest>" ] ]
+[ "<lest>" = tf [ html "<lest>" ] ]
+[ {<a href="lest">lest</a>} = tf [ markdown "<lest>" ] ]
 
 ; comment
 
@@ -45,13 +48,13 @@
 [ {<b class="bold style">bold</b>} 						= tf [ b .bold .style "bold" ] ]
 [ {<b id="bold-text" class="bold style">bold</b>} 		= tf [ b #bold-text .bold .style "bold" ] ]
 
-[ {<div id="test">test</div>} 							= tf [ (x: "test" "") div id x "test" ] ]
-[ {<div class="test">test</div>}						= tf [ (x: "test" "") div class x "test" ] ]
-[ {<div id="test-id" class="test">test</div>} 			= tf [ (xid: "test-id" x: "test" "") div id xid class x "test" ] ]
-[ {<div id="test-id" class="test my-class">test</div>} 	= tf [ (xid: "test-id" x: "test" "") div id xid class x .my-class "test" ] ]
-[ {<div class="test-1">test</div>} 						= tf [ (x: "test" "") div class [x #"-" 1] "test" ] ]
-[ {<div id="test-1">test</div>} 						= tf [ (x: "test" "") div id [x #"-" 1] "test" ] ]
-[ {<div id="my-test" class="test-1">test</div>} 		= tf [ (x: "test" "") div id ["my" #"-" 'test] class [x #"-" 1] "test" ] ]
+[ {<div id="test">test</div>} 							= tf [ set x "test" div id x "test" ] ]
+[ {<div class="test">test</div>}						= tf [ set x "test" div class x "test" ] ]
+[ {<div id="test-id" class="test">test</div>} 			= tf [ set xid "test-id" set x "test" div id xid class x "test" ] ]
+[ {<div id="test-id" class="test my-class">test</div>} 	= tf [ set xid "test-id" set x "test" div id xid class x .my-class "test" ] ]
+[ {<div class="test-1">test</div>} 						= tf [ set x "test" div class [x #"-" 1] "test" ] ]
+[ {<div id="test-1">test</div>} 						= tf [ set x "test" div id [x #"-" 1] "test" ] ]
+[ {<div id="my-test" class="test-1">test</div>} 		= tf [ set x "test" div id ["my" #"-" 'test] class [x #"-" 1] "test" ] ]
 
 ; tag nesting
 
@@ -233,18 +236,16 @@
 
 ; dynamic code
 
-[ {<div>Brno</div>} = tf [ either true div span "Brno" ] ]
-[ {<span>Brno</span>} = tf [ either false div span "Brno" ] ]
 [ {<div>Brno</div>} = tf [ either [true] div span "Brno" ] ]
 [ {<span>Brno</span>} = tf [ either [false] div span "Brno" ] ]
-[ {<div>Brno</div>} = tf [ (val: true "") either val div span "Brno" ] ]
-[ {<span>Brno</span>} = tf [ (val: false "") either val div span "Brno" ] ]
+[ {<div>Brno</div>} = tf [ set val true either val div span "Brno" ] ]
+[ {<span>Brno</span>} = tf [ set val false either val div span "Brno" ] ]
 [ {<div class="city">Brno</div>} = tf [ 
-	(citizens: 400'001 "") 
+	set citizens 400'001
 	div either [citizens > 400'000] .city .village "Brno" 
 ] ]
 [ {<div class="village">Adamov</div>} = tf [ 
-	(citizens: 4'500 "") 
+	set citizens 4'500 
 	div either [citizens > 400'000] .city .village "Adamov" 
 ] ]
 [ {<div id="greeting">Hello World</div>} = tf [ div #greeting either [true] "Hello World" "Hello Mars" ] ]
@@ -253,9 +254,10 @@
 [ {<div>Brno</div>} = tf [ if [true] [ div "Brno" ] ] ]
 [ {} = tf [ if [false] [ div "Brno" ] ] ]
 [ {Brno} = tf [ if [false] div "Brno" ] ]
-[ {<span>value is </span>one} = tf [ (x: 1 "") span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
-[ {<span>value is </span>many} = tf [ (x: 23 "") span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
-[ {<span>value is </span><span>one</span>} = tf [ (x: 1 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
-[ {<span>value is </span><span>many</span>} = tf [ (x: 23 "") span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span>one} = tf [ set x 1 span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span>many} = tf [ set x 23 span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span><span>one</span>} = tf [ set x 1 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>value is </span><span>many</span>} = tf [ set x 23 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
+[ {<span>Brno</span>} = tf [ set name "Brno" span name ] ]
 
 
