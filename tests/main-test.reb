@@ -135,6 +135,8 @@
 ]
 [ "<dl><dt>def</dt><dd>val</dd></dl>" = tf [ dl "def" "val" ] ]
 [ "<dl><dt>def 1</dt><dd>val 1</dd><dt>def 2</dt><dd>val 2</dd></dl>" = tf [ dl "def 1" "val 1" "def 2" "val 2" ] ]
+[ {<dl><dt><strong>def</strong></dt><dd>val</dd></dl>} = tf [dl markdown "**def**" "val"] ]
+
 
 ; HEADINGS
 

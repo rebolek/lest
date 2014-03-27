@@ -223,6 +223,8 @@ lest: use [
 	header?
 	pos
 
+	current-text-style
+
 	name
 	value
 
@@ -362,7 +364,6 @@ set-rule: rule [ label value ] [
 		]
 		; extend user context with new value
 		repend user-words [to set-word! label value] 
-		probe user-values
 	)
 ]
 
@@ -489,7 +490,6 @@ for-rule: rule [pos out var src content] [
 			append out compose/only [set (var) (src/1) (copy/deep content)]
 		]
 		change/only/part pos out 1
-		print mold pos
 	)
 	:pos into main-rule
 ]
@@ -829,7 +829,7 @@ ol: rule [value] [
 	end-tag
 ]
 
-dl: rule [value] [
+dl: [
 	set tag-name 'dl
 	init-tag
 	opt [
@@ -838,9 +838,11 @@ dl: rule [value] [
 	]
 	emit-tag
 	some [
-		set value string!
+		basic-string-match
+		basic-string-processing
 		( emit entag value 'dt )
-		set value string!
+		basic-string-match
+		basic-string-processing
 		( emit entag value 'dd )
 	]
 	end-tag
@@ -864,6 +866,27 @@ basic-elems: [
 |	image
 |	link
 |	list-elems
+]
+
+basic-string-match: [
+	(current-text-style: none)
+	opt [set current-text-style ['plain | 'html | 'markdown]]
+	opt [user-values]
+	copy value [string! | date! | time!] ; TODO: support integer?
+	(print ["*" value])
+]
+
+
+basic-string-processing: [
+	(
+		unless current-text-style [current-text-style: text-style]
+		value: form value
+		value: switch current-text-style [
+			plain		[escape-entities value]
+			html 		[value]
+			markdown 	[markdown value]
+		]
+	)
 ]
 
 basic-string: rule [value style] [
