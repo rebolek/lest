@@ -480,14 +480,22 @@ make-row: [
 
 for-rule: rule [pos out var src content] [
 	'for
-	set var word!
+	set var [word! | block!]
 	'in
 	set src [word! | block!]
 	pos: set content block! (
 		out: make block! length? src
 		if word? src [src: get in user-words src]
 		forall src [
-			append out compose/only [set (var) (src/1) (copy/deep content)]
+			either block? var [
+				repeat i length? var [
+					append out compose/only [set (var/:i) (src/:i)]
+				]
+				src: skip src -1 + length? var
+				append/only out copy/deep content
+			] [
+				append out compose/only [set (var) (src/1) (copy/deep content)]
+			]
 		]
 		change/only/part pos out 1
 	)
@@ -873,7 +881,6 @@ basic-string-match: [
 	opt [set current-text-style ['plain | 'html | 'markdown]]
 	opt [user-values]
 	copy value [string! | date! | time!] ; TODO: support integer?
-	(print ["*" value])
 ]
 
 
@@ -882,8 +889,8 @@ basic-string-processing: [
 		unless current-text-style [current-text-style: text-style]
 		value: form value
 		value: switch current-text-style [
-			plain		[escape-entities value]
-			html 		[value]
+			plain		[value]
+			html 		[escape-entities value]
 			markdown 	[markdown value]
 		]
 	)
@@ -898,8 +905,8 @@ basic-string: rule [value style] [
 		unless style [style: text-style]
 		value: form value
 		emit switch style [
-			plain		[escape-entities value]
-			html 		[value]
+			plain		[value]
+			html 		[escape-entities value]
 			markdown 	[markdown value]
 		]
 	)
@@ -1194,7 +1201,7 @@ elements: rule [] [
 	|	form-content
 	|	import
 	|	do-code
-	|	for-rule 	; TOD: move to commands? or loop-commands? or something like that?
+	|	for-rule 	; TODO: move to commands? or loop-commands? or something like that?
 	|	repeat-rule
 	|	make-row
 	|	user-rules
