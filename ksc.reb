@@ -155,7 +155,14 @@ ruleset: object [
 		(emit compose [canvas (get-color value)])
 	]
 	tags: use [data tag-list tag] [
-		data: load %tags
+		data: load decompress debase {eJxFUltWQyEM/HcVbsHnV497CRd6i+VlCNXuXmZo
+			9YOZIYQkhBzk4+EgzinIew29Q2mgXS1uKUD16MnDxzrZYUmHyflIpDnV7fw1qvGg+i
+			sIod0wq2WKTcpFOkWzuEyR7lv1i9LCXetolDlL8VN5MUmxGyT3IRFNYkJIf0Q4H5V4
+			AdIBF0ImuICLxxiS78Eo9/9K5mYoijjW+QSlUFw8PX08TnwmvhBfiW/Ed7gE8Tfizd
+			O9/hN3llEKOhWPKhlJYt6BpQ0jzyc8HM4OUc7hugdUlMTxkSnMPU5SJJTzpCyNqNyE
+			Mkgmi1hFEbSh1L5pbEhT3WfYKBC2NruXWe9NqMNWRbA2mcWC2Zamdb9NyNdcCg+Fqw
+			6Hr8ZBlwzzX8I+063APaSVumdJyN7r0A1xexM6mNayU1w5dX044hwAZXxWauJ4arcB
+			M/TFwo/dptbwe+ATYf2LRfbcoq27SpANrUPfBgq6CMyXOeoV//qN0f0F7xf7rSEDAAA=}
 		tag-list: make block! 2 * length? data
 		foreach value data [repend tag-list [to lit-word! to string! value '|]]
 		take/last tag-list
