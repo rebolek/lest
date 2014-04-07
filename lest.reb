@@ -298,10 +298,21 @@ emit-script: func [
 
 emit-stylesheet: func [
 	stylesheet
+	/local suffix
 ][
-	if path? stylesheet [ stylesheet: get stylesheet ]
+;	if path? stylesheet [ stylesheet: get stylesheet ]
+	local: stylesheet
+	if all [
+		file? stylesheet
+		not equal? %.css suffix: suffix? stylesheet
+	] [
+		write 
+			local: replace copy stylesheet suffix %.css 
+			to-css precssr load probe stylesheet
+	]
+	print ["local" local]
 	unless find includes/stylesheets stylesheet [
-		repend includes/stylesheets [{<link href="} stylesheet {" rel="stylesheet">} newline ]
+		repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline ]
 	]
 ]
 
@@ -700,7 +711,7 @@ script: rule [type value] [
 		if path? value [ 
 			; This way we get JS-PATH from user words, 
 			; if it's been set or global is used when not
-			value: get first bind reduce value 'user-words
+			value: get first bind reduce [value] user-words
 		]
 		value: ajoin either string? value [
 			[<script type="text/javascript"> value ]
@@ -727,7 +738,7 @@ stylesheet: rule [value] [
 		if path? value [ 
 			; This way we get CSS-PATH from user words, 
 			; if it's been set or global is used when not
-			value: get first bind reduce [value] probe user-words 
+			value: probe get first bind reduce [value] user-words 
 		]
 		emit-stylesheet value
 		debug ["==STYLESHEET:" value]
@@ -1368,7 +1379,7 @@ func [
 	body: head buffer
 
 	unless empty? includes/style [
-		write %lest-temp.css to-css ksc includes/style
+		write %lest-temp.css to-css precssr includes/style
 		Print ["CSS wrote to file %lest-temp.css"]
 	]
 
