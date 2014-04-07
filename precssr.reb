@@ -112,6 +112,7 @@ ruleset: object [
 		set name set-word!
 		opt functions
 		set value any-type! (
+			if word? value [value: get in user-ctx value]
 			repend user-ctx [name value]
 			append user compose [ 
 				| 
@@ -135,6 +136,7 @@ ruleset: object [
 		pos:
 		set amount number! (
 			f: take/last f-stack
+			print ["color: " type? color mold color mold user-ctx/:color]
 			case/all [
 				word? color  [color: user-ctx/:color]
 				issue? color [color: load-color color]
@@ -183,6 +185,7 @@ ruleset: object [
 		]
 		(emit compose [google fonts (values)])
 	]
+; This is 'last rule' - it will catch everything not catched before	
 	pass: rule [value] [
 		set value skip
 		(emit value)
