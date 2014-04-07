@@ -39,6 +39,16 @@ Add webserver that can serve pages directly:
 	]
 ]
 
+; TODO: plugins?
+import %cssr.reb
+
+; FIXME: should be moved to markdown plugin (once it works)
+do %md.reb
+
+
+do %ksc.reb ; FIXME should be import (module)
+
+
 debug:
 :print
 none
@@ -53,8 +63,11 @@ css-path: %../../css/
 js-path: %js/			; we are in work dir so we need to go just one level up
 css-path: %css/
 
-; FIXME: should be moved to markdown plugin (once it works)
-do %md.reb
+
+; FIXME: because of testing in separate directory, we need absolute path
+plugin-path: %/home/sony/repo/lest/plugins/
+
+
 text-style: 'html
 
 dot: #"."
@@ -237,7 +250,6 @@ lest: use [
 	user-values
 
 	plugins
-	plugin-path
 	load-plugin
 ] [
 
@@ -249,6 +261,7 @@ header?: false
 tag-stack: copy []
 
 includes: object [
+	style:			make block! 1000
 	stylesheets: 	copy {}
 	header:			copy {}
 	body-start:		copy {}
@@ -359,7 +372,10 @@ set-rule: rule [ label value ] [
 		; add rules, if not exists
 		unless in user-words label [
 			append user-values compose [ 
-				| pos: (to lit-word! label) (to paren! compose [change pos (to path! reduce ['user-words label])]) :pos
+				| 
+					pos: (to lit-word! label) 
+					(to paren! compose [change pos (to path! reduce ['user-words label])]) 
+					:pos
 			]
 		]
 		; extend user context with new value
@@ -406,6 +422,12 @@ user-rule: rule [ name label type value urule args ] [
 			to get-word! 'pos 'into main-rule
 		]
 	)
+]
+
+style-rule: rule [data] [
+	'style
+	set data block!
+	(append includes/style data)
 ]
 
 ;FIXME:
@@ -714,15 +736,16 @@ header-content: rule [name value] [
 	any [
 		'title set value string! (page/title: value debug "==TITLE")
 	|	stylesheet
+	|	style-rule
 	|	'style set value string! (
-			append includes/stylesheet entag value 'style ;ajoin [ <style> value </style> ]
+			append includes/stylesheet entag value 'style
 		)
 	|	'script [
 			set value [ file! | url! ] (
 				repend includes/header [{<script src="} value {">}</script> newline ]
 			)
 		|	set value string! (
-				append includes/header entag value 'script ;ajoin [ <script> value </script> newline ]
+				append includes/header entag value 'script
 			)
 		]
 	|	'meta set name word! set value string! (
@@ -1091,11 +1114,7 @@ textarea: [
 			cols: (to integer! size/x)
 			rows: (to integer! size/y)
 			name: (name)
-;				id: (id)
 		]
-;			emit make-tag tag
-;			emit value
-;			emit close-tag tag/element
 		emit entag/with value tag-name tag
 	)
 ]
@@ -1231,17 +1250,20 @@ plugins: rule [name t] [
 
 ] ; -- end rules context
 
-; FIXME: because of testing in separate directory, we need absolute path
-plugin-path: %/home/sony/repo/lest/plugins/
-
 load-plugin: func [
 	name
 	/local plugin header
 ] [
 	debug ["load plugin" name]
-	plugin: load/header rejoin [plugin-path name %.reb]
-	header: take plugin
+	either value? 'plugin-cache [
+		plugin: select plugin-cache name
+		header: object [type: 'lest-plugin]
+	][
+		plugin: load/header rejoin [plugin-path name %.reb]
+		header: take plugin
+	]
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
+	; TODO: shouln't next line be in following condition?
 	plugin: object bind plugin rules
 	if equal? 'lest-plugin header/type [
 		add-rule rules/plugins bind plugin/rule 'emit
@@ -1280,6 +1302,7 @@ func [
 	buffer: copy ""
 
 	includes: object [
+		style: 			make block! 1000
 		stylesheets: 	copy {}
 		header:			copy {}
 		body-start:		copy {}
@@ -1333,6 +1356,11 @@ func [
 	]
 
 	body: head buffer
+
+	unless empty? includes/style [
+		write %lest-temp.css to-css ksc includes/style
+		Print ["CSS wrote to file %lest-temp.css"]
+	]
 
 	either header? [
 		ajoin [

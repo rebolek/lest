@@ -1,10 +1,11 @@
 REBOL[
-	File: 		%ksc.reb
-	Title: 		"KSČ - CSSR preprocessor"
+	File: 		%precssr.reb
+	Title: 		"CSSR preprocessor"
 	Author: 	"Boleslav Březovský"
-	Version:	0.0.1
+	Version:	0.0.2
 	Date: 		31-3-2014
 	Created: 	31-3-2014
+	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"CSSR preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
 	To-do:		[
@@ -166,6 +167,7 @@ ruleset: object [
 		tag-list: make block! 2 * length? data
 		foreach value data [repend tag-list [to lit-word! to string! value '|]]
 		take/last tag-list
+		; return rule
 		[
 			set tag tag-list 
 			(emit to tag! tag)
@@ -214,4 +216,4 @@ ksč: func [
 	buffer
 ]
 
-ksc: :ksč
+precssr: :ksč
