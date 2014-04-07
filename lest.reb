@@ -46,7 +46,7 @@ import %cssr.reb
 do %md.reb
 
 
-do %ksc.reb ; FIXME should be import (module)
+do %precssr.reb ; FIXME should be import (module)
 
 
 debug:
@@ -320,6 +320,7 @@ rules: object [
 
 	tag: tag
 	tag-name: tag-name
+
 ;	includes: object [
 ;		stylesheets: 	copy {}
 ;		header:			copy {}
@@ -696,7 +697,11 @@ script: rule [type value] [
 	init-tag
 	set value [ string! | file! | url! | path! ]
 	(
-		if path? value [ value: get value ]
+		if path? value [ 
+			; This way we get JS-PATH from user words, 
+			; if it's been set or global is used when not
+			value: get first bind reduce value 'user-words
+		]
 		value: ajoin either string? value [
 			[<script type="text/javascript"> value ]
 		] [
@@ -719,7 +724,11 @@ script: rule [type value] [
 stylesheet: rule [value] [
 	pos:
 	'stylesheet set value [ file! | url! | path! ] (
-		if path? value [ value: get value ]
+		if path? value [ 
+			; This way we get CSS-PATH from user words, 
+			; if it's been set or global is used when not
+			value: get first bind reduce [value] probe user-words 
+		]
 		emit-stylesheet value
 		debug ["==STYLESHEET:" value]
 	)
@@ -735,6 +744,7 @@ page-header: [
 header-content: rule [name value] [
 	any [
 		'title set value string! (page/title: value debug "==TITLE")
+	|	set-rule	
 	|	stylesheet
 	|	style-rule
 	|	'style set value string! (
