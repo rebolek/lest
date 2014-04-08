@@ -31,7 +31,7 @@ plugin-cache: [google-analytics [
         startup: [
             append script js-path/pwstrength.js
         ]
-        rule: use [verdicts too-short same-as-user username] [
+        rule: rule [verdicts too-short same-as-user username] [
             'password-strength
             (
                 verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"]
@@ -109,17 +109,13 @@ jQuery(document).ready(function () {
         ]
         col: use [grid-size width offset] [
             [
-                ps:
-                (print ["col 0:" mold copy/part ps 16])
                 'col
                 (
-                    print "col 1"
                     grid-size: 'md
                     width: 2
                     offset: none
                 )
                 init-div
-                (print "col 2")
                 some [
                     'offset set offset integer!
                     | set grid-size ['xs | 'sm | 'md | 'lg]
@@ -166,7 +162,8 @@ jQuery(document).ready(function () {
                     emit-tag
                     [
                         set value string!
-                        (emit ajoin [<h3 class="panel-title"> value </h3>])
+                        (value-to-emit: ajoin [<h3 class="panel-title"> value </h3>])
+                        emit-value
                         | into [some elements]
                     ]
                     end-tag
@@ -489,7 +486,7 @@ jQuery(document).ready(function () {
         startup: [
             stylesheet css-path/font-awesome.min.css
         ]
-        rule: use [name fixed? size value size-att] [
+        rule: use [tag name fixed? size value size-att] [
             [
                 'fa-icon
                 init-tag
@@ -511,6 +508,7 @@ jQuery(document).ready(function () {
                 ]
                 take-tag
                 (
+                    tag: rules/tag
                     size-att: case [
                         size = 1 (" fa-lg")
                         size (rejoin [" fa-" size "x"])
@@ -1213,7 +1211,7 @@ para?: false
 set [open-para close-para] either para? [[<p> </p>]] [["" ""]]
 print [open-para close-para]
 value: copy ""
-emit: func [data] [append buffer data]
+emit: func [data] [print "***wrong emit***" append buffer data]
 close-tag: func [tag] [head insert copy tag #"/"]
 start-para: does [
     if start-para? [
@@ -1544,6 +1542,7 @@ markdown: func [
     parse data [some rules]
     buffer
 ]
+print "import"
 load-web-color: func [
     "Convert hex RGB issue! value to tuple!"
     color [issue!]
@@ -1817,6 +1816,7 @@ ruleset: object [
         set name set-word!
         opt functions
         set value any-type! (
+            if word? value [value: get in user-ctx value]
             repend user-ctx [name value]
             append user compose [
                 |
@@ -1839,6 +1839,7 @@ ruleset: object [
         pos:
         set amount number! (
             f: take/last f-stack
+            print ["color: " type? color mold color mold user-ctx/:color]
             case/all [
                 word? color [color: user-ctx/:color]
                 issue? color [color: load-color color]
@@ -1905,14 +1906,14 @@ init: does [
     append clear ruleset/user 'fail
     rules: recat/with words-of ruleset '|
 ]
-ksč: func [
+precssr: func [
     data
 ] [
     init
     parse data [some rules]
     buffer
 ]
-ksc: :ksč
+print "import done"
 debug:
 :print
 none
@@ -2108,15 +2109,28 @@ lest: use [
     ]
     emit-stylesheet: func [
         stylesheet
+        /local suffix
     ] [
-        if path? stylesheet [stylesheet: get stylesheet]
+        local: stylesheet
+        if all [
+            file? stylesheet
+            not equal? %.css suffix: suffix? stylesheet
+        ] [
+            write
+            local: replace copy stylesheet suffix %.css
+            to-css precssr load stylesheet
+        ]
         unless find includes/stylesheets stylesheet [
-            repend includes/stylesheets [{<link href="} stylesheet {" rel="stylesheet">} newline]
+            repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline]
         ]
     ]
     rules: object [
         tag: tag
         tag-name: tag-name
+        value-to-emit: none
+        emit-value: [
+            (emit value-to-emit)
+        ]
         import: rule [p value] [
             'import p: set value [file! | url!]
             (p/1: load value)
@@ -2431,7 +2445,9 @@ lest: use [
             init-tag
             set value [string! | file! | url! | path!]
             (
-                if path? value [value: get value]
+                if path? value [
+                    value: get first bind reduce [value] user-words
+                ]
                 value: ajoin either string? value [
                     [<script type="text/javascript"> value]
                 ] [
@@ -2447,7 +2463,9 @@ lest: use [
         stylesheet: rule [value] [
             pos:
             'stylesheet set value [file! | url! | path!] (
-                if path? value [value: get value]
+                if path? value [
+                    value: get first bind reduce [value] user-words
+                ]
                 emit-stylesheet value
                 debug ["==STYLESHEET:" value]
             )
@@ -2461,6 +2479,7 @@ lest: use [
         header-content: rule [name value] [
             any [
                 'title set value string! (page/title: value debug "==TITLE")
+                | set-rule
                 | stylesheet
                 | style-rule
                 | 'style set value string! (
@@ -2547,6 +2566,7 @@ lest: use [
         ]
         ul: [
             set tag-name 'ul
+            (debug "--UL--")
             init-tag
             opt style
             emit-tag
@@ -2885,7 +2905,7 @@ lest: use [
             (emit close-tag 'form)
         ]
         elements: rule [] [
-            pos: (debug ["parse at: " index? pos "::"])
+            pos: (debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
             [
                 settings-rule
                 | page-header
@@ -2921,7 +2941,7 @@ lest: use [
         /local plugin header
     ] [
         debug ["load plugin" name]
-        either value? plugin-cache [
+        either value? 'plugin-cache [
             plugin: select plugin-cache name
             header: object [type: 'lest-plugin]
         ] [
@@ -2930,7 +2950,7 @@ lest: use [
         ]
         plugin: object bind plugin rules
         if equal? 'lest-plugin header/type [
-            add-rule rules/plugins bind plugin/rule 'emit
+            if in plugin 'rule [add-rule rules/plugins bind plugin/rule 'emit]
             if in plugin 'startup [return plugin/startup]
         ]
         none
@@ -2941,7 +2961,7 @@ lest: use [
     func [
         "Parse simple HTML dialect"
         data [block! file! url!]
-    ] [
+    ] bind [
         if any [file? data url? data] [data: load data]
         tag-stack: copy []
         user-rules: copy [fail]
@@ -2997,7 +3017,7 @@ lest: use [
         ]
         body: head buffer
         unless empty? includes/style [
-            write %lest-temp.css to-css ksc includes/style
+            write %lest-temp.css to-css precssr includes/style
             Print ["CSS wrote to file %lest-temp.css"]
         ]
         either header? [
@@ -3021,5 +3041,5 @@ lest: use [
         ] [
             body
         ]
-    ]
+    ] 'buffer
 ]
