@@ -16,8 +16,7 @@ preprocess-script: func [
 			(
 				print ["========" file "========"]
 				append files file
-				replace script probe reduce [cmd file] preprocess-script file
-				print ["pos:" copy/part trim/lines mold pos 40]
+				replace script reduce [cmd file] preprocess-script file
 			)
 			:pos
 		|	skip
