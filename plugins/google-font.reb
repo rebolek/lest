@@ -4,6 +4,7 @@ REBOL[
 	Name: 'google-font
 	Todo: [
 		"This needs manual addition of fonts to CSS file"
+		"Different styles and sizes"
 	]
 ]
 
@@ -22,6 +23,6 @@ rule: [
 			replace/all name #" " #"+"
 			{:400,300&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'>}
 		]
-
+		repend includes/style ['google 'fonts name #400]
 	)
 ]

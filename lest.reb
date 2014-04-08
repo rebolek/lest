@@ -45,9 +45,9 @@ import %cssr.reb
 ; FIXME: should be moved to markdown plugin (once it works)
 do %md.reb
 
-
-do %precssr.reb ; FIXME should be import (module)
-
+print "import"
+import %precssr.reb 
+print "import done"
 
 debug:
 :print
@@ -308,9 +308,8 @@ emit-stylesheet: func [
 	] [
 		write 
 			local: replace copy stylesheet suffix %.css 
-			to-css precssr load probe stylesheet
+			to-css precssr load stylesheet
 	]
-	print ["local" local]
 	unless find includes/stylesheets stylesheet [
 		repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline ]
 	]
@@ -332,12 +331,11 @@ rules: object [
 	tag: tag
 	tag-name: tag-name
 
-;	includes: object [
-;		stylesheets: 	copy {}
-;		header:			copy {}
-;		body-start:		copy {}
-;		body-end: 		copy {}
-;	]
+	value-to-emit: none
+	emit-value: [
+		(emit value-to-emit)
+	]
+
 
 ; --- subrules
 
@@ -738,7 +736,7 @@ stylesheet: rule [value] [
 		if path? value [ 
 			; This way we get CSS-PATH from user words, 
 			; if it's been set or global is used when not
-			value: probe get first bind reduce [value] user-words 
+			value: get first bind reduce [value] user-words 
 		]
 		emit-stylesheet value
 		debug ["==STYLESHEET:" value]
@@ -861,6 +859,7 @@ li: [
 
 ul: [
 	set tag-name 'ul
+	(debug "--UL--")
 	init-tag
 	opt style
 	emit-tag
@@ -1233,7 +1232,7 @@ form-rule: rule [value form-type] [
 ; --- put it all together
 
 elements: rule [] [
-	pos: ( debug ["parse at: " index? pos "::" ] )
+	pos: ( debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24] )
 	[
 		settings-rule	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
 	|	page-header	
@@ -1287,8 +1286,8 @@ load-plugin: func [
 	; TODO: shouln't next line be in following condition?
 	plugin: object bind plugin rules
 	if equal? 'lest-plugin header/type [
-		add-rule rules/plugins bind plugin/rule 'emit
-		if in plugin 'startup [return plugin/startup]
+		if in plugin 'rule 		[add-rule rules/plugins bind plugin/rule 'emit]
+		if in plugin 'startup 	[return plugin/startup]
 	]
 	none
 ]
@@ -1308,7 +1307,7 @@ user-values: [ fail ]
 func [
 	"Parse simple HTML dialect"
 	data [block! file! url!]
-][
+] bind [
 
 	if any [file? data url? data] [data: load data]
 
@@ -1404,7 +1403,7 @@ func [
 	][
 		body
 	]
-]
+] 'buffer
 
 
 ] ; --- end main context

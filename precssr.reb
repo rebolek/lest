@@ -5,6 +5,9 @@ REBOL[
 	Version:	0.0.2
 	Date: 		31-3-2014
 	Created: 	31-3-2014
+	Type: 		'module
+	Exports: 	[load-color precssr]
+	Options:	[isolate]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"CSSR preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
@@ -211,7 +214,8 @@ init: does [
 	rules: recat/with words-of ruleset '|
 ]
 
-ksč: func [
+;ksč: 
+precssr: func [
 	data
 ] [
 	init
@@ -219,4 +223,4 @@ ksč: func [
 	buffer
 ]
 
-precssr: :ksč
+;precssr: :ksč

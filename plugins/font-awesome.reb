@@ -11,7 +11,7 @@ startup: [
 	stylesheet css-path/font-awesome.min.css
 ]
 
-rule: use [name fixed? size value size-att] [
+rule: use [tag name fixed? size value size-att] [
 	[
 		; TODO: add link for font awesome CSS to header
 		'fa-icon
@@ -35,6 +35,8 @@ rule: use [name fixed? size value size-att] [
 		]
 		take-tag
 		(
+			; FIXME: tag should be bound by now
+			tag: rules/tag
 			size-att: case [
 				size = 1 	( { fa-lg} )
 				size 		( rejoin [ { fa-} size {x}] )

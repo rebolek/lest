@@ -39,17 +39,17 @@ grid-elems: [
 
 col: use [ grid-size width offset ] [
 	[
-		ps: 
-		(print ["col 0:" mold copy/part ps 16])
+;		ps: 
+;		(print ["col 0:" mold copy/part ps 16])
 		'col
 		(
-			print "col 1"
+;			print "col 1"
 			grid-size: 'md
 			width: 2
 			offset: none
 		)
 		init-div
-		(print "col 2")
+;		(print "col 2")
 		some [
 			'offset set offset integer!
 		|	set grid-size [ 'xs | 'sm | 'md | 'lg ]
@@ -104,7 +104,9 @@ panel: [
 			emit-tag
 			[
 				set value string!
-				( emit ajoin [<h3 class="panel-title"> value </h3>] )
+				(value-to-emit: ajoin [<h3 class="panel-title"> value </h3>])
+				emit-value
+;				( emit probe ajoin [<h3 class="panel-title"> value </h3>] )
 			|	into [ some elements ]
 			]
 			end-tag
