@@ -31,7 +31,7 @@ print [open-para close-para]
 
 value: copy "" ; FIXME: leak?
 
-emit: func [data] [append buffer data]
+emit: func [data] [print "***wrong emit***" append buffer data]
 close-tag: func [tag] [head insert copy tag #"/"]
 
 start-para: does [
