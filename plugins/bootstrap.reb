@@ -141,29 +141,34 @@ glyphicon: [
 address: [
 	'address
 	(
-		emit <address>
+		value-to-emit: <address>
 		first-line?: true
 	)
+	emit-value
 	into [
 		some [
 			set value string! (
-				emit rejoin either first-line? [
+				value-to-emit: rejoin either first-line? [
 					first-line?: false
 					[ "" <strong> value </strong> <br> ]
 				] [
 					[ value <br> ]
 				]
 			)
+			emit-value
 		|	'email set value string! (
-				emit rejoin [{<a href="mailto:} value {">} value </a> <br> ]
+				value-to-emit: rejoin [{<a href="mailto:} value {">} value </a> <br> ]
 			)
+			emit-value
 		|	'phone set value string! (
 				; TODO: hardcoded localization
-				emit rejoin ["" <abbr title="Telefon"> "Tel: " </abbr> value <br>]
+				value-to-emit: rejoin ["" <abbr title="Telefon"> "Tel: " </abbr> value <br>]
 			)
+			emit-value
 		]
 	]
-	( emit </address> )
+	( value-to-emit: </address> )
+	emit-value
 ]
 
 navbar: [
@@ -178,11 +183,12 @@ navbar: [
 	|	style
 	]
 	emit-tag
-	( emit [
+	( value-to-emit: [
 		<div class="container">
 		<div class="navbar-collapse collapse">
 		<ul id="page-nav" class="nav navbar-nav">
 	] )
+	emit-value
 	; TODO: add divider
 	into [
 		some [
@@ -190,16 +196,18 @@ navbar: [
 			opt [ 'active ( active?: true ) ]
 			set target [ file! | url! | issue! ]
 			set value string!
-			( emit ajoin [
+			( value-to-emit: ajoin [
 				{<li}
 				either active? [ { class="active">}] [ #">" ]
 				{<a href="} target {">} value
 				</a>
 				</li>
 			] )
+			emit-value
 		]
 	]
-	( emit [ </ul></div></div> ] )
+	( value-to-emit: [ </ul></div></div> ] )
+	emit-value
 	end-tag
 ]
 
@@ -256,7 +264,7 @@ carousel: [
 		tag/items:
 		tag/active:
 		tag/inner-html: none
-		emit [
+		value-to-emit: [
 			build-tag tag-name tag
 			either carousel-menu [
 				;default or custom indicators
@@ -275,6 +283,7 @@ carousel: [
 			close-tag 'div
 		]
 	)
+	emit-value
 ]
 
 carousel-item: [
@@ -304,7 +313,7 @@ dropdown: [
 	copy label string!
 	(
 		tag/class: [ btn-group ]
-		emit [
+		value-to-emit: [
 			build-tag tag-name tag
 			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 			label
@@ -313,21 +322,25 @@ dropdown: [
 			<ul class="dropdown-menu" role="menu">
 		]
 	)
+	emit-value
 	some [
 		menu-item
 	|	menu-divider
 	]
-	( emit close-tag 'ul )
+	( value-to-emit: close-tag 'ul )
+	emit-value
 	close-div
 ]
 menu-item: [
 	set label string!
 	set target [ file! | url! ]
-	( emit [ {<li><a href="} target {">} label {</a></li>} ] )
+	( value-to-emit: [ {<li><a href="} target {">} label {</a></li>} ] )
+	emit-value
 ]
 menu-divider: [
 	'divider
-	( emit [ "" <li class="divider"></li> ] )
+	( value-to-emit: [ "" <li class="divider"></li> ] )
+	emit-value
 ]
 
 modal: [
@@ -367,13 +380,14 @@ modal-header: [
 	init-div
 	(
 		append tag/class 'modal-header
-		emit [
+		value-to-emit: [
 			build-tag tag-name tag
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
 			&times;
 			</button>
 		]
 	)
+	emit-value
 	into [ some elements ]
 	end-tag
 ]
