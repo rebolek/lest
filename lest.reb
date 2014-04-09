@@ -801,7 +801,7 @@ match-content: [
 |	into main-rule
 ]
 
-paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button ]
+paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button ]
 paired-tag: [
 	set tag-name paired-tags
 	init-tag
@@ -1155,7 +1155,7 @@ submit: rule [label] [
 	(
 		insert tag-stack reduce [
 			'button
-			context [
+			tag: context [
 				type:		'submit
 				id:			none
 				class: copy [btn btn-default]
