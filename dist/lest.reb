@@ -9,7 +9,7 @@ plugin-cache: [google-analytics [
                 set web word!
                 (
                     debug ["==GOOGLE ANALYTICS:" value web]
-                    append includes/body-end reword {
+                    append includes/header reword {
 ^-<script>
 ^-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 ^-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -195,28 +195,33 @@ jQuery(document).ready(function () {
         address: [
             'address
             (
-                emit <address>
+                value-to-emit: <address>
                 first-line?: true
             )
+            emit-value
             into [
                 some [
                     set value string! (
-                        emit rejoin either first-line? [
+                        value-to-emit: rejoin either first-line? [
                             first-line?: false
                             ["" <strong> value </strong> <br>]
                         ] [
                             [value <br>]
                         ]
                     )
+                    emit-value
                     | 'email set value string! (
-                        emit rejoin [{<a href="mailto:} value {">} value </a> <br>]
+                        value-to-emit: rejoin [{<a href="mailto:} value {">} value </a> <br>]
                     )
+                    emit-value
                     | 'phone set value string! (
-                        emit rejoin ["" <abbr title="Telefon"> "Tel: " </abbr> value <br>]
+                        value-to-emit: rejoin ["" <abbr title="Telefon"> "Tel: " </abbr> value <br>]
                     )
+                    emit-value
                 ]
             ]
-            (emit </address>)
+            (value-to-emit: </address>)
+            emit-value
         ]
         navbar: [
             'navbar
@@ -230,27 +235,30 @@ jQuery(document).ready(function () {
                 | style
             ]
             emit-tag
-            (emit [
+            (value-to-emit: [
                     <div class="container">
                     <div class="navbar-collapse collapse">
                     <ul id="page-nav" class="nav navbar-nav">
                 ])
+            emit-value
             into [
                 some [
                     'link (active?: false)
                     opt ['active (active?: true)]
                     set target [file! | url! | issue!]
                     set value string!
-                    (emit ajoin [
+                    (value-to-emit: ajoin [
                             "<li"
                             either active? [{ class="active">}] [#">"]
                             {<a href="} target {">} value
                             </a>
                             </li>
                         ])
+                    emit-value
                 ]
             ]
-            (emit [</ul> </div> </div>])
+            (value-to-emit: [</ul> </div> </div>])
+            emit-value
             end-tag
         ]
         carousel: [
@@ -295,7 +303,7 @@ jQuery(document).ready(function () {
                 tag/items:
                 tag/active:
                 tag/inner-html: none
-                emit [
+                value-to-emit: [
                     build-tag tag-name tag
                     either carousel-menu [
                         lest carousel-menu
@@ -312,6 +320,7 @@ jQuery(document).ready(function () {
                     close-tag 'div
                 ]
             )
+            emit-value
         ]
         carousel-item: [
             'item
@@ -339,7 +348,7 @@ jQuery(document).ready(function () {
             copy label string!
             (
                 tag/class: [btn-group]
-                emit [
+                value-to-emit: [
                     build-tag tag-name tag
                     <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                     label
@@ -348,21 +357,25 @@ jQuery(document).ready(function () {
                     <ul class="dropdown-menu" role="menu">
                 ]
             )
+            emit-value
             some [
                 menu-item
                 | menu-divider
             ]
-            (emit close-tag 'ul)
+            (value-to-emit: close-tag 'ul)
+            emit-value
             close-div
         ]
         menu-item: [
             set label string!
             set target [file! | url!]
-            (emit [{<li><a href="} target {">} label "</a></li>"])
+            (value-to-emit: [{<li><a href="} target {">} label "</a></li>"])
+            emit-value
         ]
         menu-divider: [
             'divider
-            (emit ["" <li class="divider"> </li>])
+            (value-to-emit: ["" <li class="divider"> </li>])
+            emit-value
         ]
         modal: [
             'modal
@@ -401,13 +414,14 @@ jQuery(document).ready(function () {
             init-div
             (
                 append tag/class 'modal-header
-                emit [
+                value-to-emit: [
                     build-tag tag-name tag
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                     &times
                     </button>
                 ]
             )
+            emit-value
             into [some elements]
             end-tag
         ]
@@ -804,7 +818,6 @@ to-css: use [ruleset parser ??] [
                 [no underline] 'none
                 [inline block] 'inline-block
                 [line height] 'line-height
-                [text indent] 'text-indent
             ] [
                 replace value from to
             ]
@@ -942,31 +955,7 @@ to-css: use [ruleset parser ??] [
             | 'border any [
                 mark 1 4 border-style capture (emits 'border-style)
                 | mark 1 4 color capture (emits 'border-color)
-                | 'radius [
-                    some [
-                        'top mark 1 2 length capture (
-                            emits 'border-top-left-radius
-                            emits 'border-top-right-radius
-                        )
-                        | 'bottom mark 1 2 length capture (
-                            emits 'border-bottom-left-radius
-                            emits 'border-bottom-right-radius
-                        )
-                        | 'right mark 1 2 length capture (
-                            emits 'border-top-right-radius
-                            emits 'border-bottom-right-radius
-                        )
-                        | 'left mark 1 2 length capture (
-                            emits 'border-top-left-radius
-                            emits 'border-bottom-left-radius
-                        )
-                        | 'top 'right mark 1 2 length capture (emits 'border-top-right-radius)
-                        | 'top 'left mark 1 2 length capture (emits 'border-top-left-radius)
-                        | 'bottom 'right mark 1 2 length capture (emits 'border-bottom-right-radius)
-                        | 'bottom 'left mark 1 2 length capture (emits 'border-bottom-left-radius)
-                    ]
-                    | mark 1 2 length capture (emits 'border-radius)
-                ]
+                | 'radius mark length capture (emits 'border-radius)
                 | mark 1 4 length capture (emits 'border-width)
             ]
             | ['radius | 'rounded] mark length capture (emits 'border-radius)
@@ -987,7 +976,6 @@ to-css: use [ruleset parser ??] [
                 | mark opt 'no 'underline capture (emits 'text-decoration)
                 | ['line-through | 'strike 'through] (emit 'text-decoration 'line-through)
             ]
-            | 'text 'indent mark length capture (emits 'text-indent)
             | 'line 'height mark [length | scalar] capture (emits 'line-height)
             | 'spacing mark number capture (emits 'letter-spacing)
             | mark opt 'no 'bold capture (emits 'font-weight)
@@ -2104,7 +2092,7 @@ lest: use [
         /insert
         /append
     ] [
-        if insert [lib/append includes/body-start script]
+        if insert [lib/append includes/header script]
         if append [lib/append includes/body-end script]
     ]
     emit-stylesheet: func [
@@ -2515,7 +2503,7 @@ lest: use [
             | elements
             | into main-rule
         ]
-        paired-tags: ['i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'footer | 'nav | 'section | 'button]
+        paired-tags: ['i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button]
         paired-tag: [
             set tag-name paired-tags
             init-tag
@@ -2835,7 +2823,7 @@ lest: use [
             (
                 insert tag-stack reduce [
                     'button
-                    context [
+                    tag: context [
                         type: 'submit
                         id: none
                         class: copy [btn btn-default]

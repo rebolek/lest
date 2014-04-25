@@ -292,7 +292,7 @@ emit-script: func [
 	/insert
 	/append
 ][
-	if insert [lib/append includes/body-start script]
+	if insert [lib/append includes/header script]
 	if append [lib/append includes/body-end script]
 ]
 
