@@ -897,6 +897,7 @@ dl: [
 		basic-string-processing
 		style
 		emit-tag
+		(emit value)
 		end-tag
 
 		(tag-name: 'dd)
@@ -905,6 +906,7 @@ dl: [
 		basic-string-processing
 		style
 		emit-tag
+		(emit value)
 		end-tag
 	]
 	end-tag
