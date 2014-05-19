@@ -663,6 +663,8 @@ get-style: rule [pos data type] [
 	set type ['id | 'class]
 	pos:
 	set data [word! | block!] (
+;	NOTE: folowing line throws " not in the specified context" error
+;			and I'm not sure what's it's purpose
 		data: either word? data [get bind data user-words] [rejoin bind data user-words]
 		data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
 		change/part pos data 1
@@ -889,12 +891,21 @@ dl: [
 	]
 	emit-tag
 	some [
+		(tag-name: 'dt)
+		init-tag
 		basic-string-match
 		basic-string-processing
-		( emit entag value 'dt )
+		style
+		emit-tag
+		end-tag
+
+		(tag-name: 'dd)
+		init-tag
 		basic-string-match
 		basic-string-processing
-		( emit entag value 'dd )
+		style
+		emit-tag
+		end-tag
 	]
 	end-tag
 ]
