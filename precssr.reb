@@ -218,6 +218,7 @@ init: does [
 precssr: func [
 	data
 ] [
+	if file? data [data: load data]
 	init
 	parse data [some rules]
 	buffer
