@@ -26,6 +26,7 @@ REBOL[
 ]
 
 do %colorspaces.reb
+import %styletalk.r
 
 ; ---
 
@@ -216,12 +217,14 @@ init: does [
 
 ;ksč: 
 prestyle: func [
+	"Process enhanced StyleTalk stylesheets"
 	data
+	/only "only translate enhanced stylesheed to standard StyleTalk"
 ] [
 	if file? data [data: load data]
 	init
 	parse data [some rules]
-	buffer
+	either only [buffer] [to-css buffer]
 ]
 
 ;prestyle: :ksč
