@@ -8,8 +8,8 @@
 ; string
 
 [ "lest" = tf [ "lest" ] ]
-[ "&lt;lest&gt;" = tf [ plain "<lest>" ] ]
-[ "<lest>" = tf [ html "<lest>" ] ]
+[ "<lest>" = tf [ plain "<lest>" ] ]
+[ "&lt;lest&gt;" = tf [ html "<lest>" ] ]
 [ {<a href="lest">lest</a>} = tf [ markdown "<lest>" ] ]
 
 ; comment

@@ -792,7 +792,7 @@ br: [ 'br ( emit <br> ) ]
 hr: [ 'hr ( emit <hr> ) ]
 
 main-rule: [
-	some match-content
+	some content-rule
 ]
 match-content: [
 	commands
@@ -801,13 +801,26 @@ match-content: [
 |	into main-rule
 ]
 
+content-rule: [
+	commands
+|	basic-string		; must match string! first, or INTO will eat it!
+|	elements
+|	into main-rule
+]
+
+
+match-content: rule [] [
+	throw "Expected string, tag or block of tags"
+	content-rule
+]
+
 paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button ]
 paired-tag: rule [] [
 	set tag-name paired-tags
 	init-tag
 	opt style
 	emit-tag
-	throw "Expected string, tag or block of tags"
+;	throw "Expected string, tag or block of tags"
 	match-content
 	end-tag
 ]
@@ -884,24 +897,27 @@ ol: rule [value] [
 dl: [
 	set tag-name 'dl
 	init-tag
+	(print mold head tag-stack)
 	opt [
 		'horizontal ( append tag/class 'dl-horizontal )
 	|	style
 	]
 	emit-tag
 	some [
+		; NOTE: we need to match string first before initializing tag
+		;		or it will be added to tag-stack
+		basic-string-match
 		(tag-name: 'dt)
 		init-tag
-		basic-string-match
 		basic-string-processing
 		style
 		emit-tag
 		(emit value)
 		end-tag
 
-		(tag-name: 'dd)
-		init-tag
 		basic-string-match
+		(tag-name: 'dd)
+		init-tag		
 		basic-string-processing
 		style
 		emit-tag
@@ -951,15 +967,15 @@ basic-string-processing: [
 	)
 ]
 
-basic-string: rule [value style] [
-	(style: none)
-	opt [set style ['plain | 'html | 'markdown]]
+basic-string: rule [value styl] [
+	(styl: none)
+	opt [set styl ['plain | 'html | 'markdown]]
 	opt [user-values]
 	set value [string! | date! | time!] ; TODO: support integer?
 	(
-		unless style [style: text-style]
+		unless styl [styl: text-style]
 		value: form value
-		emit switch style [
+		emit switch styl [
 			plain		[value]
 			html 		[escape-entities value]
 			markdown 	[markdown value]
