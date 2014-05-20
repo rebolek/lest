@@ -505,6 +505,95 @@ make-row: [
 
 ]
 
+
+init-tag: [
+	(
+		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
+	)
+]
+
+take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
+
+emit-tag: [ ( emit build-tag tag-name tag ) ]
+
+end-tag: [
+	take-tag
+	( emit close-tag tag-name )
+]
+
+init-div: [
+	( tag-name: 'div )
+	init-tag
+]
+
+close-div: [
+	(
+		tag: take/part tag-stack 2
+		emit </div>
+	)
+]
+
+commands: [
+	if-rule
+|	either-rule
+|	switch-rule
+|	for-rule
+|	repeat-rule
+]
+
+if-rule: rule [cond true-val] [
+	'if
+	set cond [logic! | word! | block!] 
+	pos:
+	set true-val any-type! 
+	(
+		res: if/only do bind cond user-words true-val
+		either res [
+			change/part pos res 1
+		] [
+			pos: next pos
+		]
+	)
+	:pos
+]
+
+either-rule: rule [cond true-val false-val pos] [
+	'either
+	set cond [logic! | word! | block!]
+	set true-val any-type! 
+	pos:
+	set false-val any-type! 
+	(
+		change/part 
+			pos 
+			either/only do bind cond user-words true-val false-val 
+			1
+	)
+	:pos
+]
+
+switch-rule: rule [value cases defval] [
+	'switch
+	(defval: none)
+	set value word!
+	pos:
+	set cases block!
+	opt [
+		'default 
+		pos:
+		set defval any-type!
+	]
+	(
+		forskip cases 2 [cases/2: append/only copy [] cases/2]
+		value: get bind value user-words
+		change/part
+			pos
+			switch/default value cases append/only copy [] defval
+			1
+	)
+	:pos
+]
+
 ; FIXME: FOR set variable with user name in user-words
 ; 			it doesn't clean it and can rewrite user's variable
 
@@ -569,92 +658,6 @@ repeat-rule: [
 			)
 		]
 	]
-]
-
-init-tag: [
-	(
-		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
-	)
-]
-
-take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
-
-emit-tag: [ ( emit build-tag tag-name tag ) ]
-
-end-tag: [
-	take-tag
-	( emit close-tag tag-name )
-]
-
-init-div: [
-	( tag-name: 'div )
-	init-tag
-]
-
-close-div: [
-	(
-		tag: take/part tag-stack 2
-		emit </div>
-	)
-]
-
-commands: [
-	if-rule
-|	either-rule
-|	switch-rule
-]
-
-if-rule: rule [cond true-val] [
-	'if
-	set cond [logic! | word! | block!] 
-	pos:
-	set true-val any-type! 
-	(
-		res: if/only do bind cond user-words true-val
-		either res [
-			change/part pos res 1
-		] [
-			pos: next pos
-		]
-	)
-	:pos
-]
-
-either-rule: rule [cond true-val false-val pos] [
-	'either
-	set cond [logic! | word! | block!]
-	set true-val any-type! 
-	pos:
-	set false-val any-type! 
-	(
-		change/part 
-			pos 
-			either/only do bind cond user-words true-val false-val 
-			1
-	)
-	:pos
-]
-
-switch-rule: rule [value cases defval] [
-	'switch
-	(defval: none)
-	set value word!
-	pos:
-	set cases block!
-	opt [
-		'default 
-		pos:
-		set defval any-type!
-	]
-	(
-		forskip cases 2 [cases/2: append/only copy [] cases/2]
-		value: get bind value user-words
-		change/part
-			pos
-			switch/default value cases append/only copy [] defval
-			1
-	)
-	:pos
 ]
 
 get-style: rule [pos data type] [
@@ -1255,8 +1258,6 @@ elements: rule [] [
 	|	form-content
 	|	import
 	|	do-code
-	|	for-rule 	; TODO: move to commands? or loop-commands? or something like that?
-	|	repeat-rule
 	|	make-row
 	|	user-rules
 	|	user-rule
