@@ -43,11 +43,12 @@ Add webserver that can serve pages directly:
 do %md.reb
 
 print "import"
+do %compile-rules.reb
 import %prestyle.reb 
 print "import done"
 
 debug:
-:print
+;:print
 none
 
 ; SETTINGS
@@ -135,7 +136,7 @@ rule: func [
 	rule 	[block!]		"PARSE rule"
 ][
 	if word? local [ local: reduce [ local ] ]
-	use local reduce [ rule ]
+	compile-rules use local reduce [ rule ]
 ]
 
 add-rule: func [
@@ -801,11 +802,12 @@ match-content: [
 ]
 
 paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button ]
-paired-tag: [
+paired-tag: rule [] [
 	set tag-name paired-tags
 	init-tag
 	opt style
 	emit-tag
+	throw "Expected string, tag or block of tags"
 	match-content
 	end-tag
 ]
@@ -1382,7 +1384,7 @@ func [
 
 	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
-		return ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+		do make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
 	]
 
 	body: head buffer
