@@ -791,19 +791,18 @@ header-content: rule [name value] [
 br: [ 'br ( emit <br> ) ]
 hr: [ 'hr ( emit <hr> ) ]
 
-main-rule: [
-	some content-rule
-]
-match-content: [
-	commands
-|	basic-string		; must match string! first, or INTO will eat it!
-|	elements
-|	into main-rule
+main-rule: rule [] [
+	throw "Unknown tag, command or user template"
+	[some content-rule]
 ]
 
 content-rule: [
 	commands
-|	basic-string		; must match string! first, or INTO will eat it!
+|	[
+		basic-string-match		; must match string! first, or INTO will eat it!
+		basic-string-processing
+		(emit value)
+	]
 |	elements
 |	into main-rule
 ]
@@ -934,7 +933,11 @@ list-elems: [
 ]
 
 basic-elems: [
-	basic-string
+	[
+		basic-string-match
+		basic-string-processing
+		(emit value)
+	]
 |	comment
 |	debug-rule
 |	stop
@@ -951,7 +954,7 @@ basic-string-match: [
 	(current-text-style: none)
 	opt [set current-text-style ['plain | 'html | 'markdown]]
 	opt [user-values]
-	copy value [string! | date! | time!] ; TODO: support integer?
+	set value [string! | date! | time!] ; TODO: support integer?
 ]
 
 
@@ -960,22 +963,6 @@ basic-string-processing: [
 		unless current-text-style [current-text-style: text-style]
 		value: form value
 		value: switch current-text-style [
-			plain		[value]
-			html 		[escape-entities value]
-			markdown 	[markdown value]
-		]
-	)
-]
-
-basic-string: rule [value styl] [
-	(styl: none)
-	opt [set styl ['plain | 'html | 'markdown]]
-	opt [user-values]
-	set value [string! | date! | time!] ; TODO: support integer?
-	(
-		unless styl [styl: text-style]
-		value: form value
-		emit switch styl [
 			plain		[value]
 			html 		[escape-entities value]
 			markdown 	[markdown value]
@@ -1400,7 +1387,9 @@ func [
 
 	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
-		do make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+		error: make error! "LEST: there was error in LEST dialect"
+		error/near: pos
+		do error
 	]
 
 	body: head buffer
