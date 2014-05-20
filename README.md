@@ -149,7 +149,7 @@ Lest come with plugins that add support for Bootstrap, different Google services
 ### Requirements
 
 **Lest** is written in [Rebol](http://www.rebol.com) language. You can get latest Rebol binaries from
-http://www.rebolsource.com or build a binary yourself from [source at GitHub](https://github.com/rebol/rebol).
+http://www.rebolsource.net or build a binary yourself from [source at GitHub](https://github.com/rebol/rebol).
 
 ### Example code
 
