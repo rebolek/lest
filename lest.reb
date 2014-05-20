@@ -40,13 +40,13 @@ Add webserver that can serve pages directly:
 ]
 
 ; TODO: plugins?
-import %cssr.reb
+import %styletalk.r
 
 ; FIXME: should be moved to markdown plugin (once it works)
 do %md.reb
 
 print "import"
-import %precssr.reb 
+import %prestyle.reb 
 print "import done"
 
 debug:
@@ -308,7 +308,7 @@ emit-stylesheet: func [
 	] [
 		write 
 			local: replace copy stylesheet suffix %.css 
-			to-css precssr load stylesheet
+			to-css prestyle load stylesheet
 	]
 	unless find includes/stylesheets stylesheet [
 		repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline ]
@@ -1391,7 +1391,7 @@ func [
 	body: head buffer
 
 	unless empty? includes/style [
-		write %lest-temp.css to-css precssr includes/style
+		write %lest-temp.css to-css prestyle includes/style
 		Print ["CSS wrote to file %lest-temp.css"]
 	]
 

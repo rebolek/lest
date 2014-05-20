@@ -9,7 +9,7 @@ plugin-cache: [google-analytics [
                 set web word!
                 (
                     debug ["==GOOGLE ANALYTICS:" value web]
-                    append includes/header reword {
+                    append includes/body-end reword {
 ^-<script>
 ^-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 ^-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -793,6 +793,11 @@ to-css: use [ruleset parser ??] [
             | 'background | 'color | 'border | 'opacity | 'margin
             | 'transform | 'font | 'indent | 'spacing
         ]
+        list-styles: [
+            'disc | 'circle | 'square | 'decimal | 'decimal-leading-zero
+            | 'lower-roman | 'upper-roman | 'lower-greek | 'lower-latin
+            | 'upper-latin | 'armenian | 'georgian | 'lower-alpha | 'upper-alpha
+        ]
         direction: ['x | 'y | 'z]
         position-x: ['right | 'left | 'center]
         position-y: ['top | 'bottom | 'middle]
@@ -925,8 +930,15 @@ to-css: use [ruleset parser ??] [
         property: [
             mark box-model capture (emits 'display)
             | mark 'border-box capture (emits 'box-sizing)
-            | ['min 'height | 'min-height] mark length capture (emits 'min-height)
-            | ['min 'width | 'min-width] mark length capture (emits 'min-width)
+            | 'min some [
+                'width mark length capture (emits 'min-width)
+                | 'height mark length capture (emits 'min-height)
+            ]
+            | 'max some [
+                'width mark length capture (emits 'max-width)
+                | 'height mark length capture (emits 'max-height)
+            ]
+            | mark ['min-width | 'min-height | 'max-width | 'max-height] length capture (emits take captured)
             | 'height mark length capture (emits 'height)
             | 'margin [
                 mark [
@@ -955,7 +967,31 @@ to-css: use [ruleset parser ??] [
             | 'border any [
                 mark 1 4 border-style capture (emits 'border-style)
                 | mark 1 4 color capture (emits 'border-color)
-                | 'radius mark length capture (emits 'border-radius)
+                | 'radius [
+                    some [
+                        'top mark 1 2 length capture (
+                            emits 'border-top-left-radius
+                            emits 'border-top-right-radius
+                        )
+                        | 'bottom mark 1 2 length capture (
+                            emits 'border-bottom-left-radius
+                            emits 'border-bottom-right-radius
+                        )
+                        | 'right mark 1 2 length capture (
+                            emits 'border-top-right-radius
+                            emits 'border-bottom-right-radius
+                        )
+                        | 'left mark 1 2 length capture (
+                            emits 'border-top-left-radius
+                            emits 'border-bottom-left-radius
+                        )
+                        | 'top 'right mark 1 2 length capture (emits 'border-top-right-radius)
+                        | 'top 'left mark 1 2 length capture (emits 'border-top-left-radius)
+                        | 'bottom 'right mark 1 2 length capture (emits 'border-bottom-right-radius)
+                        | 'bottom 'left mark 1 2 length capture (emits 'border-bottom-left-radius)
+                    ]
+                    | mark 1 2 length capture (emits 'border-radius)
+                ]
                 | mark 1 4 length capture (emits 'border-width)
             ]
             | ['radius | 'rounded] mark length capture (emits 'border-radius)
@@ -976,6 +1012,7 @@ to-css: use [ruleset parser ??] [
                 | mark opt 'no 'underline capture (emits 'text-decoration)
                 | ['line-through | 'strike 'through] (emit 'text-decoration 'line-through)
             ]
+            | 'text 'indent mark length capture (emits 'text-indent)
             | 'line 'height mark [length | scalar] capture (emits 'line-height)
             | 'spacing mark number capture (emits 'letter-spacing)
             | mark opt 'no 'bold capture (emits 'font-weight)
@@ -1057,6 +1094,9 @@ to-css: use [ruleset parser ??] [
                 | mark repeats capture (emits 'background-repeat)
                 | mark ['contain | 'cover] capture (emits 'background-size)
             ]
+            | 'no ['list opt 'style | 'bullet] (emit 'list-style-type 'none)
+            | opt ['list opt 'style | 'bullet] mark list-styles capture (emits 'list-style-type)
+            | mark ['inside | 'outside] capture (emits 'list-style-position)
             | mark [
                 length capture (append/only current/lengths captured)
                 | some color capture (append current/colors captured)
@@ -1894,9 +1934,10 @@ init: does [
     append clear ruleset/user 'fail
     rules: recat/with words-of ruleset '|
 ]
-precssr: func [
+prestyle: func [
     data
 ] [
+    if file? data [data: load data]
     init
     parse data [some rules]
     buffer
@@ -2106,7 +2147,7 @@ lest: use [
         ] [
             write
             local: replace copy stylesheet suffix %.css
-            to-css precssr load stylesheet
+            to-css prestyle load stylesheet
         ]
         unless find includes/stylesheets stylesheet [
             repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline]
@@ -2581,12 +2622,22 @@ lest: use [
             ]
             emit-tag
             some [
+                (tag-name: 'dt)
+                init-tag
                 basic-string-match
                 basic-string-processing
-                (emit entag value 'dt)
+                style
+                emit-tag
+                (emit value)
+                end-tag
+                (tag-name: 'dd)
+                init-tag
                 basic-string-match
                 basic-string-processing
-                (emit entag value 'dd)
+                style
+                emit-tag
+                (emit value)
+                end-tag
             ]
             end-tag
         ]
@@ -3005,7 +3056,7 @@ lest: use [
         ]
         body: head buffer
         unless empty? includes/style [
-            write %lest-temp.css to-css precssr includes/style
+            write %lest-temp.css to-css prestyle includes/style
             Print ["CSS wrote to file %lest-temp.css"]
         ]
         either header? [

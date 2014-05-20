@@ -1,16 +1,16 @@
 REBOL[
-	File: 		%precssr.reb
-	Title: 		"CSSR preprocessor"
+	File: 		%prestyle.reb
+	Title: 		"Styletalk preprocessor"
 	Author: 	"Boleslav Březovský"
 	Version:	0.0.2
 	Date: 		31-3-2014
 	Created: 	31-3-2014
 	Type: 		'module
-	Exports: 	[load-color precssr]
+	Exports: 	[load-color prestyle]
 	Options:	[isolate]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
-	Purpose:	"CSSR preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
+	Purpose:	"StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
 	To-do:		[
 		#5 	"color arithmetics: LESS [@light-blue: @nice-blue + #111;]"
 		#7	"fadein, fadeout, fade - operations on opacity"
@@ -215,7 +215,7 @@ init: does [
 ]
 
 ;ksč: 
-precssr: func [
+prestyle: func [
 	data
 ] [
 	if file? data [data: load data]
@@ -224,4 +224,4 @@ precssr: func [
 	buffer
 ]
 
-;precssr: :ksč
+;prestyle: :ksč
