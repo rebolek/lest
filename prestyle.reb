@@ -26,7 +26,7 @@ REBOL[
 ]
 
 do %colorspaces.reb
-import %styletalk.r
+import %styletalk.reb
 
 ; ---
 
