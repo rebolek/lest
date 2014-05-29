@@ -2,9 +2,9 @@ REBOL[
 	Title:		"LEST - Low Entropy System for Templating"
 	Author:		"Boleslav Brezovsky"
 	Name: 		'lest	
-	Version:	0.0.4
-	Date:		18-3-2013
-	Started:	7-12-2013
+	Version:	0.0.5
+	Date:		29-5-2013
+	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
 ;	Options: 	[isolate]
@@ -42,10 +42,10 @@ Add webserver that can serve pages directly:
 ; FIXME: should be moved to markdown plugin (once it works)
 do %md.reb
 
-print "import"
+; print "import"
 do %compile-rules.reb
 import %prestyle.reb 
-print "import done"
+; print "import done"
 
 debug:
 ;:print
@@ -349,16 +349,6 @@ text-settings: rule [type] [
 	'text
 	(text-style: type)
 ]
-
-settings-rule: [
-	text-settings
-]
-
-; NOTE: this works
-
-;	parse [ ( [print "a"] ) ] [
-;		[set value paren! (value result: to paren! first value) result]
-;	]
 
 do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
@@ -899,7 +889,6 @@ ol: rule [value] [
 dl: [
 	set tag-name 'dl
 	init-tag
-	(print mold head tag-stack)
 	opt [
 		'horizontal ( append tag/class 'dl-horizontal )
 	|	style
@@ -1252,7 +1241,7 @@ form-rule: rule [value form-type] [
 elements: rule [] [
 	pos: ( debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24] )
 	[
-		settings-rule	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
+		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
 	|	page-header	
 	|	basic-elems
 	|	form-content
@@ -1320,12 +1309,19 @@ user-values: [ fail ]
 ; |_|  |_| /_/    \_\ |_____| |_| \_|
 ;
 
+out-file: none
+
 func [
 	"Parse simple HTML dialect"
 	data [block! file! url!]
+	/save
+		"If data is file!, save output as HTML file with same name"
 ] bind [
 
-	if any [file? data url? data] [data: load data]
+	if any [file? data url? data] [
+		out-file: replace copy data %.lest %.html
+		data: load data
+	]
 
 ; init outside vars
 
@@ -1400,7 +1396,7 @@ func [
 		Print ["CSS wrote to file %lest-temp.css"]
 	]
 
-	either header? [
+	body: either header? [
 		ajoin [
 <!DOCTYPE html> newline
 <html lang="en-US"> newline
@@ -1421,6 +1417,10 @@ func [
 	][
 		body
 	]
+	if out-file [
+		write out-file body
+	]
+	body
 ] 'buffer
 
 

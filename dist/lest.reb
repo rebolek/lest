@@ -613,6 +613,914 @@ jQuery(document).ready(function () {
             )
         ]
     ]]
+xml?: true
+start-para?: true
+end-para?: true
+buffer: make string! 1000
+para?: false
+set [open-para close-para] either para? [[<p> </p>]] [["" ""]]
+print [open-para close-para]
+value: copy ""
+emit: func [data] [
+    append buffer data
+]
+close-tag: func [tag] [head insert copy tag #"/"]
+start-para: does [
+    if start-para? [
+        start-para?: false
+        end-para?: true
+        emit open-para
+    ]
+]
+entities: [
+    #"<" (emit "&lt;")
+    | #">" (emit "&gt;")
+    | #"&" (emit "&amp;")
+]
+escape-set: charset "\`*_{}[]()#+-.!"
+escapes: use [escape] [
+    [
+        #"\"
+        (start-para)
+        set escape escape-set
+        (emit escape)
+    ]
+]
+numbers: charset [#"0" - #"9"]
+plus: #"+"
+minus: #"-"
+asterisk: #"*"
+underscore: #"_"
+hash: #"#"
+dot: #"."
+eq: #"="
+lt: #"<"
+gt: #">"
+header-underscore: use [text tag] [
+    [
+        copy text to newline
+        newline
+        some [eq (tag: <h1>) | minus (tag: <h2>)]
+        [newline | end]
+        (
+            end-para?: false
+            start-para?: true
+            emit ajoin [tag text close-tag tag]
+        )
+    ]
+]
+header-hash: use [value continue trailing mark tag] [
+    [
+        (
+            continue: either/only start-para? [not space] [fail]
+            mark: clear ""
+        )
+        continue
+        copy mark some hash
+        space
+        (emit tag: to tag! compose [h (length? mark)])
+        some [
+            [
+                (trailing: "")
+                [[any space mark] | [opt [2 space (trailing: join newline newline)]]]
+                [newline | end]
+                (end-para?: false)
+                (start-para?: true)
+                (emit ajoin [close-tag tag trailing])
+            ]
+            break
+            | set value skip (emit value)
+        ]
+    ]
+]
+header-rule: [
+    header-underscore
+    | header-hash
+]
+autolink-rule: use [address] [
+    [
+        lt
+        copy address
+        to gt skip
+        (
+            start-para
+            emit ajoin [{<a href="} address {">} address </a>]
+        )
+    ]
+]
+link-rule: use [text address value title] [
+    [
+        #"["
+        copy text
+        to #"]" skip
+        #"("
+        (
+            address: clear ""
+            title: none
+        )
+        any [
+            not [space | tab | #")"]
+            set value skip
+            (append address value)
+        ]
+        opt [
+            some [space | tab]
+            #"^""
+            copy title to #"^""
+            skip
+        ]
+        skip
+        (
+            start-para
+            title: either title [ajoin [space {title="} title {"}]] [""]
+            emit ajoin [{<a href="} address {"} title ">" text </a>]
+        )
+    ]
+]
+em-rule: use [mark text] [
+    [
+        copy mark ["**" | "__" | "*" | "_"]
+        not space
+        copy text
+        to mark mark
+        (
+            start-para
+            mark: either equal? length? mark 1 <em> <strong>
+            emit ajoin [mark text close-tag mark]
+        )
+    ]
+]
+img-rule: use [text address] [
+    [
+        #"!"
+        #"["
+        copy text
+        to #"]" skip
+        #"("
+        copy address
+        to #")" skip
+        (
+            start-para
+            emit ajoin [{<img src="} address {" alt="} text {"} either xml? " /" "" ">"]
+        )
+    ]
+]
+horizontal-mark: [minus | asterisk | underscore]
+horizontal-rule: [
+    horizontal-mark
+    any space
+    horizontal-mark
+    any space
+    horizontal-mark
+    any [
+        horizontal-mark
+        | space
+    ]
+    (
+        end-para?: false
+        emit either xml? <hr /> <hr>
+    )
+]
+unordered: [any space [asterisk | plus | minus] space]
+ordered: [any space some numbers dot space]
+list-rule: use [continue tag item] [
+    [
+        some [
+            (
+                continue: either start-para? [
+                    [
+                        ordered (item: ordered tag: <ol>)
+                        | unordered (item: unordered tag: <ul>)
+                    ]
+                ] [
+                    [fail]
+                ]
+            )
+            continue
+            (start-para?: end-para?: false)
+            (emit ajoin [tag newline <li>])
+            line-rules
+            newline
+            (emit ajoin [</li> newline])
+            some [
+                item
+                (emit <li>)
+                line-rules
+                [newline | end]
+                (emit ajoin [</li> newline])
+            ]
+            (emit close-tag tag)
+        ]
+    ]
+]
+blockquote-rule: use [continue] [
+    [
+        (
+            continue: either/only start-para? [gt any space] [fail]
+        )
+        continue
+        (emit ajoin [<blockquote> newline])
+        line-rules
+        [[newline (emit newline)] | end]
+        any [
+            [newline] (remove back tail buffer emit ajoin [close-para newline newline open-para])
+            | [
+                continue
+                opt line-rules
+                [newline (emit newline) | end]
+            ]
+        ]
+        (end-para?: false)
+        (emit ajoin [close-para newline </blockquote>])
+    ]
+]
+inline-code-rule: use [code value] [
+    [
+        [
+            "``"
+            (start-para)
+            (emit <code>)
+            some [
+                "``" (emit </code>) break
+                | entities
+                | set value skip (emit value)
+            ]
+        ]
+        | [
+            "`"
+            (start-para)
+            (emit <code>)
+            some [
+                "`" (emit </code>) break
+                | entities
+                | set value skip (emit value)
+            ]
+        ]
+    ]
+]
+code-line: use [value] [
+    [
+        some [
+            entities
+            | [newline | end] (emit newline) break
+            | set value skip (emit value)
+        ]
+    ]
+]
+code-rule: use [text] [
+    [
+        [4 space | tab]
+        (emit ajoin [<pre> <code>])
+        code-line
+        any [
+            [4 space | tab]
+            code-line
+        ]
+        (emit ajoin [</code> </pre>])
+        (end-para?: false)
+    ]
+]
+asterisk-rule: ["\*" (emit "*")]
+newline-rule: [
+    newline
+    any [space | tab]
+    some newline
+    any [space | tab]
+    (
+        emit ajoin [close-para newline newline]
+        start-para?: true
+    )
+    | newline (emit newline)
+]
+line-break-rule: [
+    space
+    some space
+    newline
+    (emit ajoin [either xml? <br /> <br> newline])
+]
+leading-spaces: use [continue] [
+    [
+        (continue: either/only start-para? [some space] [fail])
+        continue
+        (start-para)
+    ]
+]
+line-rules: [
+    some [
+        em-rule
+        | link-rule
+        | header-rule
+        | not newline set value skip (
+            start-para
+            emit value
+        )
+    ]
+]
+rules: [
+    some [
+        header-rule
+        | link-rule
+        | autolink-rule
+        | img-rule
+        | list-rule
+        | blockquote-rule
+        | inline-code-rule
+        | code-rule
+        | asterisk-rule
+        | em-rule
+        | horizontal-rule
+        | entities
+        | escapes
+        | line-break-rule
+        | newline-rule
+        | end (if end-para? [end-para?: false emit close-para])
+        | leading-spaces
+        | set value skip (
+            start-para
+            emit value
+        )
+    ]
+]
+markdown: func [
+    "Parse markdown source to HTML or XHTML"
+    data
+    /only "Return result without newlines"
+    /xml {Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)}
+] [
+    print "markdown"
+    start-para?: true
+    end-para?: true
+    buffer: make string! 1000
+    parse data [some rules]
+    buffer
+]
+context [
+    element: [
+        set val1 paren! (emit/only :val1)
+        | into grammar (emit/only last-block)
+        | 'skip (emit 'skip)
+        | 'end (emit 'end)
+        | 'to set val1 skip (emit 'to emit/only :val1)
+        | 'thru set val1 skip (emit 'thru emit/only :val1)
+        | 'break (emit 'break)
+        | 'into (emit 'into) [
+            into grammar (emit/only last-block)
+            | set val1 word! (if block? get/any val1 [emit handle-subrule-word val1])
+        ]
+        | 'interpret 'with [
+            into grammar (emit mk-interpret last-block)
+            | set val1 word! (if block? get/any val1 [emit mk-interpret handle-subrule-word val1])
+        ]
+        | set val1 word!
+        (either block? get/any val1 [emit handle-subrule-word val1] [emit val1])
+        | set val1 set-word! (emit :val1)
+        | set val1 get-word! (emit :val1)
+        | set val1 lit-word! (emit :val1)
+        | set val1 skip (emit :val1)
+    ]
+    rule: [
+        'none (emit 'none)
+        | 'opt (emit 'opt) element
+        | 'some (emit 'some) element
+        | 'any (emit 'any) element
+        | 'if set val1 paren!
+        (start-block push :val1)
+        element
+        (end-block emit mk-if pop last-block)
+        | 'either set val1 paren!
+        (push :val1 start-block)
+        element
+        (end-block push last-block start-block)
+        element
+        (end-block emit mk-either pop pop last-block)
+        | copy val1 1 2 integer! (emit val1) element
+        | element
+    ]
+    val1: val2: pos: none
+    valstack: []
+    push: func [value] [insert/only tail valstack value]
+    pop: has [value] [value: last valstack remove back tail valstack value]
+    complete-rule: [
+        'set set val1 word! (emit 'set emit val1) rule
+        | 'copy set val1 word! (emit 'copy emit val1) rule
+        | 'do set val1 word!
+        (start-block push val1)
+        rule
+        (end-block emit/only mk-evaluate pop last-block)
+        | 'throw set val1 string!
+        (start-block push val1)
+        rule
+        (end-block emit/only mk-throw pop last-block)
+        | rule
+    ]
+    stack: []
+    last-block: none
+    ctx: []
+    start-block: does [
+        insert/only tail stack make block! 32
+    ]
+    end-block: does [
+        last-block: last stack
+        remove back tail stack
+    ]
+    emit: func [value /only] [
+        either only [
+            insert/only tail last stack :value
+        ] [
+            insert tail last stack :value
+        ]
+    ]
+    handle-subrule-word: func [subrule [word!] /local sw] [
+        sw: to set-word! subrule
+        if not find ctx :sw [
+            insert insert tail ctx :sw none
+            parse get subrule grammar
+            insert/only insert tail ctx :sw last-block
+        ]
+        subrule
+    ]
+    mk-evaluate: func [word [word!] rule [block!] /local action] [
+        if not find ctx [__mark:] [
+            insert tail ctx [
+                __mark: none
+                __evaluate: func ['word [word!] rule [block!] /local result] [
+                    either error? result: try [do/next __mark] [
+                        if [do/next __mark] = get in disarm :result 'near [
+                            __fix-error :result __mark
+                        ]
+                        result
+                    ] [
+                        if word <> 'none [set/any word pick result 1]
+                        parse reduce [pick result 1] [
+                            rule end
+                            | (__fix-error make error! reduce ['script 'expect-set mold rule pick result 1] __mark)
+                        ]
+                        __mark: pick result 2
+                    ]
+                ]
+                __fix-error: :fix-error
+            ]
+        ]
+        action: make paren! compose/only [__evaluate (word) (rule)]
+        compose [
+            __mark: (action) :__mark
+        ]
+    ]
+    mk-throw: func [error [string!] rule [block!] /local action] [
+        if not find ctx [__err:] [
+            insert tail ctx [__err: none]
+        ]
+        action: make paren! compose [do fix-error make error! (error) __err]
+        compose [
+            (rule) | __err: (action)
+        ]
+    ]
+    mk-if: func [condition [paren!] rule [block!] /local action] [
+        if not find ctx [__ifrule:] [
+            insert tail ctx [__ifrule: none]
+        ]
+        action: make paren! compose/deep/only [__ifrule: if (condition) [(rule)]]
+        compose [(action) __ifrule]
+    ]
+    mk-either: func [true-rule [block!] condition [paren!] false-rule [block!] /local action] [
+        if not find ctx [__ifrule:] [
+            insert tail ctx [__ifrule: none]
+        ]
+        action: make paren! compose/deep/only [__ifrule: either (condition) [(true-rule)] [(false-rule)]]
+        compose [(action) __ifrule]
+    ]
+    mk-interpret: func [rule [block! word!] /local push pop] [
+        if not find ctx [__stack:] [
+            insert tail ctx [
+                __stack: []
+                __push: func [value] [insert/only tail __stack value]
+                __pop: has [value] [value: last __stack remove back tail __stack value]
+            ]
+        ]
+        push: make paren! compose/only [__push handler handler: (rule)]
+        pop: copy first [(handler: __pop)]
+        compose/only [(push) [control-functions (pop) | (pop) end skip]]
+    ]
+    grammar: [
+        (start-block)
+        any complete-rule any ['| any complete-rule]
+        end
+        (end-block)
+    ]
+    fix-error: func [
+        "Changes the NEAR field to show the PARSE cursor"
+        error [error!]
+        cursor "PARSE cursor"
+        /local disarmed
+    ] [
+        insert head error/arg1 "LEST dialect error: "
+        error/near: cursor
+        error
+    ]
+    set 'compile-rules func [
+        {Compile an extended PARSE rule to a normal PARSE rule}
+        rule [block!]
+        /all "Return an object with the whole compiled rule"
+    ] [
+        clear ctx
+        clear stack
+        parse rule grammar
+        insert/only insert tail ctx [__rule:] last-block
+        rule: context ctx
+        either all [
+            rule
+        ] [
+            last-block
+        ]
+    ]
+    functions: context [
+        do: lib/func [
+            {Evaluates a block, file, URL, function, word, or any other value in the dialect's context.}
+            [throw]
+            value "Normally a file name, URL, or block"
+        ] [
+            lib/if any [file? :value url? :value string? :value] [
+                value: bind load value 'self
+            ]
+            lib/either block? :value [
+                handle-dialect-block value
+            ] [
+                lib/do value
+            ]
+        ]
+        either: lib/func [
+            {If condition is TRUE, evaluates the first block, else evaluates the second.}
+            [throw]
+            condition
+            true-block [block!]
+            false-block [block!]
+        ] [
+            handle-dialect-block lib/either condition [true-block] [false-block]
+        ]
+        foreach: lib/func [
+            {Evaluates a block in the dialect's context for each value(s) in a series.}
+            [throw]
+            'word [get-word! word! block!] {Word or block of words to set each time (will be local)}
+            data [series!] "The series to traverse"
+            body [block!] "Block to evaluate each time"
+        ] [
+            lib/if get-word? :word [word: get :word]
+            lib/foreach :word data compose/only [handle-dialect-block (body)]
+        ]
+        if: lib/func [
+            {If condition is TRUE, evaluates the block in the dialect's context.}
+            [throw]
+            condition
+            then-block [block!]
+        ] [
+            lib/if condition [
+                handle-dialect-block then-block
+            ]
+        ]
+        loop: lib/func [
+            {Evaluates a block in the dialect's context a specified number of times.}
+            [throw]
+            count [integer!] "Number of repetitions"
+            block [block!] "Block to evaluate"
+        ] [
+            lib/loop count [handle-dialect-block block]
+        ]
+        repeat: lib/func [
+            {Evaluates a block in the dialect's context a number of times or over a series.}
+            [throw]
+            'word [word!] "Word to set each time"
+            value [integer! series!] "Maximum number or series to traverse"
+            body [block!] "Block to evaluate each time"
+        ] [
+            lib/repeat :word value compose/only [handle-dialect-block (body)]
+        ]
+        if-error: lib/func [
+            {Tries to DO a block in the dialect's context; if there's an error, DOes the
+             second block in the dialect's context.}
+            [throw]
+            block [block!]
+            on-error [block!]
+        ] [
+            lib/if error? lib/try [handle-dialect-block block] [
+                handle-dialect-block on-error
+            ]
+        ]
+        until: lib/func [
+            {Evaluates a block in the dialect's context until it is TRUE.}
+            [throw]
+            block [block!]
+        ] [
+            lib/until [handle-dialect-block block get/any 'val]
+        ]
+        use: lib/func [
+            "Defines words local to a block."
+            [throw]
+            words [block! word!] "Local word(s) to the block"
+            body [block!] "Block to evaluate in the dialect's context"
+        ] [
+            lib/use words compose/only [handle-dialect-block (body)]
+        ]
+        while: lib/func [
+            {While a condition block is TRUE, evaluates another block in the dialect's context.}
+            [throw]
+            cond-block [block!]
+            body-block [block!]
+        ] [
+            lib/while cond-block [handle-dialect-block body-block]
+        ]
+        define-func: lib/func [
+            {Defines a user function in the dialect's context with given spec and body.}
+            [catch]
+            name [word!] "The name of the function"
+            spec [block!] {Help string (opt) followed by arg words (and opt type and string)}
+            body [block!] "The body block of the function"
+        ] [
+            lib/throw-on-error [
+                set name make function! spec compose/only [handle-dialect-block (body)]
+            ]
+        ]
+        throw-on-error: lib/func [
+            {Evaluates a block in the dialect's context, which if it results in an error, throws that error.}
+            blk [block!]
+        ] [
+            lib/if error? set/any 'blk try [handle-dialect-block blk] [throw blk]
+        ]
+        forall: lib/func [
+            {Evaluates a block in the dialect's context for every value in a series.}
+            [throw]
+            'word [word!] {Word set to each position in series and changed as a result}
+            body [block!] "Block to evaluate each time"
+        ] [
+            lib/while [not tail? get word] [
+                handle-context-block body
+                set word next get word
+            ]
+        ]
+        forskip: lib/func [
+            {Evaluates a block in the dialect's context for periodic values in a series.}
+            [throw]
+            'word [word!] {Word set to each position in series and changed as a result}
+            skip-num [integer!] "Number of values to skip each time"
+            body [block!] "Block to evaluate each time"
+        ] [
+            lib/while [not tail? get word] [
+                handle-dialect-block body
+                set word skip get word skip-num
+            ]
+        ]
+        for: lib/func [
+            {Repeats a block in the dialect's context over a range of values.}
+            [throw]
+            'word [word!] "Variable to hold current value"
+            start [number! series! money! time! date! char!] "Starting value"
+            end [number! series! money! time! date! char!] "Ending value"
+            bump [number! money! time! char!] "Amount to skip each time"
+            body [block!] "Block to evaluate"
+        ] [
+            lib/for :word start end bump compose/only [handle-dialect-block (body)]
+        ]
+        forever: lib/func [
+            {Evaluates a block in the dialect's context endlessly.}
+            [throw]
+            body [block!] "Block to evaluate each time"
+        ] [
+            while [on] body
+        ]
+        switch: lib/func [
+            "Selects a choice and evaluates what follows it."
+            [throw]
+            value "Value to search for."
+            cases [block!] "Block of cases to search."
+            /default case "Default case if no others are found."
+        ] [
+            either value: select cases value [handle-dialect-block value] [
+                if default [handle-dialect-block case]
+            ]
+        ]
+    ]
+    handler: none
+    handle-dialect-block: func [[throw] block] [
+        parse block handler
+    ]
+    here: word: continue?: none
+    evaluate-control-function: has [there] [
+        continue?: [end skip]
+        there: here
+        if path? word [
+            there: word
+            word: first word
+        ]
+        if any [
+            all [function? get/any word 'handle-dialect-block = first second get word]
+            all [word: in functions word change there word]
+        ] [
+            here: second do/next here
+            continue?: none
+        ]
+    ]
+    set 'control-functions [
+        here: set word [word! | path!] (
+            evaluate-control-function
+        ) continue? :here
+    ]
+]
+load-web-color: func [
+    "Convert hex RGB issue! value to tuple!"
+    color [issue!]
+    /local pos
+] [
+    to tuple! debase/base next form color 16
+]
+to-hsl: func [
+    color [tuple!]
+    /local min max delta alpha total
+] [
+    if color/4 [alpha: color/4 / 255]
+    color: reduce [color/1 color/2 color/3]
+    bind/new [r g b] local: object []
+    set words-of local map-each c color [c / 255]
+    color: local
+    min: first minimum-of values-of color
+    max: first maximum-of values-of color
+    delta: max - min
+    total: max + min
+    local: object [h: s: l: to percent! total / 2]
+    do in local bind [
+        either zero? delta [h: s: 0] [
+            s: to percent! either l > 0.5 [2 - max - min] [delta / total]
+            h: 60 * switch max reduce [
+                r [g - b / delta + either g < b 6 0]
+                g [b - r / delta + 2]
+                b [r - g / delta + 4]
+            ]
+        ]
+    ] color
+    local: values-of local
+    if alpha [append local alpha]
+    local
+]
+to-hsv: func [
+    color [tuple!]
+    /local min max delta alpha
+] [
+    if color/4 [alpha: color/4 / 255]
+    color: reduce [color/1 color/2 color/3]
+    bind/new [r g b] local: object []
+    set words-of local map-each c color [c / 255]
+    color: local
+    min: first minimum-of values-of color
+    max: first maximum-of values-of color
+    delta: max - min
+    local: object [h: s: v: to percent! max]
+    do in local bind [
+        either zero? delta [h: s: 0] [
+            s: to percent! either delta = 0 [0] [delta / max]
+            h: 60 * switch max reduce [
+                r [g - b / delta + either g < b 6 0]
+                g [b - r / delta + 2]
+                b [r - g / delta + 4]
+            ]
+        ]
+    ] color
+    local: values-of local
+    if alpha [append local alpha]
+    local
+]
+load-hsl: func [
+    color [block!]
+    /local alpha c x m i
+] [
+    if color/4 [alpha: color/4]
+    bind/new [h s l] local: object []
+    set words-of local color
+    bind/new [r g b] color: object []
+    do in local [
+        i: h / 60
+        c: 1 - (abs 2 * l - 1) * s
+        x: 1 - (abs -1 + mod i 2) * c
+        m: l - (c / 2)
+    ]
+    do in color [
+        set [r g b] reduce switch to integer! i [
+            0 [[c x 0]]
+            1 [[x c 0]]
+            2 [[0 c x]]
+            3 [[0 x c]]
+            4 [[x 0 c]]
+            5 [[c 0 x]]
+        ]
+    ]
+    color: to tuple! map-each value values-of color [to integer! round m + value * 255]
+    if alpha [color/4: alpha * 255]
+    color
+]
+load-hsv: func [
+    color [block!]
+    /local alpha c x m i
+] [
+    if color/4 [alpha: color/4]
+    bind/new [h s v] local: object []
+    set words-of local color
+    bind/new [r g b] color: object []
+    do in local [
+        i: h / 60
+        c: v * s
+        x: 1 - (abs -1 + mod i 2) * c
+        m: v - c
+    ]
+    do in color [
+        set [r g b] reduce switch to integer! i [
+            0 [[c x 0]]
+            1 [[x c 0]]
+            2 [[0 c x]]
+            3 [[0 x c]]
+            4 [[x 0 c]]
+            5 [[c 0 x]]
+        ]
+    ]
+    color: to tuple! map-each value values-of color [to integer! round m + value * 255]
+    if alpha [color/4: alpha * 255]
+    color
+]
+color!: object [
+    rgb: 0.0.0.0
+    web: #000000
+    hsl: make block! 4
+    hsv: make block! 4
+]
+new-color: does [make color! []]
+set-color: func [
+    color [object!] "Color object"
+    value [block! tuple! issue!]
+    type [word!]
+] [
+    switch type [
+        rgb [
+            do in color [
+                rgb: value
+                web: to-hex value
+                hsl: to-hsl value
+                hsv: to-hsv value
+            ]
+        ]
+        web [
+            do in color [
+                rgb: load-web-color value
+                web: value
+                hsl: to-hsl rgb
+                hsv: to-hsv rgb
+            ]
+        ]
+        hsl [
+            do in color [
+                rgb: load-hsl value
+                web: to-hex rgb
+                hsl: value
+                hsv: to-hsv load-hsv value
+            ]
+        ]
+        hsv [
+            do in color [
+                rgb: load-hsv value
+                web: to-hex rgb
+                hsl: to-hsl load-hsv value
+                hsv: value
+            ]
+        ]
+    ]
+    color
+]
+apply-color: func [
+    "Apply color effect on color"
+    color [object!] "Color! object"
+    effect [word!] "Effect to apply"
+    amount [number!] "Effect amount"
+] [
+    effect: do bind select effects effect 'amount
+    set-color color color/:effect effect
+]
+effects: [
+    darken [
+        color/hsl/3: max 000% color/hsl/3 - amount
+        'hsl
+    ]
+    lighten [
+        color/hsl/3: min 100% color/hsl/3 + amount
+        'hsl
+    ]
+    saturate [
+        color/hsl/2: min 100% max 000% color/hsl/2 + amount
+        'hsl
+    ]
+    desaturate [
+        color/hsl/2: min 100% max 000% color/hsl/2 - amount
+        'hsl
+    ]
+    hue [
+        color/hsl/1: color/hsl/1 + amount // 360
+        'hsl
+    ]
+]
 to-css: use [ruleset parser ??] [
     ruleset: context [
         values: copy []
@@ -1231,543 +2139,6 @@ C5593CBC069B9DBD8EC3CBECF51BFC35DAD0E2817FE16F0BC29F8F4D5A6E4EAD
         ]
     ]
 ]
-xml?: true
-start-para?: true
-end-para?: true
-buffer: make string! 1000
-para?: false
-set [open-para close-para] either para? [[<p> </p>]] [["" ""]]
-print [open-para close-para]
-value: copy ""
-emit: func [data] [print "***wrong emit***" append buffer data]
-close-tag: func [tag] [head insert copy tag #"/"]
-start-para: does [
-    if start-para? [
-        start-para?: false
-        end-para?: true
-        emit open-para
-    ]
-]
-entities: [
-    #"<" (emit "&lt;")
-    | #">" (emit "&gt;")
-    | #"&" (emit "&amp;")
-]
-escape-set: charset "\`*_{}[]()#+-.!"
-escapes: use [escape] [
-    [
-        #"\"
-        (start-para)
-        set escape escape-set
-        (emit escape)
-    ]
-]
-numbers: charset [#"0" - #"9"]
-plus: #"+"
-minus: #"-"
-asterisk: #"*"
-underscore: #"_"
-hash: #"#"
-dot: #"."
-eq: #"="
-lt: #"<"
-gt: #">"
-header-underscore: use [text tag] [
-    [
-        copy text to newline
-        newline
-        some [eq (tag: <h1>) | minus (tag: <h2>)]
-        [newline | end]
-        (
-            end-para?: false
-            start-para?: true
-            emit ajoin [tag text close-tag tag]
-        )
-    ]
-]
-header-hash: use [value continue trailing mark tag] [
-    [
-        (
-            continue: either/only start-para? [not space] [fail]
-            mark: clear ""
-        )
-        continue
-        copy mark some hash
-        space
-        (emit tag: to tag! compose [h (length? mark)])
-        some [
-            [
-                (trailing: "")
-                [[any space mark] | [opt [2 space (trailing: join newline newline)]]]
-                [newline | end]
-                (end-para?: false)
-                (start-para?: true)
-                (emit ajoin [close-tag tag trailing])
-            ]
-            break
-            | set value skip (emit value)
-        ]
-    ]
-]
-header-rule: [
-    header-underscore
-    | header-hash
-]
-autolink-rule: use [address] [
-    [
-        lt
-        copy address
-        to gt skip
-        (
-            start-para
-            emit ajoin [{<a href="} address {">} address </a>]
-        )
-    ]
-]
-link-rule: use [text address value title] [
-    [
-        #"["
-        copy text
-        to #"]" skip
-        #"("
-        (
-            address: clear ""
-            title: none
-        )
-        any [
-            not [space | tab | #")"]
-            set value skip
-            (append address value)
-        ]
-        opt [
-            some [space | tab]
-            #"^""
-            copy title to #"^""
-            skip
-        ]
-        skip
-        (
-            start-para
-            title: either title [ajoin [space {title="} title {"}]] [""]
-            emit ajoin [{<a href="} address {"} title ">" text </a>]
-        )
-    ]
-]
-em-rule: use [mark text] [
-    [
-        copy mark ["**" | "__" | "*" | "_"]
-        not space
-        copy text
-        to mark mark
-        (
-            start-para
-            mark: either equal? length? mark 1 <em> <strong>
-            emit ajoin [mark text close-tag mark]
-        )
-    ]
-]
-img-rule: use [text address] [
-    [
-        #"!"
-        #"["
-        copy text
-        to #"]" skip
-        #"("
-        copy address
-        to #")" skip
-        (
-            start-para
-            emit ajoin [{<img src="} address {" alt="} text {"} either xml? " /" "" ">"]
-        )
-    ]
-]
-horizontal-mark: [minus | asterisk | underscore]
-horizontal-rule: [
-    horizontal-mark
-    any space
-    horizontal-mark
-    any space
-    horizontal-mark
-    any [
-        horizontal-mark
-        | space
-    ]
-    (
-        end-para?: false
-        emit either xml? <hr /> <hr>
-    )
-]
-unordered: [any space [asterisk | plus | minus] space]
-ordered: [any space some numbers dot space]
-list-rule: use [continue tag item] [
-    [
-        some [
-            (
-                continue: either start-para? [
-                    [
-                        ordered (item: ordered tag: <ol>)
-                        | unordered (item: unordered tag: <ul>)
-                    ]
-                ] [
-                    [fail]
-                ]
-            )
-            continue
-            (start-para?: end-para?: false)
-            (emit ajoin [tag newline <li>])
-            line-rules
-            newline
-            (emit ajoin [</li> newline])
-            some [
-                item
-                (emit <li>)
-                line-rules
-                [newline | end]
-                (emit ajoin [</li> newline])
-            ]
-            (emit close-tag tag)
-        ]
-    ]
-]
-blockquote-rule: use [continue] [
-    [
-        (
-            continue: either/only start-para? [gt any space] [fail]
-        )
-        continue
-        (emit ajoin [<blockquote> newline])
-        line-rules
-        [[newline (emit newline)] | end]
-        any [
-            [newline] (remove back tail buffer emit ajoin [close-para newline newline open-para])
-            | [
-                continue
-                opt line-rules
-                [newline (emit newline) | end]
-            ]
-        ]
-        (end-para?: false)
-        (emit ajoin [close-para newline </blockquote>])
-    ]
-]
-inline-code-rule: use [code value] [
-    [
-        [
-            "``"
-            (start-para)
-            (emit <code>)
-            some [
-                "``" (emit </code>) break
-                | entities
-                | set value skip (emit value)
-            ]
-        ]
-        | [
-            "`"
-            (start-para)
-            (emit <code>)
-            some [
-                "`" (emit </code>) break
-                | entities
-                | set value skip (emit value)
-            ]
-        ]
-    ]
-]
-code-line: use [value] [
-    [
-        some [
-            entities
-            | [newline | end] (emit newline) break
-            | set value skip (emit value)
-        ]
-    ]
-]
-code-rule: use [text] [
-    [
-        [4 space | tab]
-        (emit ajoin [<pre> <code>])
-        code-line
-        any [
-            [4 space | tab]
-            code-line
-        ]
-        (emit ajoin [</code> </pre>])
-        (end-para?: false)
-    ]
-]
-asterisk-rule: ["\*" (emit "*")]
-newline-rule: [
-    newline
-    any [space | tab]
-    some newline
-    any [space | tab]
-    (
-        emit ajoin [close-para newline newline]
-        start-para?: true
-    )
-    | newline (emit newline)
-]
-line-break-rule: [
-    space
-    some space
-    newline
-    (emit ajoin [either xml? <br /> <br> newline])
-]
-leading-spaces: use [continue] [
-    [
-        (continue: either/only start-para? [some space] [fail])
-        continue
-        (start-para)
-    ]
-]
-line-rules: [
-    some [
-        em-rule
-        | link-rule
-        | header-rule
-        | not newline set value skip (
-            start-para
-            emit value
-        )
-    ]
-]
-rules: [
-    some [
-        header-rule
-        | link-rule
-        | autolink-rule
-        | img-rule
-        | list-rule
-        | blockquote-rule
-        | inline-code-rule
-        | code-rule
-        | asterisk-rule
-        | em-rule
-        | horizontal-rule
-        | entities
-        | escapes
-        | line-break-rule
-        | newline-rule
-        | end (if end-para? [end-para?: false emit close-para])
-        | leading-spaces
-        | set value skip (
-            start-para
-            emit value
-        )
-    ]
-]
-markdown: func [
-    "Parse markdown source to HTML or XHTML"
-    data
-    /only "Return result without newlines"
-    /xml {Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)}
-] [
-    print "markdown"
-    start-para?: true
-    end-para?: true
-    buffer: make string! 1000
-    parse data [some rules]
-    buffer
-]
-print "import"
-load-web-color: func [
-    "Convert hex RGB issue! value to tuple!"
-    color [issue!]
-    /local pos
-] [
-    to tuple! debase/base next form color 16
-]
-to-hsl: func [
-    color [tuple!]
-    /local min max delta alpha total
-] [
-    if color/4 [alpha: color/4 / 255]
-    color: reduce [color/1 color/2 color/3]
-    bind/new [r g b] local: object []
-    set words-of local map-each c color [c / 255]
-    color: local
-    min: first minimum-of values-of color
-    max: first maximum-of values-of color
-    delta: max - min
-    total: max + min
-    local: object [h: s: l: to percent! total / 2]
-    do in local bind [
-        either zero? delta [h: s: 0] [
-            s: to percent! either l > 0.5 [2 - max - min] [delta / total]
-            h: 60 * switch max reduce [
-                r [g - b / delta + either g < b 6 0]
-                g [b - r / delta + 2]
-                b [r - g / delta + 4]
-            ]
-        ]
-    ] color
-    local: values-of local
-    if alpha [append local alpha]
-    local
-]
-to-hsv: func [
-    color [tuple!]
-    /local min max delta alpha
-] [
-    if color/4 [alpha: color/4 / 255]
-    color: reduce [color/1 color/2 color/3]
-    bind/new [r g b] local: object []
-    set words-of local map-each c color [c / 255]
-    color: local
-    min: first minimum-of values-of color
-    max: first maximum-of values-of color
-    delta: max - min
-    local: object [h: s: v: to percent! max]
-    do in local bind [
-        either zero? delta [h: s: 0] [
-            s: to percent! either delta = 0 [0] [delta / max]
-            h: 60 * switch max reduce [
-                r [g - b / delta + either g < b 6 0]
-                g [b - r / delta + 2]
-                b [r - g / delta + 4]
-            ]
-        ]
-    ] color
-    local: values-of local
-    if alpha [append local alpha]
-    local
-]
-load-hsl: func [
-    color [block!]
-    /local alpha c x m i
-] [
-    if color/4 [alpha: color/4]
-    bind/new [h s l] local: object []
-    set words-of local color
-    bind/new [r g b] color: object []
-    do in local [
-        i: h / 60
-        c: 1 - (abs 2 * l - 1) * s
-        x: 1 - (abs -1 + mod i 2) * c
-        m: l - (c / 2)
-    ]
-    do in color [
-        set [r g b] reduce switch to integer! i [
-            0 [[c x 0]]
-            1 [[x c 0]]
-            2 [[0 c x]]
-            3 [[0 x c]]
-            4 [[x 0 c]]
-            5 [[c 0 x]]
-        ]
-    ]
-    color: to tuple! map-each value values-of color [to integer! round m + value * 255]
-    if alpha [color/4: alpha * 255]
-    color
-]
-load-hsv: func [
-    color [block!]
-    /local alpha c x m i
-] [
-    if color/4 [alpha: color/4]
-    bind/new [h s v] local: object []
-    set words-of local color
-    bind/new [r g b] color: object []
-    do in local [
-        i: h / 60
-        c: v * s
-        x: 1 - (abs -1 + mod i 2) * c
-        m: v - c
-    ]
-    do in color [
-        set [r g b] reduce switch to integer! i [
-            0 [[c x 0]]
-            1 [[x c 0]]
-            2 [[0 c x]]
-            3 [[0 x c]]
-            4 [[x 0 c]]
-            5 [[c 0 x]]
-        ]
-    ]
-    color: to tuple! map-each value values-of color [to integer! round m + value * 255]
-    if alpha [color/4: alpha * 255]
-    color
-]
-color!: object [
-    rgb: 0.0.0.0
-    web: #000000
-    hsl: make block! 4
-    hsv: make block! 4
-]
-new-color: does [make color! []]
-set-color: func [
-    color [object!] "Color object"
-    value [block! tuple! issue!]
-    type [word!]
-] [
-    switch type [
-        rgb [
-            do in color [
-                rgb: value
-                web: to-hex value
-                hsl: to-hsl value
-                hsv: to-hsv value
-            ]
-        ]
-        web [
-            do in color [
-                rgb: load-web-color value
-                web: value
-                hsl: to-hsl rgb
-                hsv: to-hsv rgb
-            ]
-        ]
-        hsl [
-            do in color [
-                rgb: load-hsl value
-                web: to-hex rgb
-                hsl: value
-                hsv: to-hsv load-hsv value
-            ]
-        ]
-        hsv [
-            do in color [
-                rgb: load-hsv value
-                web: to-hex rgb
-                hsl: to-hsl load-hsv value
-                hsv: value
-            ]
-        ]
-    ]
-    color
-]
-apply-color: func [
-    "Apply color effect on color"
-    color [object!] "Color! object"
-    effect [word!] "Effect to apply"
-    amount [number!] "Effect amount"
-] [
-    effect: do bind select effects effect 'amount
-    set-color color color/:effect effect
-]
-effects: [
-    darken [
-        color/hsl/3: max 000% color/hsl/3 - amount
-        'hsl
-    ]
-    lighten [
-        color/hsl/3: min 100% color/hsl/3 + amount
-        'hsl
-    ]
-    saturate [
-        color/hsl/2: min 100% max 000% color/hsl/2 + amount
-        'hsl
-    ]
-    desaturate [
-        color/hsl/2: min 100% max 000% color/hsl/2 - amount
-        'hsl
-    ]
-    hue [
-        color/hsl/1: color/hsl/1 + amount // 360
-        'hsl
-    ]
-]
 load-color: func [
     "Convert hex RGB issue! value to tuple!"
     color [issue!]
@@ -1935,16 +2306,16 @@ init: does [
     rules: recat/with words-of ruleset '|
 ]
 prestyle: func [
+    "Process enhanced StyleTalk stylesheets"
     data
+    /only {only translate enhanced stylesheed to standard StyleTalk}
 ] [
     if file? data [data: load data]
     init
     parse data [some rules]
-    buffer
+    either only [buffer] [to-css buffer]
 ]
-print "import done"
 debug:
-:print
 none
 js-path: %../../js/
 css-path: %../../css/
@@ -2006,7 +2377,7 @@ rule: func [
     rule [block!] "PARSE rule"
 ] [
     if word? local [local: reduce [local]]
-    use local reduce [rule]
+    compile-rules use local reduce [rule]
 ]
 add-rule: func [
     "Add new rule to PARSE rules block!"
@@ -2147,7 +2518,7 @@ lest: use [
         ] [
             write
             local: replace copy stylesheet suffix %.css
-            to-css prestyle load stylesheet
+            prestyle load stylesheet
         ]
         unless find includes/stylesheets stylesheet [
             repend includes/stylesheets [{<link href="} local {" rel="stylesheet">} newline]
@@ -2169,9 +2540,6 @@ lest: use [
             set type ['plain | 'html | 'markdown]
             'text
             (text-style: type)
-        ]
-        settings-rule: [
-            text-settings
         ]
         do-code: rule [p value] [
             p: set value paren!
@@ -2296,6 +2664,84 @@ lest: use [
                 :pos into main-rule
             ]
         ]
+        init-tag: [
+            (
+                insert tag-stack reduce [tag-name tag: context [id: none class: copy []]]
+            )
+        ]
+        take-tag: [(set [tag-name tag] take/part tag-stack 2)]
+        emit-tag: [(emit build-tag tag-name tag)]
+        end-tag: [
+            take-tag
+            (emit close-tag tag-name)
+        ]
+        init-div: [
+            (tag-name: 'div)
+            init-tag
+        ]
+        close-div: [
+            (
+                tag: take/part tag-stack 2
+                emit </div>
+            )
+        ]
+        commands: [
+            if-rule
+            | either-rule
+            | switch-rule
+            | for-rule
+            | repeat-rule
+        ]
+        if-rule: rule [cond true-val] [
+            'if
+            set cond [logic! | word! | block!]
+            pos:
+            set true-val any-type!
+            (
+                res: if/only do bind cond user-words true-val
+                either res [
+                    change/part pos res 1
+                ] [
+                    pos: next pos
+                ]
+            )
+            :pos
+        ]
+        either-rule: rule [cond true-val false-val pos] [
+            'either
+            set cond [logic! | word! | block!]
+            set true-val any-type!
+            pos:
+            set false-val any-type!
+            (
+                change/part
+                pos
+                either/only do bind cond user-words true-val false-val
+                1
+            )
+            :pos
+        ]
+        switch-rule: rule [value cases defval] [
+            'switch
+            (defval: none)
+            set value word!
+            pos:
+            set cases block!
+            opt [
+                'default
+                pos:
+                set defval any-type!
+            ]
+            (
+                forskip cases 2 [cases/2: append/only copy [] cases/2]
+                value: get bind value user-words
+                change/part
+                pos
+                switch/default value cases append/only copy [] defval
+                1
+            )
+            :pos
+        ]
         for-rule: rule [pos out var src content] [
             'for
             set var [word! | block!]
@@ -2354,82 +2800,6 @@ lest: use [
                     ()
                 ]
             ]
-        ]
-        init-tag: [
-            (
-                insert tag-stack reduce [tag-name tag: context [id: none class: copy []]]
-            )
-        ]
-        take-tag: [(set [tag-name tag] take/part tag-stack 2)]
-        emit-tag: [(emit build-tag tag-name tag)]
-        end-tag: [
-            take-tag
-            (emit close-tag tag-name)
-        ]
-        init-div: [
-            (tag-name: 'div)
-            init-tag
-        ]
-        close-div: [
-            (
-                tag: take/part tag-stack 2
-                emit </div>
-            )
-        ]
-        commands: [
-            if-rule
-            | either-rule
-            | switch-rule
-        ]
-        if-rule: rule [cond true-val] [
-            'if
-            set cond [logic! | word! | block!]
-            pos:
-            set true-val any-type!
-            (
-                res: if/only do bind cond user-words true-val
-                either res [
-                    change/part pos res 1
-                ] [
-                    pos: next pos
-                ]
-            )
-            :pos
-        ]
-        either-rule: rule [cond true-val false-val pos] [
-            'either
-            set cond [logic! | word! | block!]
-            set true-val any-type!
-            pos:
-            set false-val any-type!
-            (
-                change/part
-                pos
-                either/only do bind cond user-words true-val false-val
-                1
-            )
-            :pos
-        ]
-        switch-rule: rule [value cases defval] [
-            'switch
-            (defval: none)
-            set value word!
-            pos:
-            set cases block!
-            opt [
-                'default
-                pos:
-                set defval any-type!
-            ]
-            (
-                forskip cases 2 [cases/2: append/only copy [] cases/2]
-                value: get bind value user-words
-                change/part
-                pos
-                switch/default value cases append/only copy [] defval
-                1
-            )
-            :pos
         ]
         get-style: rule [pos data type] [
             set type ['id | 'class]
@@ -2535,17 +2905,26 @@ lest: use [
         ]
         br: ['br (emit <br>)]
         hr: ['hr (emit <hr>)]
-        main-rule: [
-            some match-content
+        main-rule: rule [] [
+            throw "Unknown tag, command or user template"
+            [some content-rule]
         ]
-        match-content: [
+        content-rule: [
             commands
-            | basic-string
+            | [
+                basic-string-match
+                basic-string-processing
+                (emit value)
+            ]
             | elements
             | into main-rule
         ]
+        match-content: rule [] [
+            throw "Expected string, tag or block of tags"
+            content-rule
+        ]
         paired-tags: ['i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button]
-        paired-tag: [
+        paired-tag: rule [] [
             set tag-name paired-tags
             init-tag
             opt style
@@ -2622,17 +3001,17 @@ lest: use [
             ]
             emit-tag
             some [
+                basic-string-match
                 (tag-name: 'dt)
                 init-tag
-                basic-string-match
                 basic-string-processing
                 style
                 emit-tag
                 (emit value)
                 end-tag
+                basic-string-match
                 (tag-name: 'dd)
                 init-tag
-                basic-string-match
                 basic-string-processing
                 style
                 emit-tag
@@ -2647,7 +3026,11 @@ lest: use [
             | dl
         ]
         basic-elems: [
-            basic-string
+            [
+                basic-string-match
+                basic-string-processing
+                (emit value)
+            ]
             | comment
             | debug-rule
             | stop
@@ -2663,28 +3046,13 @@ lest: use [
             (current-text-style: none)
             opt [set current-text-style ['plain | 'html | 'markdown]]
             opt [user-values]
-            copy value [string! | date! | time!]
+            set value [string! | date! | time!]
         ]
         basic-string-processing: [
             (
                 unless current-text-style [current-text-style: text-style]
                 value: form value
                 value: switch current-text-style [
-                    plain [value]
-                    html [escape-entities value]
-                    markdown [markdown value]
-                ]
-            )
-        ]
-        basic-string: rule [value style] [
-            (style: none)
-            opt [set style ['plain | 'html | 'markdown]]
-            opt [user-values]
-            set value [string! | date! | time!]
-            (
-                unless style [style: text-style]
-                value: form value
-                emit switch style [
                     plain [value]
                     html [escape-entities value]
                     markdown [markdown value]
@@ -2946,14 +3314,12 @@ lest: use [
         elements: rule [] [
             pos: (debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
             [
-                settings-rule
+                text-settings
                 | page-header
                 | basic-elems
                 | form-content
                 | import
                 | do-code
-                | for-rule
-                | repeat-rule
                 | make-row
                 | user-rules
                 | user-rule
@@ -2997,11 +3363,17 @@ lest: use [
     user-rules: rule [] [fail]
     user-words: object []
     user-values: [fail]
+    out-file: none
     func [
         "Parse simple HTML dialect"
         data [block! file! url!]
+        /save
+        {If data is file!, save output as HTML file with same name}
     ] bind [
-        if any [file? data url? data] [data: load data]
+        if any [file? data url? data] [
+            out-file: replace copy data %.lest %.html
+            data: load data
+        ]
         tag-stack: copy []
         user-rules: copy [fail]
         user-words: object []
@@ -3052,14 +3424,16 @@ lest: use [
             append out #">"
         ]
         unless parse data bind rules/main-rule rules [
-            return ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+            error: make error! "LEST: there was error in LEST dialect"
+            error/near: pos
+            do error
         ]
         body: head buffer
         unless empty? includes/style [
-            write %lest-temp.css to-css prestyle includes/style
+            write %lest-temp.css prestyle includes/style
             Print ["CSS wrote to file %lest-temp.css"]
         ]
-        either header? [
+        body: either header? [
             ajoin [
                 <!DOCTYPE html> newline
                 <html lang="en-US"> newline
@@ -3080,5 +3454,9 @@ lest: use [
         ] [
             body
         ]
+        if out-file [
+            write out-file body
+        ]
+        body
     ] 'buffer
 ]
