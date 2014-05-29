@@ -1319,7 +1319,7 @@ func [
 ] bind [
 
 	if any [file? data url? data] [
-		out-file: replace copy data %.lest %.html
+		out-file: replace copy data suffix? data %.html
 		data: load data
 	]
 

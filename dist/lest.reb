@@ -3371,7 +3371,7 @@ lest: use [
         {If data is file!, save output as HTML file with same name}
     ] bind [
         if any [file? data url? data] [
-            out-file: replace copy data %.lest %.html
+            out-file: replace copy data suffix? data %.html
             data: load data
         ]
         tag-stack: copy []
