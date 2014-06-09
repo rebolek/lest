@@ -136,6 +136,8 @@
 [ "<dl><dt>def</dt><dd>val</dd></dl>" = tf [ dl "def" "val" ] ]
 [ "<dl><dt>def 1</dt><dd>val 1</dd><dt>def 2</dt><dd>val 2</dd></dl>" = tf [ dl "def 1" "val 1" "def 2" "val 2" ] ]
 [ {<dl><dt><strong>def</strong></dt><dd>val</dd></dl>} = tf [dl markdown "**def**" "val"] ]
+[ {<dl class="dl-horizontal"><dt>def</dt><dd>val</dd></dl>} = tf [ dl horizontal "def" "val" ] ]
+[ {<dl><dt class="def-class">def</dt><dd class="val-class">val</dd></dl>} = tf [ dl "def" .def-class "val" .val-class ] ]
 
 
 ; HEADINGS
@@ -262,4 +264,7 @@
 [ {<span>value is </span><span>many</span>} = tf [ set x 23 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>Brno</span>} = tf [ set name "Brno" span name ] ]
 
+; inline code
 
+[ {<b>bold</b>} = tf [([b "bold"])] ]
+[ {<b>bold</b>} = tf [(reduce ['b join "bo" "ld"])] ]

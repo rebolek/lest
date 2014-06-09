@@ -48,7 +48,7 @@ import %prestyle.reb
 ; print "import done"
 
 debug:
-;:print
+:print
 none
 
 ; SETTINGS
@@ -354,7 +354,7 @@ do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
 	( p/1: append clear [] do bind to block! value user-words )
-	:p into elements
+	:p main-rule
 	]
 
 set-rule: rule [ label value ] [
@@ -690,7 +690,7 @@ comment: [
 
 debug-rule: rule [ value ] [
 	'debug set value string!
-	( print ["DEBUG:" value])
+	( debug ["DEBUG:" value])
 ]
 
 script: rule [type value] [
@@ -1393,7 +1393,7 @@ func [
 
 	unless empty? includes/style [
 		write %lest-temp.css prestyle includes/style
-		Print ["CSS wrote to file %lest-temp.css"]
+		debug ["CSS wrote to file %lest-temp.css"]
 	]
 
 	body: either header? [
