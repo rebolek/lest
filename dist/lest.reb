@@ -133,7 +133,7 @@ jQuery(document).ready(function () {
                 close-div
             ]
         ]
-        bar: ['bar (print "ahoj!")]
+        bar: ['bar]
         panel: [
             'panel
             (
@@ -550,10 +550,8 @@ jQuery(document).ready(function () {
         ]
         rule: [
             set type 'crow
-            (print ["init.test..." c])
             c
             opt style
-            (print "this?" insert tag/class type print "no")
             emit-tag
             close-div
         ]
@@ -619,7 +617,6 @@ end-para?: true
 buffer: make string! 1000
 para?: false
 set [open-para close-para] either para? [[<p> </p>]] [["" ""]]
-print [open-para close-para]
 value: copy ""
 emit: func [data] [
     append buffer data
@@ -947,7 +944,6 @@ markdown: func [
     /only "Return result without newlines"
     /xml {Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)}
 ] [
-    print "markdown"
     start-para?: true
     end-para?: true
     buffer: make string! 1000
@@ -2238,7 +2234,6 @@ ruleset: object [
         pos:
         set amount number! (
             f: take/last f-stack
-            print ["color: " type? color mold color mold user-ctx/:color]
             case/all [
                 word? color [color: user-ctx/:color]
                 issue? color [color: load-color color]
@@ -2316,6 +2311,7 @@ prestyle: func [
     either only [buffer] [to-css buffer]
 ]
 debug:
+:print
 none
 js-path: %../../js/
 css-path: %../../css/
@@ -2544,7 +2540,7 @@ lest: use [
         do-code: rule [p value] [
             p: set value paren!
             (p/1: append clear [] do bind to block! value user-words)
-            :p into elements
+            :p main-rule
         ]
         set-rule: rule [label value] [
             'set
@@ -2836,7 +2832,7 @@ lest: use [
         ]
         debug-rule: rule [value] [
             'debug set value string!
-            (print ["DEBUG:" value])
+            (debug ["DEBUG:" value])
         ]
         script: rule [type value] [
             opt [set type ['insert | 'append]]
@@ -3431,7 +3427,7 @@ lest: use [
         body: head buffer
         unless empty? includes/style [
             write %lest-temp.css prestyle includes/style
-            Print ["CSS wrote to file %lest-temp.css"]
+            debug ["CSS wrote to file %lest-temp.css"]
         ]
         body: either header? [
             ajoin [
