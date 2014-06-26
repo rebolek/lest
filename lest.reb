@@ -48,7 +48,7 @@ import %prestyle.reb
 ; print "import done"
 
 debug:
-:print
+; :print
 none
 
 ; SETTINGS
@@ -61,10 +61,7 @@ css-path: %../../css/
 js-path: %js/			; we are in work dir so we need to go just one level up
 css-path: %css/
 
-
-; FIXME: because of testing in separate directory, we need absolute path
-plugin-path: %/home/sony/repo/lest/plugins/
-
+plugin-path: %plugins/
 
 text-style: 'html
 

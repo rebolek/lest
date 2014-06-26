@@ -25,8 +25,6 @@ para?: false
 
 set [open-para close-para] either para? [[<p></p>]][["" ""]]
 
-print [open-para close-para]
-
 ; -----
 
 value: copy "" ; FIXME: leak?
@@ -394,7 +392,6 @@ markdown: func [
 	; TODO:
 	/xml "Switch from HTML tags to XML tags (e.g.: <hr /> instead of <hr>)"
 ] [
-	print "markdown"
 	start-para?: true
 	end-para?: true
 	buffer: make string! 1000

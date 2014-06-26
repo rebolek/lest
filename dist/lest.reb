@@ -417,7 +417,7 @@ jQuery(document).ready(function () {
                 value-to-emit: [
                     build-tag tag-name tag
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-                    &times
+                    "&times;"
                     </button>
                 ]
             )
@@ -2311,13 +2311,12 @@ prestyle: func [
     either only [buffer] [to-css buffer]
 ]
 debug:
-:print
 none
 js-path: %../../js/
 css-path: %../../css/
 js-path: %js/
 css-path: %css/
-plugin-path: %/home/sony/repo/lest/plugins/
+plugin-path: %plugins/
 text-style: 'html
 dot: #"."
 escape-entities: funct [
