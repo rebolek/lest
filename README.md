@@ -157,6 +157,7 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 
 	enable bootstrap
 	enable smooth-scrolling
+	enable google-font
 	stylesheet css-path/lest.css
 	google-font "Exo 2"
 	title "Hello world!"
