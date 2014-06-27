@@ -425,7 +425,17 @@ style-rule: rule [data] [
 	(append includes/style data)
 ]
 
-;FIXME:
+; === FIXME: ROW needs bootstrap plugin enabled
+
+; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
+
+; (block: ["Venus" "Earth" "Mars"] ...)
+; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM block
+
+; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM %data.r
+
+; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM http://www.mraky.net/data.r
+
 make-row: [
 	'row
 	'with
@@ -485,7 +495,7 @@ make-row: [
 				]
 				append out current
 			]
-			change/only pos compose/deep [ row [ (out) ] ]
+			change/only pos probe compose/deep [ row [ (out) ] ]
 		)
 		:pos into main-rule
 	]

@@ -2654,7 +2654,7 @@ lest: use [
                         ]
                         append out current
                     ]
-                    change/only pos compose/deep [row [(out)]]
+                    change/only pos probe compose/deep [row [(out)]]
                 )
                 :pos into main-rule
             ]

@@ -219,13 +219,3 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 
 #### REPEAT
 
-#### ROW
-
-	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
-
-	(block: ["Venus" "Earth" "Mars"] ...)
-	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM block
-
-	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM %data.r
-
-	ROW WITH 3 COLS [span <name>] REPLACE <name> FROM http://www.mraky.net/data.r
