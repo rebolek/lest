@@ -185,12 +185,10 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 
 	h1 #code "Dynamic page creation"
 
-	( either now/time < 12:00 "Good morning!" "Good afternoon" )
+	either [now/time < 12:00] "Good morning!" "Good afternoon"
 
 	my-custom-style: value string! [b [i value]]
 	my-custom-style "Hello world!"
-
-	row with 3 cols [span <planet>] replace <planet> from ["Venus" "Earth" "Mars"]
 
 	h1 #bootstrap "Bootstrap support"
 
@@ -215,7 +213,88 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 
 	footer [ "more later" ]
 
-### Basic usage
+### Variables and user templates
 
-#### REPEAT
+You can set your words in **Lest** there are two types of them. User templates
+has been decribed above and are set using the **set-word** syntax.
 
+Variables are words that holt one value and are set using `SET` syntax.
+
+	>> lest [set value "Hello" span value]
+	== <span>Hello</span>
+
+Variables can also be used to change default settings like **js-path** or **css-path**.
+
+### Structural logic
+
+In **Lest**, you are free to shoot yourself to foot using embeed Rebol code. 
+However, **Lest** provides much safer basic structural logic that is preferred
+mode of operation. List of available commands follows.
+
+#### IF
+
+`IF` is basic condition, dialect block is processed only if the condition is true.
+
+	>> lest [if [now/time < 12:00][span "good morning"]] 
+	== <span>good morning</span>
+
+	>> lest [if [now/time > 12:00][span "good morning"]]
+	;; returns nothing
+
+Condition is Rebol code or word of logic datatype.
+
+#### EITHER
+
+`EITHER` is extened `IF` condition that accepts two values. In some languages
+this is achieved with crude `IF ... THEN ... ELSE` construct, **Lest** prefers
+much simpler `EITHER`
+
+	>> lest [either [now/time < 12:00][span "good morning"][span "good evening"]]
+	== <span>good morning</span>
+
+One great feature of conditions and other structural logic in **Lest** is that 
+it can be placed anywhere. So the above example can be simplified as:
+
+	>> lest [span either [now/time < 12:00] "good morning" "good evening"]   
+	== <span>good morning</span>
+
+	>> lest [span either [now/time < 12:00] .morning .evening "Hello!"]    
+	== <span class="morning">Hello!</span>
+
+You get the idea.
+
+#### SWITCH
+
+`SWITCH` is multiple choice condition.
+
+	>> lest [set x 1 span ["value is " switch x [1 "one" 2 "two" 3 "three"]]]
+	== <span>value is one</span>
+
+If the choice should return multiple elements, enclose it in block:
+
+	>> lest [set x 2 span ["value is " switch x [1 "one" 2 [b "two"] 3 "three"]]]
+	== <span>value is <b>two</b></span>
+
+If the value is not in choices, **Lest** throws an error. Therefore it's wise
+to include the `DEFAULT` option:
+
+	>> lest [set x 5 span ["value is " switch x [1 "one" 2 "two" 3 "three"] default "out of range"]]     
+	== "<span>value is out of range</span>"
+
+#### FOR
+
+`FOR` command takes block of values and applies a rule on each of them:
+
+	>> lest [for planet in ["Earth" "Venus" "Mars"] [span planet]]                             
+	== <span>Earth</span><span>Venus</span><span>Mars</span>
+
+The block can be of course referenced by name:
+
+	>> lest [set planets ["Earth" "Venus" "Mars"] for planet in planets [span planet]]                 
+	== <span>Earth</span><span>Venus</span><span>Mars</span>
+
+Basic syntax is: `FOR <word> IN <block> [...]`
+
+#### other structural logic
+
+will be added later.
