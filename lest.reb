@@ -569,7 +569,7 @@ either-rule: rule [cond true-val false-val pos] [
 	:pos
 ]
 
-switch-rule: rule [value cases defval] [
+switch-rule: rule [value cases defval pos] [
 	'switch
 	(defval: none)
 	set value word!
