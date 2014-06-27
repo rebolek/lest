@@ -615,7 +615,7 @@ for-rule: rule [pos out var src content] [
 		]
 		change/only/part pos out 1
 	)
-	:pos into main-rule
+	:pos main-rule
 ]
 
 repeat-rule: [

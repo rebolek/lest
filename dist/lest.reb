@@ -2758,7 +2758,7 @@ lest: use [
                 ]
                 change/only/part pos out 1
             )
-            :pos into main-rule
+            :pos main-rule
         ]
         repeat-rule: [
             'repeat
