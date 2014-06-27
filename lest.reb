@@ -538,7 +538,7 @@ commands: [
 |	repeat-rule
 ]
 
-if-rule: rule [cond true-val] [
+if-rule: rule [cond true-val pos res] [
 	'if
 	set cond [logic! | word! | block!] 
 	pos:
