@@ -218,7 +218,7 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 You can set your words in **Lest** there are two types of them. User templates
 has been decribed above and are set using the **set-word** syntax.
 
-Variables are words that holt one value and are set using `SET` syntax.
+Variables are words that hold one value and are set using `SET` syntax.
 
 	>> lest [set value "Hello" span value]
 	== <span>Hello</span>
