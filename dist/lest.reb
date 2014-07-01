@@ -453,6 +453,7 @@ jQuery(document).ready(function () {
     ] smooth-scrolling [
         startup: [
             debug "==ENABLE SMOOTH SCROLLING"
+            append body [data-spy scroll data-target .navbar]
             append script {
 ^-  $(function() {
 ^-    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {
@@ -2472,13 +2473,6 @@ lest: use [
     buffer: copy ""
     header?: false
     tag-stack: copy []
-    includes: object [
-        style: make block! 1000
-        stylesheets: copy ""
-        header: copy ""
-        body-start: copy ""
-        body-end: copy ""
-    ]
     emit: func [
         data [string! block! tag!]
     ] [
@@ -2833,6 +2827,14 @@ lest: use [
             'debug set value string!
             (debug ["DEBUG:" value])
         ]
+        body-atts: rule [value] [
+            'append
+            'body
+            set value block!
+            (
+                append includes/body-tag value
+            )
+        ]
         script: rule [type value] [
             opt [set type ['insert | 'append]]
             'script
@@ -2856,13 +2858,15 @@ lest: use [
         ]
         stylesheet: rule [value] [
             pos:
-            'stylesheet set value [file! | url! | path!] (
-                if path? value [
-                    value: get first bind reduce [value] user-words
-                ]
-                emit-stylesheet value
-                debug ["==STYLESHEET:" value]
-            )
+            'stylesheet some [
+                set value [file! | url! | path!] (
+                    if path? value [
+                        value: get first bind reduce [value] user-words
+                    ]
+                    emit-stylesheet value
+                    debug ["==STYLESHEET:" value]
+                )
+            ]
         ]
         page-header: [
             'head (debug "==HEAD")
@@ -2873,6 +2877,7 @@ lest: use [
         header-content: rule [name value] [
             any [
                 'title set value string! (page/title: value debug "==TITLE")
+                | ['lang | 'language] set value word! (page/lang: value debug "==LANG")
                 | set-rule
                 | stylesheet
                 | style-rule
@@ -3028,6 +3033,7 @@ lest: use [
             ]
             | comment
             | debug-rule
+            | body-atts
             | stop
             | br
             | hr
@@ -3379,11 +3385,12 @@ lest: use [
             style: make block! 1000
             stylesheets: copy ""
             header: copy ""
-            body-start: copy ""
-            body-end: copy ""
+            body-tag: make block! 10
+            body-start: make string! 1000
+            body-end: make string! 1000
         ]
         page: reduce/no-set [
-            title: "Page generated with Bootrapy"
+            title: "Page generated with Lest"
             meta: copy ""
             lang: "en-US"
         ]
@@ -3431,7 +3438,7 @@ lest: use [
         body: either header? [
             ajoin [
                 <!DOCTYPE html> newline
-                <html lang="en-US"> newline
+                {<html lang="} page/lang {">} newline
                 <head> newline
                 <title> page/title </title> newline
                 <meta charset="utf-8"> newline
@@ -3439,7 +3446,7 @@ lest: use [
                 includes/stylesheets
                 includes/header
                 </head> newline
-                <body data-spy="scroll" data-target=".navbar">
+                build-tag 'body includes/body-tag
                 includes/body-start
                 body
                 includes/body-end
