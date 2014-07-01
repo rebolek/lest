@@ -732,15 +732,17 @@ script: rule [type value] [
 
 stylesheet: rule [value] [
 	pos:
-	'stylesheet set value [ file! | url! | path! ] (
-		if path? value [ 
-			; This way we get CSS-PATH from user words, 
-			; if it's been set or global is used when not
-			value: get first bind reduce [value] user-words 
-		]
-		emit-stylesheet value
-		debug ["==STYLESHEET:" value]
-	)
+	'stylesheet some [
+		set value [ file! | url! | path! ] (
+			if path? value [ 
+				; This way we get CSS-PATH from user words, 
+				; if it's been set or global is used when not
+				value: get first bind reduce [value] user-words 
+			]
+			emit-stylesheet value
+			debug ["==STYLESHEET:" value]
+		)		
+	]
 ]
 
 page-header: [
