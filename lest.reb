@@ -1353,7 +1353,7 @@ func [
 ; ---
 
 	page: reduce/no-set [
-		title: "Page generated with Bootrapy"
+		title: "Page generated with Lest"
 		meta: copy {}
 		lang: "en-US"
 	]
