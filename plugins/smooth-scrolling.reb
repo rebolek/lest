@@ -12,6 +12,7 @@ startup: [
 	debug "==ENABLE SMOOTH SCROLLING"
 	; TODO: this expect all controls to be part of UL with ID #page-nav
 	; make more generic, but do not break another anchors!!!
+	append body [data-spy scroll data-target .navbar]
 	append script {
 	  $(function() {
 	    $('ul#page-nav > li > a[href*=#]:not([href=#])').click(function() {

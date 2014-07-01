@@ -692,6 +692,15 @@ debug-rule: rule [ value ] [
 	( debug ["DEBUG:" value])
 ]
 
+body-atts: rule [value] [
+	'append
+	'body
+	set value block!
+	(
+		append includes/body-tag value
+	)
+]
+
 script: rule [type value] [
 	opt [ set type ['insert | 'append] ]
 	'script
@@ -934,6 +943,7 @@ basic-elems: [
 	]
 |	comment
 |	debug-rule
+|	body-atts
 |	stop
 |	br
 |	hr
