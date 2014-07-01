@@ -255,14 +255,6 @@ header?: false
 
 tag-stack: copy []
 
-includes: object [
-	style:			make block! 1000
-	stylesheets: 	copy {}
-	header:			copy {}
-	body-start:		copy {}
-	body-end: 		copy {}
-]
-
 ; === actions
 
 emit: func [
@@ -1344,12 +1336,14 @@ func [
 	buffer: copy ""
 
 	includes: object [
-		style: 			make block! 1000
+		style:			make block! 1000
 		stylesheets: 	copy {}
 		header:			copy {}
-		body-start:		copy {}
-		body-end: 		copy {}
+		body-tag:		make block! 10
+		body-start:		make string! 1000
+		body-end: 		make string! 1000
 	]
+
 
 ; ---
 
@@ -1417,7 +1411,8 @@ func [
 		includes/stylesheets
 		includes/header
 	</head> newline
-	<body data-spy="scroll" data-target=".navbar">	; WHAT AN UGLY HACK!!!
+;	<body data-spy="scroll" data-target=".navbar">	; WHAT AN UGLY HACK!!!
+	build-tag 'body includes/body-tag
 		includes/body-start
 		body
 		includes/body-end
