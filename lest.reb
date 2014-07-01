@@ -755,6 +755,7 @@ page-header: [
 header-content: rule [name value] [
 	any [
 		'title set value string! (page/title: value debug "==TITLE")
+	|	['lang | 'language] set value word! (page/lang: value debug "==LANG")	
 	|	set-rule	
 	|	stylesheet
 	|	style-rule
@@ -1408,7 +1409,7 @@ func [
 	body: either header? [
 		ajoin [
 <!DOCTYPE html> newline
-<html lang="en-US"> newline
+{<html lang="} page/lang {">} newline
 	<head> newline
 		<title> page/title </title> newline
 		<meta charset="utf-8"> newline
