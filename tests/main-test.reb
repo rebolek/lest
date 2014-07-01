@@ -268,3 +268,41 @@
 
 [ {<b>bold</b>} = tf [([b "bold"])] ]
 [ {<b>bold</b>} = tf [(reduce ['b join "bo" "ld"])] ]
+
+; ========= tests with header ===========
+
+[
+	equal?
+		{<!DOCTYPE html> <html lang="en-US"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> </head> <body></body></html>}
+		trim/lines tf [ head body "" ]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="en-US"> <head> <title>test</title> <meta charset="utf-8"> </head> <body></body></html>}
+		trim/lines tf [ head title "test" body "" ]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="cs"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> </head> <body></body></html>}
+		trim/lines tf [ head lang cs body "" ]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="cs"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> </head> <body></body></html>}
+		trim/lines tf [ head language cs body "" ]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="en-US"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> <link href="asdf.css" rel="stylesheet"> </head> <body></body></html>}
+		trim/lines lest [head stylesheet %asdf.css body ""]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="en-US"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> <link href="asdf.css" rel="stylesheet"> <link href="ghjk.css" rel="stylesheet"> </head> <body></body></html>}
+		trim/lines lest [head stylesheet %asdf.css %ghjk.css body ""]
+]
+[
+	equal?
+		{<!DOCTYPE html> <html lang="en-US"> <head> <title>Page generated with Lest</title> <meta charset="utf-8"> <link href="http://css.org/asdf.css" rel="stylesheet"> </head> <body></body></html>}
+		trim/lines lest [head stylesheet http://css.org/asdf.css body ""]
+]
