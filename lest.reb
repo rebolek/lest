@@ -1105,21 +1105,22 @@ radio: rule [type] [
 	(
 		debug "==RADIO"
 		emit [ "" <div class="radio"> ]
-		special: copy []
+		special: map 0
 	)
 	init-input
 	set name word!
 	set value [ word! | string! | number! ]
 	some [
 		set label string!
-	|	'checked ( append special 'checked )
+	|	'checked ( append tag [checked: true] )
 	|	style
 	]
 	take-tag
 	(
 		append tag compose [ type: (type) name: (name) value: (value) ]
 		emit [
-			make-tag/special tag special
+		;	make-tag/special tag special
+			build-tag tag-name tag
 				{<label for="} tag/id {">} label
 				</label>
 			</div>
