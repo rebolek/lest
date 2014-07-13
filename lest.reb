@@ -1119,7 +1119,6 @@ radio: rule [type] [
 	(
 		append tag compose [ type: (type) name: (name) value: (value) ]
 		emit [
-		;	make-tag/special tag special
 			build-tag tag-name tag
 				{<label for="} tag/id {">} label
 				</label>
@@ -1365,37 +1364,6 @@ func [
 	]
 
 	header?: false
-
-	make-tag: funct [
-		tag [object!]
-		/special "Special attributes (without value):"
-			attributes	[block!]
-	][
-		out: make string! 256
-		skip?: false
-		repend out [ "<" tag/element ]
-		tag: head remove/part find body-of tag to set-word! 'element 2
-		foreach [ key value ] tag [
-			skip?: false
-			value: switch/default type?/word value [
-				block!	[
-					if empty? value [ skip?: true ]
-					catenate value #" "
-				]
-				string!	[ if empty? value [ skip?: true ] value ]
-				none!	[ skip?: true ]
-			][
-				form value
-			]
-			unless skip? [
-				repend out [ " " to word! key {="} value {"} ]
-			]
-		]
-		unless empty? attributes [
-			append out join #" " form attributes
-		]
-		append out #">"
-	]
 
 	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
