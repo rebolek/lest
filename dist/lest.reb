@@ -2053,7 +2053,7 @@ lest: use [
             header-content
             'body (debug "==BODY")
         ]
-        header-content: rule [name value] [
+        header-content: rule [type name value] [
             any [
                 'title set value string! (page/title: value debug "==TITLE")
                 | ['lang | 'language] set value word! (page/lang: value debug "==LANG")
@@ -2073,6 +2073,9 @@ lest: use [
                 ]
                 | 'meta set name word! set value string! (
                     repend page/meta [{<meta name="} name {" content="} value {">}]
+                )
+                | 'meta set type set-word! set name word! set value string! (
+                    repend page/meta ["<meta " type {="} name {" content="} value {">}]
                 )
                 | 'favicon set value url! (
                     repend includes/header [
