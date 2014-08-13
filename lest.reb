@@ -330,7 +330,7 @@ import: rule [p value] [
 	; LOAD AND EMIT FILE
 	'import p: set value [ file! | url! ]
 	( p/1: load value )
-	:p into elements
+	:p main-rule
 ]
 
 text-settings: rule [type] [
