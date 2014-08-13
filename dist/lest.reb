@@ -2075,7 +2075,7 @@ lest: use [
                     repend page/meta [{<meta name="} name {" content="} value {">}]
                 )
                 | 'meta set type set-word! set name word! set value string! (
-                    repend page/meta ["<meta " type {="} name {" content="} value {">}]
+                    repend page/meta ["<meta " to word! type {="} name {" content="} value {">}]
                 )
                 | 'favicon set value url! (
                     repend includes/header [
