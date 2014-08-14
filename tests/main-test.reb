@@ -274,6 +274,13 @@
 [ {<span>value is </span><span>many</span>} = tf [ set x 23 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>Brno</span>} = tf [ set name "Brno" span name ] ]
 
+; loops
+[ 	
+	equal?
+		"<div>1</div><div>2</div><div>3</div>"
+		tf [repeat [div <x>] replace <x> from ["1" "2" "3"]] 
+]
+
 ; inline code
 
 [ {<b>bold</b>} = tf [([b "bold"])] ]
