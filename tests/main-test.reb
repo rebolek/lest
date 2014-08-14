@@ -195,6 +195,16 @@
 	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
 	tf [ form %script [ submit "Bye" ] ]
 ]
+[
+	equal?
+	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
+	tf [ form %script [ submit "Bye" ] ]
+]
+[
+	equal?
+	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default" name="action" value="login">Log In</button></form>}
+	tf [ form %script [ submit with action "login" "Log In" ] ]
+]
 
 ; USER tags
 
@@ -237,7 +247,7 @@
 		greeting "Hello" "world"
 	]
 ]
-
+[ {<span>nazdar</span>} = tf [ pozdrav: [span "ahoj"] pozdrav: [span "nazdar"] pozdrav] ]
 ; dynamic code
 
 [ {<div>Brno</div>} = tf [ either [true] div span "Brno" ] ]
