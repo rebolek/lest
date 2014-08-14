@@ -427,7 +427,7 @@ user-rule: rule [name label type value urule args pos this-rule] [
 			]
 			to get-word! 'pos 'into main-rule
 		]
-		either probe idx [
+		either idx [
 			; existing rule, modify
 			change/only at user-rules idx this-rule
 		] [
@@ -513,7 +513,7 @@ make-row: [
 				]
 				append out current
 			]
-			change/only pos probe compose/deep [ row [ (out) ] ]
+			change/only pos compose/deep [ row [ (out) ] ]
 		)
 		:pos into main-rule
 	]
@@ -1198,9 +1198,10 @@ hidden: rule [name value] [
 	( append tag compose [ type: 'hidden name: (name) value: (value) ] )
 	emit-tag
 ]
-submit: rule [label] [
+submit: rule [label name value] [
 	'submit
 	(
+		name: value: none
 		insert tag-stack reduce [
 			'button
 			tag: context [
@@ -1210,12 +1211,20 @@ submit: rule [label] [
 			]
 		]
 	)
+	opt [set name word! set value string!]
 	some [
 		set label string!
 	|	style
 	]
 	take-tag
 	(
+		if all [name value] [
+			append tag compose [
+				name: (name)
+				value: (value)
+			]
+		]
+		print mold tag
 		switch/default form-type [
 			horizontal [
 				emit [
