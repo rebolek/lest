@@ -280,6 +280,11 @@
 		"<div>1</div><div>2</div><div>3</div>"
 		tf [repeat [div <x>] replace <x> from ["1" "2" "3"]] 
 ]
+[
+	equal?
+		"<div>1</div><div>2</div><div>3</div>"
+		tf [repeat [div <x>] 3 times replace <x> with [form index]] 
+]
 
 ; inline code
 
