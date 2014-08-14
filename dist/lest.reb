@@ -2454,7 +2454,7 @@ lest: use [
                     ]
                 ]
             )
-            opt [set name word! set value string!]
+            opt ['with set name word! set value string!]
             some [
                 set label string!
                 | style
@@ -2467,7 +2467,6 @@ lest: use [
                         value: (value)
                     ]
                 ]
-                print mold tag
                 switch/default form-type [
                     horizontal [
                         emit [

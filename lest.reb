@@ -1211,7 +1211,7 @@ submit: rule [label name value] [
 			]
 		]
 	)
-	opt [set name word! set value string!]
+	opt ['with set name word! set value string!]
 	some [
 		set label string!
 	|	style
@@ -1224,7 +1224,6 @@ submit: rule [label name value] [
 				value: (value)
 			]
 		]
-		print mold tag
 		switch/default form-type [
 			horizontal [
 				emit [
