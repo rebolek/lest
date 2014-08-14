@@ -76,6 +76,19 @@ dot: #"."
 ; |_____/   \____/  |_|      |_|       \____/  |_|  \_\    |_|      |_|       \____/  |_| \_|  \_____| |_____/
 ;
 
+attach: function [
+	"Append value to block only when not present. Return FALSE when value is present."
+	block
+	value
+] [
+	either found: find block value [
+		found
+	] [
+		append block value
+		true
+	]
+]
+
 escape-entities: funct [
 	"Escape HTML entities. Only partial support now."
 	data
@@ -370,11 +383,17 @@ set-rule: rule [ label value ] [
 	)
 ]
 
-user-rule: rule [ name label type value urule args ] [
+user-rule: rule [name label type value urule args pos this-rule] [
 	set name set-word!
 	(
-		args: copy [ ]
-		add-rule user-rules reduce [
+		args: copy []
+		idx: none
+		if block? pos: attach user-rule-names name [
+			; rule already exists, remove it
+			idx: (index? pos) * 2 + 1
+		]
+
+		this-rule: reduce [
 			to set-word! 'pos
 			to lit-word! name
 		]
@@ -388,12 +407,12 @@ user-rule: rule [ name label type value urule args ] [
 				to paren! reduce/no-set [ to set-path! 'px/1 label ]
 			]
 
-			repend last user-rules [ to set-word! 'pos 'set label type ]
+			repend this-rule [ to set-word! 'pos 'set label type ]
 		)
 	]
 	set value block!
 	(
-		append last user-rules reduce [
+		append this-rule reduce [
 			to paren! compose/only [
 				; TODO: move rule outside
 				urule: ( compose [
@@ -407,6 +426,13 @@ user-rule: rule [ name label type value urule args ] [
 				change/only pos temp
 			]
 			to get-word! 'pos 'into main-rule
+		]
+		either probe idx [
+			; existing rule, modify
+			change/only at user-rules idx this-rule
+		] [
+			; new rule, add
+			add-rule user-rules this-rule
 		]
 	)
 ]
@@ -1313,6 +1339,7 @@ load-plugin: func [
 ]
 
 user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
+user-rule-names: make block! 100
 user-words: object []
 user-values: [ fail ]
 
@@ -1342,6 +1369,7 @@ func [
 
 	tag-stack: copy []
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
+	user-rule-names: make block! 100
 	user-words: object []
 	user-values: copy [ fail ]
 

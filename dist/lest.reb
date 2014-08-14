@@ -1499,6 +1499,18 @@ css-path: %css/
 plugin-path: %plugins/
 text-style: 'html
 dot: #"."
+attach: function [
+    {Append value to block only when not present. Return FALSE when value is present.}
+    block
+    value
+] [
+    either found: find block value [
+        found
+    ] [
+        append block value
+        true
+    ]
+]
 escape-entities: funct [
     "Escape HTML entities. Only partial support now."
     data
@@ -1734,11 +1746,15 @@ lest: use [
                 repend user-words [to set-word! label value]
             )
         ]
-        user-rule: rule [name label type value urule args] [
+        user-rule: rule [name label type value urule args pos this-rule] [
             set name set-word!
             (
                 args: copy []
-                add-rule user-rules reduce [
+                idx: none
+                if block? pos: attach user-rule-names name [
+                    idx: (index? pos) * 2 + 1
+                ]
+                this-rule: reduce [
                     to set-word! 'pos
                     to lit-word! name
                 ]
@@ -1751,12 +1767,12 @@ lest: use [
                         to set-word! 'px to lit-word! label
                         to paren! reduce/no-set [to set-path! 'px/1 label]
                     ]
-                    repend last user-rules [to set-word! 'pos 'set label type]
+                    repend this-rule [to set-word! 'pos 'set label type]
                 )
             ]
             set value block!
             (
-                append last user-rules reduce [
+                append this-rule reduce [
                     to paren! compose/only [
                         urule: (compose [
                                 any-string!
@@ -1768,6 +1784,11 @@ lest: use [
                         change/only pos temp
                     ]
                     to get-word! 'pos 'into main-rule
+                ]
+                either probe idx [
+                    change/only at user-rules idx this-rule
+                ] [
+                    add-rule user-rules this-rule
                 ]
             )
         ]
@@ -2544,6 +2565,7 @@ lest: use [
         none
     ]
     user-rules: rule [] [fail]
+    user-rule-names: make block! 100
     user-words: object []
     user-values: [fail]
     out-file: none
@@ -2559,6 +2581,7 @@ lest: use [
         ]
         tag-stack: copy []
         user-rules: copy [fail]
+        user-rule-names: make block! 100
         user-words: object []
         user-values: copy [fail]
         output: copy ""
