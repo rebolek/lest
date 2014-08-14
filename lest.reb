@@ -636,7 +636,7 @@ for-rule: rule [pos out var src content] [
 	:pos main-rule
 ]
 
-repeat-rule: [
+repeat-rule: rule [offset element count valua data pos current][
 	'repeat
 	( offset: none )
 	opt [
@@ -644,6 +644,10 @@ repeat-rule: [
 		set offset integer!
 	]
 	set element block!
+	opt [
+		set count [integer! | block!]
+		'times
+	]
 	'replace
 	set value tag!
 	[
@@ -668,10 +672,19 @@ repeat-rule: [
 		]
 	|	[
 			'with
-			set data block!
+			pos: set data block!
 			(
-
+				if block? count [count: do count]
+				out: make block! length? data
+				repeat index count [
+					current: copy/deep element
+					replace-deep current value (do bind data 'index)
+					; NOTE: do bind... throws PARSE error when not in paren! (?)
+					append out current
+				]
+				change/part pos out 1
 			)
+			:pos
 		]
 	]
 ]

@@ -1954,7 +1954,7 @@ lest: use [
             )
             :pos main-rule
         ]
-        repeat-rule: [
+        repeat-rule: rule [offset element count valua data pos current] [
             'repeat
             (offset: none)
             opt [
@@ -1962,6 +1962,10 @@ lest: use [
                 set offset integer!
             ]
             set element block!
+            opt [
+                set count [integer! | block!]
+                'times
+            ]
             'replace
             set value tag!
             [
@@ -1986,8 +1990,18 @@ lest: use [
                 ]
                 | [
                     'with
-                    set data block!
-                    ()
+                    pos: set data block!
+                    (
+                        if block? count [count: do count]
+                        out: make block! length? data
+                        repeat index count [
+                            current: copy/deep element
+                            replace-deep current value (do bind data 'index)
+                            append out current
+                        ]
+                        change/part pos out 1
+                    )
+                    :pos
                 ]
             ]
         ]
