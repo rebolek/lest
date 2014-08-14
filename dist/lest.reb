@@ -1954,9 +1954,12 @@ lest: use [
             )
             :pos main-rule
         ]
-        repeat-rule: rule [offset element count valua data pos current] [
+        repeat-rule: rule [offset element count value values data pos current] [
             'repeat
-            (offset: none)
+            (
+                offset: none
+                values: make block! 4
+            )
             opt [
                 'offset
                 set offset integer!
@@ -1967,7 +1970,7 @@ lest: use [
                 'times
             ]
             'replace
-            set value tag!
+            some [set value tag! (append values value)]
             [
                 [
                     'from
@@ -1977,7 +1980,9 @@ lest: use [
                         out: make block! length? data
                         foreach item data [
                             current: copy/deep element
-                            replace-deep current value item
+                            foreach value values [
+                                replace-deep current value item
+                            ]
                             if offset [
                                 insert skip find current 'col 2 reduce ['offset offset]
                                 offset: none
@@ -1996,7 +2001,14 @@ lest: use [
                         out: make block! length? data
                         repeat index count [
                             current: copy/deep element
-                            replace-deep current value (do bind data 'index)
+                            result: do bind data 'index
+                            either 1 = length? values [
+                                replace-deep current values/1 result
+                            ] [
+                                foreach value values [
+                                    replace-deep current value (take result)
+                                ]
+                            ]
                             append out current
                         ]
                         change/part pos out 1

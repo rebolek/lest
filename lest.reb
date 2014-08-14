@@ -636,9 +636,12 @@ for-rule: rule [pos out var src content] [
 	:pos main-rule
 ]
 
-repeat-rule: rule [offset element count valua data pos current][
+repeat-rule: rule [offset element count value values data pos current][
 	'repeat
-	( offset: none )
+	( 
+		offset: none 
+		values: make block! 4
+	)
 	opt [
 		'offset
 		set offset integer!
@@ -649,7 +652,7 @@ repeat-rule: rule [offset element count valua data pos current][
 		'times
 	]
 	'replace
-	set value tag!
+	some [set value tag! (append values value)]
 	[
 		[
 			'from
@@ -659,7 +662,10 @@ repeat-rule: rule [offset element count valua data pos current][
 				out: make block! length? data
 				foreach item data [
 					current: copy/deep element
-					replace-deep current value item
+					foreach value values [
+						replace-deep current value item
+						; FIXME: won't work for multiple values
+					]
 					if offset [
 						insert skip find current 'col 2 reduce [ 'offset offset ]
 						offset: none
@@ -678,8 +684,14 @@ repeat-rule: rule [offset element count valua data pos current][
 				out: make block! length? data
 				repeat index count [
 					current: copy/deep element
-					replace-deep current value (do bind data 'index)
-					; NOTE: do bind... throws PARSE error when not in paren! (?)
+					result: do bind data 'index
+					either 1 = length? values [
+						replace-deep current values/1 result
+					] [
+						foreach value values [
+							replace-deep current value (take result)
+						]
+					]
 					append out current
 				]
 				change/part pos out 1
