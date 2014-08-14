@@ -649,7 +649,7 @@ repeat-rule: [
 	[
 		[
 			'from
-			set data [ block! | word! ]
+			pos: set data [ block! | word! ]
 			(
 				if word? data [ data: get data ]
 				out: make block! length? data
@@ -662,8 +662,9 @@ repeat-rule: [
 					]
 					append out current
 				]
-				emit lest compose/deep [ row [ (out) ] ]
+				change/part pos out 1
 			)
+			:pos
 		]
 	|	[
 			'with
@@ -1191,11 +1192,13 @@ hidden: rule [name value] [
 	init-input
 	set name word!
 	some [
-		set value string!
+		set value [string! | get-word!] (value: get value)
 	|	style
 	]
 	take-tag
-	( append tag compose [ type: 'hidden name: (name) value: (value) ] )
+	(
+		append tag compose [ type: 'hidden name: (name) value: (value) ] 
+	)
 	emit-tag
 ]
 submit: rule [label name value] [
