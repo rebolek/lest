@@ -22,9 +22,7 @@ currently used in:
 		}
 		"support char! as basic input (beside string!)"
 		"add anything! type for user rules that will parse anything parsable in bootrapy"
-		"REPEAT: support multiple variables"
 		"REPEAT: support for lists (or vice versa - lists, support for repeat"
-		"REPEAT should be universal"
 		"Bootstrap BOX component"
 		{
 Add webserver that can serve pages directly:
@@ -36,6 +34,18 @@ Add webserver that can serve pages directly:
 		"FORM is Bootstrap optimized, divide"
 		"FIX: form leaks default, value, name"
 		"FIX: main-rule and match-content mišmaš: one rule with all rules and one rule to match that rule, block, commands and string (not in that order)"
+
+		{
+			GET-USER-VALUE: (MATCH-VALUE)
+
+			Rule will check for user content (using get-word! or word!),
+			replace it and continue parsing:
+
+			GET-USER-VALUE SET value string!
+
+			so data like: [TAG :USER-VAL] are changed to [TAG "user-val"]
+		} 
+
 	]
 ]
 
@@ -371,11 +381,12 @@ set-rule: rule [ label value ] [
 		][value]
 		; add rules, if not exists
 		unless in user-words label [
-			append user-values compose [ 
-				| 
-					pos: (to lit-word! label) 
+			append second user-values compose [ 
+				|
+				;	pos: 
+					(to lit-word! label) 
 					(to paren! compose [change pos (to path! reduce ['user-words label])]) 
-					:pos
+				;	:pos
 			]
 		]
 		; extend user context with new value
@@ -1193,10 +1204,13 @@ textarea: [
 	(
 		value: ""
 		default: ""
+		print "we are in textarea"
+		print mold user-values
 	)
 	some [
 		set size pair!
-	|	set label string!
+;	|	set label string!
+	|	basic-string-match (label: value value: "")
 	|	'default set default string!
 	|	'value set value string!
 	|	style
@@ -1377,7 +1391,7 @@ load-plugin: func [
 user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
 user-rule-names: make block! 100
 user-words: object []
-user-values: [ fail ]
+user-values: copy/deep [ pos: [fail] :pos ]
 
 ;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
@@ -1407,7 +1421,7 @@ func [
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
 	user-rule-names: make block! 100
 	user-words: object []
-	user-values: copy [ fail ]
+	user-values: copy/deep [ pos: [fail] :pos ]
 
 	output: copy ""
 	buffer: copy ""
