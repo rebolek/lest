@@ -1736,11 +1736,10 @@ lest: use [
                     false no off [lib/false]
                 ] [value]
                 unless in user-words label [
-                    append user-values compose [
+                    append second user-values compose [
                         |
-                        pos: (to lit-word! label)
+                        (to lit-word! label)
                         (to paren! compose [change pos (to path! reduce ['user-words label])])
-                        :pos
                     ]
                 ]
                 repend user-words [to set-word! label value]
@@ -2437,10 +2436,12 @@ lest: use [
             (
                 value: ""
                 default: ""
+                print "we are in textarea"
+                print mold user-values
             )
             some [
                 set size pair!
-                | set label string!
+                | basic-string-match (label: value value: "")
                 | 'default set default string!
                 | 'value set value string!
                 | style
@@ -2604,7 +2605,7 @@ lest: use [
     user-rules: rule [] [fail]
     user-rule-names: make block! 100
     user-words: object []
-    user-values: [fail]
+    user-values: copy/deep [pos: [fail] :pos]
     out-file: none
     func [
         "Parse simple HTML dialect"
@@ -2620,7 +2621,7 @@ lest: use [
         user-rules: copy [fail]
         user-rule-names: make block! 100
         user-words: object []
-        user-values: copy [fail]
+        user-values: copy/deep [pos: [fail] :pos]
         output: copy ""
         buffer: copy ""
         includes: object [
