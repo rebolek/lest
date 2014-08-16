@@ -383,10 +383,8 @@ set-rule: rule [ label value ] [
 		unless in user-words label [
 			append second user-values compose [ 
 				|
-				;	pos: 
 					(to lit-word! label) 
 					(to paren! compose [change pos (to path! reduce ['user-words label])]) 
-				;	:pos
 			]
 		]
 		; extend user context with new value
