@@ -661,7 +661,7 @@ repeat-rule: rule [offset element count value values data pos current][
 		'times
 	]
 	'replace
-	some [set value tag! (append values value)]
+	some [set value get-word! (append values value)]
 	[
 		[
 			'from
