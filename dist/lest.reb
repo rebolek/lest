@@ -1811,7 +1811,7 @@ lest: use [
             ]
             set element block!
             'replace
-            set value tag!
+            set value get-word!
             [
                 'from
                 set data pos: [block! | word! | file! | url!]
@@ -1964,12 +1964,12 @@ lest: use [
                 set offset integer!
             ]
             set element block!
+            'replace
+            some [set value get-word! (append values value)]
             opt [
                 set count [integer! | block!]
                 'times
             ]
-            'replace
-            some [set value get-word! (append values value)]
             [
                 [
                     'from

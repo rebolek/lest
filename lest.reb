@@ -22,7 +22,6 @@ currently used in:
 		}
 		"support char! as basic input (beside string!)"
 		"add anything! type for user rules that will parse anything parsable in bootrapy"
-		"REPEAT: support for lists (or vice versa - lists, support for repeat"
 		"Bootstrap BOX component"
 		{
 Add webserver that can serve pages directly:
@@ -485,7 +484,7 @@ make-row: [
 	]
 	set element block!
 	'replace
-	set value tag!
+	set value get-word!
 	[
 		'from
 		set data pos: [ block! | word! | file! | url! ]
@@ -656,12 +655,12 @@ repeat-rule: rule [offset element count value values data pos current][
 		set offset integer!
 	]
 	set element block!
-	opt [
+	'replace
+	some [set value get-word! (append values value)]
+		opt [
 		set count [integer! | block!]
 		'times
 	]
-	'replace
-	some [set value get-word! (append values value)]
 	[
 		[
 			'from
