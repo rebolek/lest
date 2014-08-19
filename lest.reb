@@ -1151,8 +1151,6 @@ input-parameters: [
 		set label string!
 	|	'default get-user-value set default string!
 	|	'value get-user-value set value string!
-;	|	'default set default string!
-;	|	'value set value string!	
 	|	style
 	]
 ]
@@ -1223,8 +1221,8 @@ textarea: [
 		set size pair!
 ;	|	set label string!
 	|	basic-string-match (label: value value: "")
-	|	'default set default string!
-	|	'value set value string!
+	|	'default get-user-value set default string!
+	|	'value get-user-value set value string!
 	|	style
 	]
 	take-tag

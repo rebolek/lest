@@ -2454,8 +2454,8 @@ lest: use [
             some [
                 set size pair!
                 | basic-string-match (label: value value: "")
-                | 'default set default string!
-                | 'value set value string!
+                | 'default get-user-value set default string!
+                | 'value get-user-value set value string!
                 | style
             ]
             take-tag
