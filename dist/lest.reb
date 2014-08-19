@@ -2436,8 +2436,6 @@ lest: use [
             (
                 value: ""
                 default: ""
-                print "we are in textarea"
-                print mold user-values
             )
             some [
                 set size pair!
