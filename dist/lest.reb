@@ -1745,6 +1745,14 @@ lest: use [
                 repend user-words [to set-word! label value]
             )
         ]
+        get-user-value: rule [value] [
+            pos:
+            set value any-type!
+            (
+                if in user-words value [pos/1: user-words/:value]
+            )
+            :pos
+        ]
         user-rule: rule [name label type value urule args pos this-rule] [
             set name set-word!
             (
@@ -2370,8 +2378,8 @@ lest: use [
             set name word!
             some [
                 set label string!
-                | 'default set default string!
-                | 'value set value string!
+                | 'default get-user-value set default string!
+                | 'value get-user-value set value string!
                 | style
             ]
         ]
