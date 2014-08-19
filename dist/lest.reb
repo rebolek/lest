@@ -1731,6 +1731,7 @@ lest: use [
             set label word!
             set value any-type!
             (
+                if paren? value [value: do value]
                 value: switch/default value [
                     true yes on [lib/true]
                     false no off [lib/false]

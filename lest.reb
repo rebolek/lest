@@ -373,6 +373,7 @@ set-rule: rule [ label value ] [
 	set label word!
 	set value any-type!
 	(
+		if paren? value [value: do value]
 		value: switch/default value [
 			; predefined values
 			true yes on [lib/true]
