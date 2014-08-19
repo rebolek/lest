@@ -396,7 +396,12 @@ get-user-value: rule [value] [
 	pos:
 	set value any-type!
 	(
-		if in user-words value [pos/1: user-words/:value]
+		if all [
+			word? value 
+			in user-words value
+		] [
+			pos/1: user-words/:value
+		]
 	)
 	:pos
 ]
@@ -1146,6 +1151,8 @@ input-parameters: [
 		set label string!
 	|	'default get-user-value set default string!
 	|	'value get-user-value set value string!
+;	|	'default set default string!
+;	|	'value set value string!	
 	|	style
 	]
 ]

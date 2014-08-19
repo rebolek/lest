@@ -1750,7 +1750,12 @@ lest: use [
             pos:
             set value any-type!
             (
-                if in user-words value [pos/1: user-words/:value]
+                if all [
+                    word? value
+                    in user-words value
+                ] [
+                    pos/1: user-words/:value
+                ]
             )
             :pos
         ]
