@@ -1294,6 +1294,23 @@ submit: rule [label name value] [
 		]
 	)
 ]
+select-input: rule [label name value] [
+	set tag-name 'select 
+	init-tag
+	set name word! (append tag compose [name: (name)])
+	emit-tag
+	some [
+		set value word!
+		set label string!
+		(tag-name: 'option)
+		init-tag
+		(append tag compose [value: (value)])
+		emit-tag
+		(emit label)
+		end-tag	
+	]
+	end-tag
+]
 
 form-content: [
 	[
@@ -1304,6 +1321,7 @@ form-content: [
 	|	radio
 	|	submit
 	|	hidden
+	|	select-input
 ;	|	plugins ; to enable captcha, password-strength, etc.
 	; TODO: elements ?
 	]

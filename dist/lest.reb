@@ -594,6 +594,14 @@ jQuery(document).ready(function () {
             emit-tag
             end-tag
         ]
+    ] bootstrap-datetime-picker [
+        startup: [
+            stylesheet css-path/bootstrap-datetimepicker.min.css
+            append script js-path/bootstrap-datetimepicker.min.js
+        ]
+        rule: [
+            'datetime
+        ]
     ] google-font [
         startup: [
             stylesheet css-path/bootstrap.min.css
@@ -2526,6 +2534,23 @@ lest: use [
                 ]
             )
         ]
+        select-input: rule [label name value] [
+            set tag-name 'select
+            init-tag
+            set name word! (append tag compose [name: (name)])
+            emit-tag
+            some [
+                set value word!
+                set label string!
+                (tag-name: 'option)
+                init-tag
+                (append tag compose [value: (value)])
+                emit-tag
+                (emit label)
+                end-tag
+            ]
+            end-tag
+        ]
         form-content: [
             [
                 br
@@ -2535,6 +2560,7 @@ lest: use [
                 | radio
                 | submit
                 | hidden
+                | select-input
             ]
         ]
         form-type: none
