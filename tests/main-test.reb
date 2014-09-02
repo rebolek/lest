@@ -56,6 +56,7 @@
 [ {<div id="test-1">test</div>} 						= tf [ set x "test" div id [x #"-" 1] "test" ] ]
 [ {<div id="my-test" class="test-1">test</div>} 		= tf [ set x "test" div id ["my" #"-" 'test] class [x #"-" 1] "test" ] ]
 [ {<b>test</b>} 										= tf [ set x (join "te" "st") b x ] ]
+[ {<b>test</b>} 										= tf [ set x ("te") set y (join x "st") b y ] ]
 
 ; tag nesting
 
