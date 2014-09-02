@@ -1731,7 +1731,9 @@ lest: use [
         ]
         do-code: rule [p value] [
             p: set value paren!
-            (p/1: append clear [] do bind to block! value user-words)
+            (
+                p/1: append clear [] do bind to block! value user-words
+            )
             :p main-rule
         ]
         set-rule: rule [label value] [
@@ -1739,7 +1741,7 @@ lest: use [
             set label word!
             set value any-type!
             (
-                if paren? value [value: do value]
+                if paren? value [value: do bind to block! value user-words]
                 value: switch/default value [
                     true yes on [lib/true]
                     false no off [lib/false]
@@ -1758,10 +1760,9 @@ lest: use [
             pos:
             set value any-type!
             (
-                if all [
+                all [
                     word? value
                     in user-words value
-                ] [
                     pos/1: user-words/:value
                 ]
             )
@@ -1981,16 +1982,17 @@ lest: use [
                 offset: none
                 values: make block! 4
             )
-            opt [
-                'offset
-                set offset integer!
-            ]
+            get-user-value
             set element block!
             'replace
             some [set value get-word! (append values value)]
             opt [
                 set count [integer! | block!]
                 'times
+            ]
+            opt [
+                'offset
+                set offset integer!
             ]
             [
                 [

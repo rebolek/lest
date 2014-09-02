@@ -364,7 +364,9 @@ text-settings: rule [type] [
 do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
-	( p/1: append clear [] do bind to block! value user-words )
+	( 
+		p/1: append clear [] do bind to block! value user-words 
+	)
 	:p main-rule
 	]
 
@@ -373,7 +375,7 @@ set-rule: rule [ label value ] [
 	set label word!
 	set value any-type!
 	(
-		if paren? value [value: do value]
+		if paren? value [value: do bind to block! value user-words]
 		value: switch/default value [
 			; predefined values
 			true yes on [lib/true]
@@ -396,10 +398,9 @@ get-user-value: rule [value] [
 	pos:
 	set value any-type!
 	(
-		if all [
+		all [
 			word? value 
 			in user-words value
-		] [
 			pos/1: user-words/:value
 		]
 	)
@@ -665,16 +666,17 @@ repeat-rule: rule [offset element count value values data pos current][
 		offset: none 
 		values: make block! 4
 	)
-	opt [
-		'offset
-		set offset integer!
-	]
+	get-user-value
 	set element block!
 	'replace
 	some [set value get-word! (append values value)]
-		opt [
+	opt [
 		set count [integer! | block!]
 		'times
+	]
+	opt [
+		'offset
+		set offset integer!
 	]
 	[
 		[
