@@ -1308,6 +1308,10 @@ select-input: rule [label name value] [
 		(tag-name: 'option)
 		init-tag
 		(append tag compose [value: (value)])
+		opt [
+			'selected
+			(append tag [selected: "selected"])
+		]
 		emit-tag
 		(emit label)
 		end-tag	
