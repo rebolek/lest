@@ -222,6 +222,16 @@
 	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default" name="action" value="login">Log In</button></form>}
 	tf [ form %script [ submit with action "login" "Log In" ] ]
 ]
+[
+	equal?
+	{<form action="script" method="post" role="form"><select name="sl"><option value="a">a</option><option value="b">b</option></select></form>}
+	tf [form %script [select sl a "a" b "b"]]
+]
+[
+	equal?
+	{<form action="script" method="post" role="form"><select name="sl"><option value="a" selected="selected">a</option><option value="b">b</option></select></form>}	
+	tf [form %script [select sl a "a" selected b "b"]]
+]
 
 ; USER tags
 
