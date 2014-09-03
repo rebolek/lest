@@ -2396,6 +2396,7 @@ lest: use [
                 set label string!
                 | 'default get-user-value set default string!
                 | 'value get-user-value set value string!
+                | 'checked (append tag [checked: true])
                 | style
             ]
         ]
@@ -2568,8 +2569,12 @@ lest: use [
         form-type: none
         form-rule: rule [value form-type] [
             set tag-name 'form
-            (form-type: none)
+            (form-type: enctype: none)
             init-tag
+            opt [
+                'multipart
+                (enctype: "multipart/form-data")
+            ]
             opt [
                 'horizontal
                 (form-type: 'horizontal)
@@ -2579,6 +2584,7 @@ lest: use [
                     action: (value)
                     method: 'post
                     role: 'form
+                    enctype: (enctype)
                 ]
                 if form-type [append tag/class join "form-" form-type]
             )

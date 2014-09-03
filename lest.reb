@@ -1153,6 +1153,7 @@ input-parameters: [
 		set label string!
 	|	'default get-user-value set default string!
 	|	'value get-user-value set value string!
+	|	'checked ( append tag [checked: true] )
 	|	style
 	]
 ]
@@ -1331,17 +1332,22 @@ form-content: [
 form-type: none
 form-rule: rule [value form-type] [
 	set tag-name 'form
-	( form-type: none )
+	( form-type: enctype: none )
 	init-tag
+	opt [
+		'multipart
+		(enctype: "multipart/form-data")
+	]
 	opt [
 		'horizontal
 		( form-type: 'horizontal )
 	]
 	(
 		append tag compose [
-			action:	(value)
-			method:	'post
-			role:	'form
+			action:		(value)
+			method:		'post
+			role:		'form
+			enctype: 	(enctype)
 		]
 		if form-type [ append tag/class join "form-" form-type ]
 	)
