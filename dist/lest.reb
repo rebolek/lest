@@ -2402,7 +2402,7 @@ lest: use [
         input: rule [type] [
             set type [
                 'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
-                | 'number | 'email | 'url | 'search | 'tel | 'color
+                | 'number | 'email | 'url | 'search | 'tel | 'color | 'file
             ]
             (emit <div class="form-group">)
             init-input
@@ -2484,7 +2484,7 @@ lest: use [
             init-input
             set name word!
             some [
-                set value [string! | get-word!] (value: get value)
+                get-user-value set value string!
                 | style
             ]
             take-tag
