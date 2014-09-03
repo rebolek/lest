@@ -199,6 +199,16 @@
 ]
 [
 	equal?
+	{<form action="script" method="post" role="form"><div class="checkbox"><label><input type="checkbox" name="cb1">Check me</label></div></form>}
+	tf [ form %script [ checkbox cb1 if [false] checked "Check me" ] ]
+]
+[
+	equal?
+	{<form action="script" method="post" role="form"><div class="checkbox"><label><input checked="true" type="checkbox" name="cb1">Check me</label></div></form>}
+	tf [ form %script [ checkbox cb1 if [true] checked "Check me" ] ]
+]
+[
+	equal?
 	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
 	tf [ form %script [ submit "Bye" ] ]
 ]
