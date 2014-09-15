@@ -6,8 +6,16 @@ preprocess-script: func [
 	script 	[file!]
 	/local cmd file files
 ] [
-	script: load/type script 'unbound
-	files: make block! 10
+	script: load/header/type script 'unbound
+	header: take script
+;	files: make block! 10
+	; preprocess files from header
+	foreach file header/needs [
+		file: to file! join file %.reb
+		print ["========" file "========"]		
+		insert head script preprocess-script file
+	]
+	; preprocess files loaded with DO/IMPORT
 	parse script [
 		some [
 			set cmd ['do | 'import]
@@ -15,7 +23,7 @@ preprocess-script: func [
 			pos:
 			(
 				print ["========" file "========"]
-				append files file
+;				append files file
 				replace script reduce [cmd file] preprocess-script file
 			)
 			:pos
