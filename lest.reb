@@ -3,10 +3,11 @@ REBOL[
 	Author:		"Boleslav Brezovsky"
 	Name: 		'lest	
 	Version:	0.0.5
-	Date:		29-5-2013
+	Date:		19-9-2014
 	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
+	Needs: 		[prestyle md colorspaces styletalk]
 ;	Options: 	[isolate]
 	To-do: 		[
 		"HTML entities"
@@ -44,17 +45,20 @@ Add webserver that can serve pages directly:
 
 			so data like: [TAG :USER-VAL] are changed to [TAG "user-val"]
 		} 
-
+		{
+			REPEAT: remove replace
+			instead of: REPEAT [a :link] REPLACE :link WITH [...]
+			it will be: REPEAT [a (...)]
+		}
 	]
 ]
 
-; FIXME: should be moved to markdown plugin (once it works)
-do %md.reb
+; fuck off current module system
 
-; print "import"
 do %compile-rules.reb
-import %prestyle.reb 
-; print "import done"
+
+; /fuck off
+
 
 debug:
 ; :print
@@ -360,6 +364,15 @@ text-settings: rule [type] [
 	'text
 	(text-style: type)
 ]
+
+process-code: rule [ p value ] [
+	; DO PAREN! AND EMIT LAST VALUE
+	p: set value paren!
+	( 
+		p/1: do bind to block! value user-words 
+	)
+	:p
+	]
 
 do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
@@ -935,8 +948,10 @@ image: rule [value] [
 link: rule [value] [
 	['a | 'link] ( tag-name: 'a )
 	init-tag
+	any [user-values | process-code]
 	set value [ file! | url! | issue! ]
-	( append tag compose [ href: (value) ] )
+	(append tag compose [ href: (value) ])
+	any [user-values | process-code]
 	opt style
 	emit-tag
 	match-content
@@ -1463,8 +1478,8 @@ func [
 	user-words: object []
 	user-values: copy/deep [ pos: [fail] :pos ]
 
-	output: copy ""
-	buffer: copy ""
+	clear head output
+	clear head buffer
 
 	includes: object [
 		style:			make block! 1000
