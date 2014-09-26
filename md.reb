@@ -1,6 +1,6 @@
 REBOL[
 	Title: "Rebol Markdown Parser"
-	File: %markdown.reb
+	File: %md.reb
 	Author: "Boleslav Březovský"
 	Date: 7-3-2014
 	Type: 'module
@@ -17,7 +17,7 @@ REBOL[
 xml?: true
 start-para?: true
 end-para?: true
-buffer: make string! 1000
+md-buffer: make string! 1000
 
 ; FIXME: hacky switch to determine wheter to emit <p> or not (for snippets)
 
@@ -31,7 +31,7 @@ value: copy "" ; FIXME: leak?
 
 emit: func [data] [
 ;	print "***wrong emit***" 
-	append buffer data
+	append md-buffer data
 ]
 close-tag: func [tag] [head insert copy tag #"/"]
 
@@ -251,7 +251,7 @@ blockquote-rule: use [continue] [
 		[[newline (emit newline)] | end]
 		any [
 			; FIXME: what an ugly hack
-			[newline ] (remove back tail buffer emit ajoin [close-para newline newline open-para])
+			[newline ] (remove back tail md-buffer emit ajoin [close-para newline newline open-para])
 		|	[
 				continue
 				opt line-rules
@@ -394,7 +394,9 @@ markdown: func [
 ] [
 	start-para?: true
 	end-para?: true
-	buffer: make string! 1000
-	parse data [some rules]
-	buffer
+	para?: false
+	clear head md-buffer
+	probe rules
+	parse probe data [some rules]
+	md-buffer
 ]
