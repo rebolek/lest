@@ -39,17 +39,13 @@ grid-elems: [
 
 col: use [ grid-size width offset ] [
 	[
-;		ps: 
-;		(print ["col 0:" mold copy/part ps 16])
 		'col
 		(
-;			print "col 1"
 			grid-size: 'md
 			width: 2
 			offset: none
 		)
 		init-div
-;		(print "col 2")
 		some [
 			'offset set offset integer!
 		|	set grid-size [ 'xs | 'sm | 'md | 'lg ]
@@ -68,14 +64,14 @@ col: use [ grid-size width offset ] [
 	]
 ]
 
-bar: [ 'bar (print "ahoj!")]
+bar: ['bar]
 
 panel: [
 
 ; TODO NOTE: FOOTER is all wrong. Currently it's not added to the end of panel.
 ;	this would require marking position in the output and moving that position
-;	for content/footer OR changng the rules so the panel's footer is _after_
-;	the panel content. First posibilit is harder to write, but preferable.
+;	for content/footer OR changing the rules so the panel's footer is _after_
+;	the panel content. First posibility is harder to write, but preferable.
 
 	'panel
 	(
@@ -178,37 +174,40 @@ navbar: [
 		append tag/class [navbar navbar-fixed-top navtext]
 		append tag [ role: navigation ]
 	)
-	some [
+	any [
 		'inverse ( append tag/class 'navbar-inverse )
 	|	style
 	]
 	emit-tag
-	( value-to-emit: [
+	(
+		value-to-emit: [
 		<div class="container">
 		<div class="navbar-collapse collapse">
 		<ul id="page-nav" class="nav navbar-nav">
 	] )
 	emit-value
 	; TODO: add divider
-	into [
-		some [
-			'link ( active?: false )
-			opt [ 'active ( active?: true ) ]
-			set target [ file! | url! | issue! ]
-			set value string!
-			( value-to-emit: ajoin [
-				{<li}
-				either active? [ { class="active">}] [ #">" ]
-				{<a href="} target {">} value
-				</a>
-				</li>
-			] )
-			emit-value
-		]
-	]
+	[some navbar-content | into some navbar-content]
 	( value-to-emit: [ </ul></div></div> ] )
 	emit-value
 	end-tag
+]
+
+navbar-content: [
+	'link ( active?: false )
+	opt [ 'active ( active?: true ) ]
+	some [
+		set target [ file! | url! | issue! ]
+	|	set value string!
+	]
+	( value-to-emit: ajoin [
+		{<li}
+		either active? [ { class="active">}] [ #">" ]
+		{<a href="} target {">} value
+		</a>
+		</li>
+	] )
+	emit-value
 ]
 
 carousel: [
@@ -383,7 +382,7 @@ modal-header: [
 		value-to-emit: [
 			build-tag tag-name tag
 			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
-			&times;
+			"&times;"
 			</button>
 		]
 	)
