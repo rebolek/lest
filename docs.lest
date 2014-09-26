@@ -182,7 +182,50 @@ emitted when the condition is TRUE, second is emitted when the condition is FALS
 		col 6 [
 			p markdown {**REPEAT** takes template that is emitted number of times.
 It can read values from some data-source such as block value, file, or database.
-It can also execute REBOL code to process more complicated cases.}
+It can also execute REBOL code to process more complicated cases.
+
+**REPEAT** takes block of **Lest** code with values to-be-replaced marked using
+the *get-word* syntax - value name is prefixed with colon, i.e.: `:my-value`.
+This block is followed by name or list of names of values to be replaced.
+Here is an example:} 
+	precode 
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name
+(...rest of code...)}
+
+			p markdown {This definition is followed by mode of operation and source of data.
+There are currently two modes of operation, `FROM` and `WITH`:}
+			ul
+			li [
+				strong "FROM" "- data source is specified"
+				precode
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name FROM [
+  "John" "Paul" "George" "Ringo"
+]}
+			]
+			li [
+				strong "WITH" "- code to produce valuws is specified"
+				precode
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name WITH [
+  either index <= 4 [
+    send-redis db [GET ['name index]]
+  ] [
+    none
+  ]
+]}				
+			]
+
 		]
 		col 6 [
 			dl

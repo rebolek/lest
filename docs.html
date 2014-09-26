@@ -31,7 +31,34 @@ emitted when the condition is TRUE, second is emitted when the condition is FALS
 &nbsp;&nbsp;span .warning "Indvalid user or password."<br>
 ]</dd></dl></div></div><div class="row tight"><h4>SWITCH</h4><div class="col-md-6"><p><strong>SWITCH</strong> condition can emit different code, based on the tested value.</p></div><div class="col-md-6"><dl><dt>SWITCH &lt;value&gt; &lt;cases&gt; opt [DEFAULT &lt;default-case&gt;]</dt><dd>...</dd></dl></div></div><div class="row tight"><h3>Loops</h3><h4>REPEAT</h4><div class="col-md-6"><p><strong>REPEAT</strong> takes template that is emitted number of times.
 It can read values from some data-source such as block value, file, or database.
-It can also execute REBOL code to process more complicated cases.</p></div><div class="col-md-6"><dl><dt>REPEAT &lt;lest-code&gt; REPLACE &lt;value&gt; FROM &lt;data-source&gt;</dt><dd>REPEAT [<br>
+It can also execute REBOL code to process more complicated cases.
+
+<strong>REPEAT</strong> takes block of <strong>Lest</strong> code with values to-be-replaced marked using
+the <em>get-word</em> syntax - value name is prefixed with colon, i.e.: <code>:my-value</code>.
+This block is followed by name or list of names of values to be replaced.
+Here is an example:</p><pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name
+(...rest of code...)</code></pre><p>This definition is followed by mode of operation and source of data.
+There are currently two modes of operation, <code>FROM</code> and <code>WITH</code>:</p><ul><li><strong>FROM</strong>- data source is specified<pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name FROM [
+  "John" "Paul" "George" "Ringo"
+]</code></pre></li><li><strong>WITH</strong>- code to produce valuws is specified<pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name WITH [
+  either index &lt;= 4 [
+    send-redis db [GET ['name index]]
+  ] [
+    none
+  ]
+]</code></pre></li></ul></div><div class="col-md-6"><dl><dt>REPEAT &lt;lest-code&gt; REPLACE &lt;value&gt; FROM &lt;data-source&gt;</dt><dd>REPEAT [<br>
 &nbsp;&nbsp;div :value<br>
 ] REPLACE :value FROM [<br>
 &nbsp;&nbsp;"one" "two" "three"<br>
