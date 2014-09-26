@@ -6,8 +6,10 @@ REBOL[
 	Date: 		31-3-2014
 	Created: 	31-3-2014
 	Type: 		'module
-	Exports: 	[load-color prestyle]
+	Name:		'prestyle
+	Exports: 	[prestyle load-web-color]
 	Options:	[isolate]
+;	Needs: 		[colorspaces styletalk]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
@@ -25,18 +27,7 @@ REBOL[
 	]
 ]
 
-do %colorspaces.reb
-import %styletalk.reb
-
 ; ---
-
-load-color: func [
-	"Convert hex RGB issue! value to tuple!"
-	color 	[issue!] ; add string also? is it needed?
-	/local pos
-] [
-	to tuple! debase/base next form color 16
-]
 
 rule: func [
 	"Make PARSE rule with local variables"
@@ -74,7 +65,7 @@ recat: func [
 buffer: make string! 0
 emit: func [data] [
 	switch type?/word data [
-		issue!	[data: load-color data]
+		issue!	[data: load-web-color data]
 	]
 	append buffer data
 ]
@@ -104,7 +95,7 @@ color-funcs: [
 get-color: func [color] [
 	case/all [
 		word? color 	[color: user-ctx/:color]
-		issue? color 	[color: load-color color]
+		issue? color 	[color: load-web-color color]
 		true			[color]
 	]
 ]
@@ -140,10 +131,9 @@ ruleset: object [
 		pos:
 		set amount number! (
 			f: take/last f-stack
-			print ["color: " type? color mold color mold user-ctx/:color]
 			case/all [
 				word? color  [color: user-ctx/:color]
-				issue? color [color: load-color color]
+				issue? color [color: load-web-color color]
 				tuple? color [color: set-color new-color color 'rgb]
 				true         [color: apply-color color f amount]
 			]
@@ -162,14 +152,15 @@ ruleset: object [
 		(emit compose [canvas (get-color value)])
 	]
 	tags: use [data tag-list tag] [
-		data: load decompress debase {eJxFUltWQyEM/HcVbsHnV497CRd6i+VlCNXuXmZo
-			9YOZIYQkhBzk4+EgzinIew29Q2mgXS1uKUD16MnDxzrZYUmHyflIpDnV7fw1qvGg+i
-			sIod0wq2WKTcpFOkWzuEyR7lv1i9LCXetolDlL8VN5MUmxGyT3IRFNYkJIf0Q4H5V4
-			AdIBF0ImuICLxxiS78Eo9/9K5mYoijjW+QSlUFw8PX08TnwmvhBfiW/Ed7gE8Tfizd
-			O9/hN3llEKOhWPKhlJYt6BpQ0jzyc8HM4OUc7hugdUlMTxkSnMPU5SJJTzpCyNqNyE
-			Mkgmi1hFEbSh1L5pbEhT3WfYKBC2NruXWe9NqMNWRbA2mcWC2Zamdb9NyNdcCg+Fqw
-			6Hr8ZBlwzzX8I+063APaSVumdJyN7r0A1xexM6mNayU1w5dX044hwAZXxWauJ4arcB
-			M/TFwo/dptbwe+ATYf2LRfbcoq27SpANrUPfBgq6CMyXOeoV//qN0f0F7xf7rSEDAAA=}
+		data: load decompress debase {eJxFUltWQyEM/HcVbsHnV497CRd6i+VlCNXuXm
+			Zo9YOZIYQkhBzk4+EgzinIew29Q2mgXS1uKUD16MnDxzrZYUmHyflIpDnV7fw1qv
+			Gg+isIod0wq2WKTcpFOkWzuEyR7lv1i9LCXetolDlL8VN5MUmxGyT3IRFNYkJIf0
+			Q4H5V4AdIBF0ImuICLxxiS78Eo9/9K5mYoijjW+QSlUFw8PX08TnwmvhBfiW/Ed7
+			gE8TfizdO9/hN3llEKOhWPKhlJYt6BpQ0jzyc8HM4OUc7hugdUlMTxkSnMPU5SJJ
+			TzpCyNqNyEMkgmi1hFEbSh1L5pbEhT3WfYKBC2NruXWe9NqMNWRbA2mcWC2Zamdb
+			9NyNdcCg+Fqw6Hr8ZBlwzzX8I+063APaSVumdJyN7r0A1xexM6mNayU1w5dX044h
+			wAZXxWauJ4arcBM/TFwo/dptbwe+ATYf2LRfbcoq27SpANrUPfBgq6CMyXOeoV//
+			qN0f0F7xf7rSEDAAA=}
 		tag-list: make block! 2 * length? data
 		foreach value data [repend tag-list [to lit-word! to string! value '|]]
 		take/last tag-list

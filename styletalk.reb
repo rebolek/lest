@@ -230,7 +230,7 @@ parser: context [
 	position-x: ['right | 'left | 'center]
 	position-y: ['top | 'bottom | 'middle]
 	position: [position-y | position-x]
-	positions: [position-y position-x | position-y | position-x]
+	positions: [position-x position-y | position-y position-x | position-y | position-x]
 	repeats: ['repeat-x | 'repeat-y | 'repeat ['x | 'y] | 'no-repeat | 'no 'repeat]
 	font-name: [string! | 'sans-serif | 'serif | 'monospace]
 	length: [em | pt | px | percent | vh | vw]
@@ -453,6 +453,7 @@ parser: context [
 			| 'line 'height mark number capture (emits 'line-height)
 			| 'spacing mark number capture (emits 'letter-spacing)
 			| 'shadow mark pair length color capture (emits 'text-shadow)
+			| mark ['lighter | 'bolder] capture (emits 'font-weight)
 			| mark opt 'no 'bold capture (emits 'font-weight)
 			| mark opt 'no 'italic capture (emits 'font-style)
 			| mark opt 'no 'underline capture (emits 'text-decoration)

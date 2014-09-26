@@ -4,6 +4,12 @@ REBOL[
 	Author: 	"Boleslav Březovský"
 	Date:		3-4-2014
 	Version: 	0.0.1
+	Type: 		'module
+	Exports: 	[
+		load-web-color load-hsl load-hsv 
+		to-hsl to-hsv 
+		new-color set-color apply-color
+	]
 ]
 
 load-web-color: func [

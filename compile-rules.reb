@@ -23,7 +23,12 @@ REBOL [
         The INTERPRET rule is not yet documented and handles control and iteration
         functions in your dialect.
     }
+;    Type: 'module
+;    Name: 'compile-rules
+;    Exports: [compile-rules control-functions]
 ]
+
+control-functions: none
 
 context [
     ; PARSE grammar
