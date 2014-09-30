@@ -3,11 +3,11 @@ REBOL[
 ]
 
 preprocess-script: func [
-	script 	[file!]
+	script-name 	[file!]
 	/local cmd file files header
 ] [
-	print ["Processing file:" script]
-	script: load/header/type script 'unbound
+	print ["Processing file:" script-name]
+	script: load/header/type script-name 'unbound
 	header: take script
 ;	files: make block! 10
 	; preprocess files from header
@@ -19,8 +19,8 @@ preprocess-script: func [
 			module-file: load/header/type file 'unbound
 			mod-header: take module-file
 			insert head script compose/deep [
-				comment (rejoin ["Import file " file]) 
-				import module [(body-of mod-header)] [(module-file)]
+				comment (rejoin ["Import file " file " for " script-name]) 
+				import module [(body-of mod-header)] [(preprocess-script file module-file)]
 			]
 		]
 	]
