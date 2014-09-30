@@ -9,7 +9,7 @@ REBOL[
 	Name:		'prestyle
 	Exports: 	[prestyle load-web-color]
 	Options:	[isolate]
-;	Needs: 		[colorspaces styletalk]
+	Needs: 		[colorspaces styletalk]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
@@ -64,9 +64,9 @@ recat: func [
 
 buffer: make string! 0
 emit: func [data] [
-	switch type?/word data [
-		issue!	[data: load-web-color data]
-	]
+;	switch type?/word data [
+;		issue!	[data: load-web-color data]
+;	]
 	append buffer data
 ]
 
