@@ -7,7 +7,7 @@ REBOL[
 	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
-	Needs: 		[prestyle md colorspaces styletalk]
+	Needs: 		[prestyle md]
 ;	Options: 	[isolate]
 	To-do: 		[
 		"HTML entities"
