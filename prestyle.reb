@@ -108,6 +108,7 @@ ruleset: object [
 		opt functions
 		set value any-type! (
 			if word? value [value: get in user-ctx value]
+			if issue? value [value: load-web-color value]
 			repend user-ctx [name value]
 			append user compose [ 
 				| 
