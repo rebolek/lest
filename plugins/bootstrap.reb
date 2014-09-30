@@ -11,6 +11,8 @@ startup: [
 	stylesheet css-path/bootstrap.min.css 
 	append script js-path/jquery-2.1.0.min.js 
 	append script js-path/bootstrap.min.js 
+	meta viewport "width=device-width, initial-scale=1"
+	meta http-equiv: X-UA-Compatible "IE=edge"
 ]
 
 rule: [
@@ -171,7 +173,7 @@ navbar: [
 	'navbar
 	init-div
 	(
-		append tag/class [navbar navbar-fixed-top navtext]
+		append tag/class [navbar navbar-default navbar-fixed-top]
 		append tag [ role: navigation ]
 	)
 	any [
