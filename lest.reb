@@ -480,6 +480,27 @@ style-rule: rule [data] [
 	(append includes/style data)
 ]
 
+; dynamic actions
+
+; currently defined: 
+;
+;	SET - SET id data
+;		- set content of ID element to DATA 
+;		- document.getElementById(id).innerHTML = data;
+
+actions: rule [action value data] [
+	set action ['on-click]
+	(action: replace/all to string! action #"-" "")
+	[
+		'set set value issue! set data string! (
+			append tag reduce [
+				to set-word! action
+				rejoin [{document.getElementById('} next form value {').innerHTML = '} data {';}]
+			]
+		)
+	]
+]
+
 ; === FIXME: ROW needs bootstrap plugin enabled
 
 ; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
@@ -872,6 +893,8 @@ header-content: rule [type name value] [
 				{<link rel="icon" type="image/png" href="} value {">}
 			]
 	)
+	|	import
+	|	debug-rule
 	|	plugins
 	]
 ]
@@ -915,6 +938,7 @@ paired-tag: rule [] [
 	set tag-name paired-tags
 	init-tag
 	opt style
+	opt actions
 	emit-tag
 ;	throw "Expected string, tag or block of tags"
 	match-content
@@ -930,7 +954,7 @@ image: rule [value] [
 	init-tag
 	some [
 		set value [ file! | url! ] (
-			append tag compose [ src: (value) ]
+			append tag compose [ src: (value) alt: "Image" ]	; TODO: support ALT in LEST dialect
 		)
 	|	set value pair! (
 			append tag compose [

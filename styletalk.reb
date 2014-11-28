@@ -1,7 +1,7 @@
 Rebol [
 	Title: "StyleTalk"
 	Purpose: "Compact Style Sheets in Rebol"
-	Version: 0.2.0
+	Version: 0.2.1
 	Date: 17-Jun-2013
 	Author: "Christopher Ross-Gill"
 	Name: 'styletalk
@@ -202,7 +202,7 @@ parser: context [
 	percent: ['pct number! | zero]
 	vh: ['vh number! | zero]
 	vw: ['vw number! | zero]
-	color: [tuple! | named-color]
+	color: [tuple! | named-color | 'transparent]
 	time: [time!]
 	pair: [pair!]
 	binary: [end skip] ; [path! binary!] ; omitted until considered safe
@@ -215,7 +215,11 @@ parser: context [
 		'red | 'silver | 'teal | 'white | 'yellow
 	]
 	text-style: ['bold | 'italic | 'underline]
-	border-style: ['solid | 'dotted | 'dashed]
+;	border-style: ['solid | 'dotted | 'dashed]
+	border-style: [ 
+		'none | 'hidden | 'dotted | 'dashed | 'solid | 'double | 
+		'groove | 'ridge | 'inset | 'outset | 'initial
+	]
 	transition-attribute: [
 		  'width | 'height | 'top | 'bottom | 'right | 'left | 'z-index
 		| 'background | 'color | 'border | 'opacity | 'margin
@@ -375,6 +379,8 @@ parser: context [
 	; Each of the Properties fully BNFed
 	property: [
 		  mark box-model capture (emits 'display)
+		| 'z-index mark number capture (emits 'z-index)
+		| 'content mark string! capture (emits 'content)
 		| mark 'border-box capture (emits 'box-sizing)
 		| 'min some [
 			  'width mark length capture (emits 'min-width)
@@ -385,7 +391,8 @@ parser: context [
 			| 'height mark length capture (emits 'max-height)
 		]
 		| mark ['min-width | 'min-height | 'max-width | 'max-height] length capture (emits take captured)
-		| 'height mark length capture (emits 'height)
+		| 'height mark [length | 'auto] capture (emits 'height)
+		| 'width mark [length | 'auto]capture (emits 'width)
 		| 'margin [
 			mark [
 				  1 2 [length opt [length | 'auto]]
@@ -413,6 +420,26 @@ parser: context [
 		| 'border any [
 			  mark 1 4 border-style capture (emits 'border-style)
 			| mark 1 4 color capture (emits 'border-color)
+			| 'top any [
+				  mark length capture (emits 'border-top-width)
+				| mark border-style capture (emits 'border-top-style)
+				| mark color capture (emits 'border-top-color)
+			]
+			| 'bottom any [
+				  mark length capture (emits 'border-bottom-width)
+				| mark border-style capture (emits 'border-bottom-style)
+				| mark color capture (emits 'border-bottom-color)
+			]
+			| 'right any [
+				  mark length capture (emits 'border-right-width)
+				| mark border-style capture (emits 'border-right-style)
+				| mark color capture (emits 'border-right-color)
+			]
+			| 'left any [
+				  mark length capture (emits 'border-left-width)
+				| mark border-style capture (emits 'border-left-style)
+				| mark color capture (emits 'border-left-color)
+			]
 			| 'radius [
 				some [
 					  'top mark 1 2 length capture (
@@ -442,6 +469,11 @@ parser: context [
 		]
 		| ['radius | 'rounded] mark length capture (emits 'border-radius)
 		| 'rounded (emit 'border-radius [em 0.6])
+		| 'outline any [
+			  mark 1 4 border-style capture (emits 'outline-style)
+			| mark 1 4 color capture (emits 'outline-color)
+			| mark 1 4 length capture (emits 'outline-width)
+		]
 		| 'font any [
 			  mark length capture (emits 'font-size)
 			| mark some font-name capture (
@@ -463,6 +495,7 @@ parser: context [
 		| 'line 'height mark [length | scalar] capture (emits 'line-height)
 		| 'spacing mark number capture (emits 'letter-spacing)
 		| mark opt 'no 'bold capture (emits 'font-weight)
+		| 'weight mark number capture (emits 'font-weight)
 		| mark opt 'no 'italic capture (emits 'font-style)
 		| mark opt 'no 'underline capture (emits 'text-decoration)
 		| ['line-through | 'strike 'through] (emit 'text-decoration 'line-through)
@@ -498,7 +531,7 @@ parser: context [
 		]
 		| mark 'preserve-3d capture (emits 'transform-style)
 		| 'hide (emit 'display none)
-		| 'float mark position-x capture (emits 'float)
+		| 'float mark ['none | position-x] capture (emits 'float)
 		| 'opaque (emit 'opacity 1)
 		| mark 'pointer capture (emits 'cursor)
 		| ['canvas | 'background] any [
@@ -507,6 +540,7 @@ parser: context [
 			| mark positions capture (emits 'background-position)
 			| mark repeats capture (emits 'background-repeat)
 			| mark ['contain | 'cover] capture (emits 'background-size)
+			| mark ['scroll | 'fixed | 'local] capture (emits 'background-attachment)
 			| mark pair capture (
 				captured: first captured
 				emit 'background-position reduce [
@@ -617,7 +651,7 @@ parser: context [
 	; Output
 	render: does [
 		rejoin collect [
-			keep {/* CSSR Output */^/}
+			keep {/* StyleTalk Output */^/}
 			if all [
 				block? google-fonts
 				not empty? google-fonts
@@ -646,14 +680,14 @@ parser: context [
 				keep reset
 				keep "/* CSS Reset End **/^/"
 			]
-			keep "^//** CSSR Output Begin */^/^/"
+			keep "^//** StyleTalk Output Begin */^/^/"
 			foreach [selector rule] rules [
 				keep selector
 				keep " "
 				keep rule/render
 				keep "^/"
 			]
-			keep "^/^//* CSSR Output End **/^/"
+			keep "^/^//* StyleTalk Output End **/^/"
 		]
 	]
 

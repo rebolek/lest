@@ -152,25 +152,25 @@ ruleset: object [
 		set value match-color
 		(emit compose [canvas (get-color value)])
 	]
-	tags: use [data tag-list tag] [
-		data: load decompress debase {eJxFUltWQyEM/HcVbsHnV497CRd6i+VlCNXuXm
-			Zo9YOZIYQkhBzk4+EgzinIew29Q2mgXS1uKUD16MnDxzrZYUmHyflIpDnV7fw1qv
-			Gg+isIod0wq2WKTcpFOkWzuEyR7lv1i9LCXetolDlL8VN5MUmxGyT3IRFNYkJIf0
-			Q4H5V4AdIBF0ImuICLxxiS78Eo9/9K5mYoijjW+QSlUFw8PX08TnwmvhBfiW/Ed7
-			gE8TfizdO9/hN3llEKOhWPKhlJYt6BpQ0jzyc8HM4OUc7hugdUlMTxkSnMPU5SJJ
-			TzpCyNqNyEMkgmi1hFEbSh1L5pbEhT3WfYKBC2NruXWe9NqMNWRbA2mcWC2Zamdb
-			9NyNdcCg+Fqw6Hr8ZBlwzzX8I+063APaSVumdJyN7r0A1xexM6mNayU1w5dX044h
-			wAZXxWauJ4arcBM/TFwo/dptbwe+ATYf2LRfbcoq27SpANrUPfBgq6CMyXOeoV//
-			qN0f0F7xf7rSEDAAA=}
-		tag-list: make block! 2 * length? data
-		foreach value data [repend tag-list [to lit-word! to string! value '|]]
-		take/last tag-list
-		; return rule
-		[
-			set tag tag-list 
-			(emit to tag! tag)
-		]
-	]
+	; tags: use [data tag-list tag] [
+	; 	data: load decompress debase {eJxFUltWQyEM/HcVbsHnV497CRd6i+VlCNXuXm
+	; 		Zo9YOZIYQkhBzk4+EgzinIew29Q2mgXS1uKUD16MnDxzrZYUmHyflIpDnV7fw1qv
+	; 		Gg+isIod0wq2WKTcpFOkWzuEyR7lv1i9LCXetolDlL8VN5MUmxGyT3IRFNYkJIf0
+	; 		Q4H5V4AdIBF0ImuICLxxiS78Eo9/9K5mYoijjW+QSlUFw8PX08TnwmvhBfiW/Ed7
+	; 		gE8TfizdO9/hN3llEKOhWPKhlJYt6BpQ0jzyc8HM4OUc7hugdUlMTxkSnMPU5SJJ
+	; 		TzpCyNqNyEMkgmi1hFEbSh1L5pbEhT3WfYKBC2NruXWe9NqMNWRbA2mcWC2Zamdb
+	; 		9NyNdcCg+Fqw6Hr8ZBlwzzX8I+063APaSVumdJyN7r0A1xexM6mNayU1w5dX044h
+	; 		wAZXxWauJ4arcBM/TFwo/dptbwe+ATYf2LRfbcoq27SpANrUPfBgq6CMyXOeoV//
+	; 		qN0f0F7xf7rSEDAAA=}
+	; 	tag-list: make block! 2 * length? data
+	; 	foreach value data [repend tag-list [to lit-word! to string! value '|]]
+	; 	take/last tag-list
+	; 	; return rule
+	; 	[
+	; 		set tag tag-list 
+	; 		(emit to tag! tag)
+	; 	]
+	; ]
 	google-fonts: rule [value values] [
 		; we need to pass this issue! types, so they're not converted to color
 		'google 'fonts

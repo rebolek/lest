@@ -105,14 +105,14 @@
 
 ; IMG tag
 
-[ {<img src="brno.jpg">} = tf [ img %brno.jpg ] ]
-[ {<img src="brno.jpg">} = tf [ image %brno.jpg ] ]
-[ {<img class="adamov" src="brno.jpg">} = tf [ image %brno.jpg .adamov] ]
-[ {<img id="adamov" src="brno.jpg">} = tf [ image #adamov %brno.jpg] ]
-[ {<img id="obr" class="adamov" src="brno.jpg">} = tf [ image #obr %brno.jpg .adamov] ]
-[ {<img id="obr" class="adamov ivancice" src="brno.jpg">} = tf [ image #obr %brno.jpg .adamov .ivancice ] ]
+[ {<img src="brno.jpg" alt="Image">} = tf [ img %brno.jpg ] ]
+[ {<img src="brno.jpg" alt="Image">} = tf [ image %brno.jpg ] ]
+[ {<img class="adamov" src="brno.jpg" alt="Image">} = tf [ image %brno.jpg .adamov] ]
+[ {<img id="adamov" src="brno.jpg" alt="Image">} = tf [ image #adamov %brno.jpg] ]
+[ {<img id="obr" class="adamov" src="brno.jpg" alt="Image">} = tf [ image #obr %brno.jpg .adamov] ]
+[ {<img id="obr" class="adamov ivancice" src="brno.jpg" alt="Image">} = tf [ image #obr %brno.jpg .adamov .ivancice ] ]
 [ equal?
-		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg"></div>}
+		{<div id="okraj" class="border small"><img id="obr" class="adamov ivancice" src="brno.jpg" alt="Image"></div>}
 		tf [ div .border #okraj .small [image #obr %brno.jpg .adamov .ivancice] ]
 ]
 
