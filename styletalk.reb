@@ -232,7 +232,7 @@ parser: context [
 	]
 	direction: ['x | 'y | 'z]
 	position-x: ['right | 'left | 'center]
-	position-y: ['top | 'bottom | 'middle]
+	position-y: ['top | 'bottom | 'middle | 'center]	; NOTE[BB]: Is 'middle valid value?
 	position: [position-y | position-x]
 	positions: [position-x position-y | position-y position-x | position-y | position-x]
 	repeats: ['repeat-x | 'repeat-y | 'repeat ['x | 'y] | 'no-repeat | 'no 'repeat]
@@ -539,7 +539,7 @@ parser: context [
 			| mark [file! | url!] (emits 'background-image)
 			| mark positions capture (emits 'background-position)
 			| mark repeats capture (emits 'background-repeat)
-			| mark ['contain | 'cover] capture (emits 'background-size)
+			| mark ['contain | 'cover | 1 2 [length | 'auto]] capture (emits 'background-size)
 			| mark ['scroll | 'fixed | 'local] capture (emits 'background-attachment)
 			| mark pair capture (
 				captured: first captured
