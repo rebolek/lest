@@ -515,10 +515,10 @@ actions: rule [action value data] [
 	(action: replace/all to string! action #"-" "")
 	[
 		[
-			'set set value issue! set data string! (
+			'set eval set value issue! eval set target word! eval set data any-string! (
 				append tag reduce [
 					to set-word! action
-					rejoin [{document.getElementById('} next form value {').innerHTML = '} data {';}]
+					rejoin [{document.getElementById('} next form value {').} target { = '} data {';}]
 				]
 			)
 		]
