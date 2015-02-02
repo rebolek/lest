@@ -209,17 +209,17 @@
 ]
 [
 	equal?
-	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
+	{<form action="script" method="post" role="form"><button class="btn btn-default" type="submit">Bye</button></form>}
 	tf [ form %script [ submit "Bye" ] ]
 ]
 [
 	equal?
-	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default">Bye</button></form>}
+	{<form action="script" method="post" role="form"><button class="btn btn-default" type="submit">Bye</button></form>}
 	tf [ form %script [ submit "Bye" ] ]
 ]
 [
 	equal?
-	{<form action="script" method="post" role="form"><button type="submit" class="btn btn-default" name="action" value="login">Log In</button></form>}
+	{<form action="script" method="post" role="form"><button class="btn btn-default" type="submit" name="action" value="login">Log In</button></form>}
 	tf [ form %script [ submit with action "login" "Log In" ] ]
 ]
 [
@@ -232,7 +232,26 @@
 	{<form action="script" method="post" role="form"><select name="sl"><option value="a" selected="selected">a</option><option value="b">b</option></select></form>}	
 	tf [form %script [select sl a "a" selected b "b"]]
 ]
-
+[
+	equal?
+	{<form action="a" method="post" role="form"><div class="radio"><input id="radio_foo_bar" type="radio" name="foo" value="bar"><label for="radio_foo_bar">bar</label></div><div class="radio"><input id="radio_foo_pub" type="radio" name="foo" value="pub"><label for="radio_foo_pub">pub</label></div></form>}
+	tf [form %a [radio foo "bar" "bar" radio foo "pub" "pub"]]
+]
+[
+	equal?
+	{<form action="a" method="post" role="form"><div class="radio"><input id="foo1" type="radio" name="foo" value="bar"><label for="foo1">bar</label></div><div class="radio"><input id="foo2" type="radio" name="foo" value="pub"><label for="foo2">pub</label></div></form>}
+	tf [form %a [radio foo "bar" #foo1 "bar" radio foo "pub" #foo2 "pub"]]
+]
+[
+	equal?
+	{<form action="a" method="post" role="form"><div class="radio"><input id="radio_foo_bar" type="radio" name="foo" value="bar"><label for="radio_foo_bar">bar</label></div><div class="radio"><input id="radio_foo_pub" checked="true" type="radio" name="foo" value="pub"><label for="radio_foo_pub">pub</label></div></form>}
+	tf [form %a [radio foo "bar" "bar" radio foo "pub" "pub" checked]]
+]
+[
+	equal?
+	{<form action="a" method="post" role="form"><div class="radio"><input id="foo1" type="radio" name="foo" value="bar"><label for="foo1">bar</label></div><div class="radio"><input id="foo2" checked="true" type="radio" name="foo" value="pub"><label for="foo2">pub</label></div></form>}
+	tf [form %a [radio foo "bar" #foo1 "bar" radio foo "pub" #foo2 "pub" checked]]
+]
 ; USER tags
 
 [ {<span>nazdar</span>} = tf [ nazdar: [ span "nazdar" ] nazdar ] ]
