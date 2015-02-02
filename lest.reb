@@ -9,6 +9,18 @@ REBOL[
 ;	Exports: 	[lest]
 	Needs: 		[prestyle md]
 ;	Options: 	[isolate]
+	Notes: [
+		9-1-15 "BB" {LEST sets 'lest-styles word that holds list of all used CSS styles.
+This will be later changed to object! that will hold more informations
+about the parsed Lest source.
+This block can be used with (patched) StyleTalk to check if all styles defined
+in StyleTalk file are used by Lest source.
+}
+		13-1-15 "BB" {LEST now adds ID to radio, when no ID is present. 
+ID is in the form: radio_<radio-name>_<radio-value>
+Check if not problematic.
+}
+	]
 	To-do: 		[
 		"HTML entities"
 		"Cleanup variables in lest"
@@ -158,8 +170,8 @@ rule: func [
 	local 	[word! block!]  "Local variable(s)"
 	rule 	[block!]		"PARSE rule"
 ][
-	if word? local [ local: reduce [ local ] ]
-	compile-rules use local reduce [ rule ]
+	if word? local [local: reduce [local]]
+	compile-rules use local reduce [rule]
 ]
 
 add-rule: func [
@@ -258,6 +270,7 @@ lest: use [
 	pos
 
 	current-text-style
+	used-styles
 
 	name
 	value
@@ -364,6 +377,8 @@ text-settings: rule [type] [
 	'text
 	(text-style: type)
 ]
+
+eval: [any [user-values | process-code]]
 
 process-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
