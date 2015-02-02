@@ -4,7 +4,7 @@ REBOL[
 
 preprocess-script: func [
 	script-name 	[file!]
-	/local cmd file files header
+	/local cmd file files header script
 ] [
 	print ["Processing file:" script-name]
 	script: load/header/type script-name 'unbound
@@ -63,6 +63,13 @@ insert script compose/deep [
 	
 	comment "/plugin cache"
 ]
-save/header %dist/lest.reb script [
-	Title: "Lest (preprocessed)"
+
+;save/header %dist/lest.reb script [
+;	Title: "Lest (preprocessed)"
+;]
+
+write %dist/lest.reb mold/only head insert script [
+	REBOL [
+		Title: "Lest (processed)"
+	]
 ]
