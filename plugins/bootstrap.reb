@@ -33,6 +33,7 @@ rule: [
 
 grid-elems: [
 	set type [ 'row | 'container ]
+	opt ['fluid (type: 'container-fluid)]
 	init-div
 	opt style
 	( insert tag/class type	)
