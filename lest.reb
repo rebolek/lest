@@ -514,12 +514,26 @@ actions: rule [action value data] [
 	set action ['on-click]
 	(action: replace/all to string! action #"-" "")
 	[
-		'set set value issue! set data string! (
-			append tag reduce [
-				to set-word! action
-				rejoin [{document.getElementById('} next form value {').innerHTML = '} data {';}]
-			]
-		)
+		[
+			'set set value issue! set data string! (
+				append tag reduce [
+					to set-word! action
+					rejoin [{document.getElementById('} next form value {').innerHTML = '} data {';}]
+				]
+			)
+		]
+	|	
+		[
+			'action
+			set name word!
+			opt [set data block!]
+			eval set target issue!
+			(
+				append tag compose [
+					onClick: (rejoin [{action('} name {', '}  data {', '} form to word! target {')}])
+				]
+			)	
+		]
 	]
 ]
 
