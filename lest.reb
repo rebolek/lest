@@ -1242,65 +1242,85 @@ emit-input: [
 		]
 	)
 ]
-input-parameters: [
+input-parameters: rule [data] [
 	set name word!
-	some [
+	any [
 		set label string!
-	|	'default get-user-value set default string!
-	|	'value get-user-value set value string!
-	|	'checked ( append tag [checked: true] )
+	|	'default eval set default string!
+	|	'value eval set value string!
+	|	eval 'checked						(append tag [checked: true])
+	|	eval 'required						(append tag [required: true])
+	|	'error eval set data string!		(append tag compose [data-error: (data)])
+	|	'match eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
+	|	'min-length eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
 	|	style
 	]
 ]
-input: rule [type] [
+input: rule [type simple] [
+	(simple: default: value: label: def-error: none)
+	opt ['simple (simple: true)]
 	set type [
 		'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
 	|	'number | 'email | 'url | 'search | 'tel | 'color | 'file
 	]
-	( emit <div class="form-group"> )
+	if (not simple) [
+		init-div
+		(append tag/class 'form-group)
+		emit-tag	
+	]
 	init-input
 	( append tag/class 'form-control )
 	( append tag reduce/no-set [type: type] )
 	input-parameters
 	emit-input
-	( emit </div> )
+	if (validator?) [
+		init-div
+		(append tag/class [help-block with-errors])
+		emit-tag
+		(if def-error [emit def-error])
+		end-tag
+	]
+	if (not simple) [end-tag]
 ]
-checkbox: rule [type] [
-	set type 'checkbox
-	( emit [ "" <div class="checkbox"> <label> ] )
+checkbox: rule [] [
+	'checkbox
+	init-div
+	(append tag/class 'checkbox)
+	emit-tag
+	(tag-name: 'label)
+	init-tag
+	emit-tag		; start <LABEL>
 	init-input
 	input-parameters
+	(append tag compose [type: 'checkbox name: (name)])
+	emit-tag
 	take-tag
-	(
-		append tag compose [ type: (type) name: (name) ]
-		emit [ build-tag tag-name tag label </label> </div> ]
-	)
+	(emit label)
+	end-tag
+	end-tag
 ]
-radio: rule [type] [
-	set type 'radio
-	(
-		debug "==RADIO"
-		emit [ "" <div class="radio"> ]
-		special: map 0
-	)
+radio: rule [] [
+	'radio
+	init-div
+	(append tag/class 'radio)
+	emit-tag
 	init-input
 	set name word!
 	set value [ word! | string! | number! ]
 	some [
-		set label string!
-	|	'checked ( append tag [checked: true] )
+		eval set label string!
+	|	eval 'checked (append tag [checked: true])
+	|	eval 'disabled (append tag [disabled: true])
 	|	style
 	]
-	take-tag
 	(
-		append tag compose [ type: (type) name: (name) value: (value) ]
-		emit [
-			build-tag tag-name tag
-				{<label for="} tag/id {">} label
-				</label>
-			</div>
-		]
+		unless tag/id [tag/id: ajoin ["radio_" name #"_" value]]
+		append tag compose [ type: 'radio name: (name) value: (value) ]
 	)
+	emit-tag	; this emits <INPUT>
+	take-tag	; we need to remove tag from stack, because <INPUT> has no close tag
+	(emit-label label tag/id)
+	end-tag
 ]
 textarea: [
 	; TODO: DEFAULT
@@ -1350,48 +1370,26 @@ hidden: rule [name value] [
 ]
 submit: rule [label name value] [
 	'submit
-	(
-		name: value: none
-		insert tag-stack reduce [
-			'button
-			tag: context [
-				type:		'submit
-				id:			none
-				class: copy [btn btn-default]
-			]
-		]
-	)
+	(tag-name: 'button name: value: none)
+	init-tag
 	opt ['with set name word! set value string!]
-	some [
-		set label string!
-	|	style
-	]
-	take-tag
 	(
+		append tag [type: submit]
+		append tag/class [btn btn-default]
 		if all [name value] [
 			append tag compose [
 				name: (name)
 				value: (value)
 			]
 		]
-		switch/default form-type [
-			horizontal [
-				emit [
-					<div class="form-group">
-					<div class="col-sm-offset-2 col-sm-10">
-					build-tag tag-name tag
-					label
-					</button>
-					</div>
-					</div>
-				]
-
-			]
-		][
-			emit [ build-tag tag-name tag label </button> ]
-		]
 	)
+	opt style
+	emit-tag
+	[main-rule | into main-rule]
+	; TODO: horizontal variant (see below)
+	end-tag
 ]
+
 select-input: rule [label name value] [
 	set tag-name 'select 
 	init-tag
@@ -1431,35 +1429,32 @@ form-content: [
 form-type: none
 form-rule: rule [value form-type] [
 	set tag-name 'form
-	( form-type: enctype: none )
+	( form-type: enctype: validator?: none )
 	init-tag
-	opt [
-		'multipart
-		(enctype: "multipart/form-data")
-	]
-	opt [
-		'horizontal
-		( form-type: 'horizontal )
+	any [
+		'multipart 	(enctype: "multipart/form-data")
+	|	'horizontal 	(form-type: 'horizontal)
+	|	'validator 	(append tag [data-toggle: 'validator] validator?: true)
 	]
 	(
 		append tag compose [
 			action:		(value)
 			method:		'post
-			role:		'form
-			enctype: 	(enctype)
+			role:			'form
+			enctype: 		(enctype)
 		]
-		if form-type [ append tag/class join "form-" form-type ]
+		if form-type [append tag/class join "form-" form-type]
 	)
 	some [
-		set value [ file! | url! ] (
-			append tag compose [ action: (value) ]
+		set value [file! | url!] (
+			append tag compose [action: (value)]
 		)
 	|	style
 	]
 	take-tag
 	emit-tag
 	into main-rule
-	( emit close-tag 'form )
+	(emit close-tag 'form)
 ]
 
 ; --- put it all together
@@ -1570,6 +1565,7 @@ func [
 		body-end: 		make string! 1000
 	]
 
+	used-styles: make block! 20
 
 ; ---
 
