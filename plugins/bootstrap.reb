@@ -27,6 +27,7 @@ rule: [
 |	carousel
 |	modal
 |	navbar
+|	link-list-group
 |	end
 ]
 
@@ -439,7 +440,7 @@ modal-header: [
 modal-body: [
 	opt 'body
 	init-div
-	( append tag/class 'modal-body )
+	(append tag/class 'modal-body)
 	emit-tag
 	into [ some elements ]
 	end-tag
@@ -447,8 +448,71 @@ modal-body: [
 modal-footer: [
 	'header
 	init-div
-	( append tag/class 'modal-footer )
+	(append tag/class 'modal-footer)
 	emit-tag
 	into [ some elements ]
+	end-tag
+]
+
+list-badge: [
+	'badge
+	(tag-name: 'span)
+	init-tag
+	(append tag/class 'badge)
+	emit-tag
+	content-rule
+	end-tag
+]
+
+link-list-group: [
+	'link-list
+	init-div
+	(append tag/class 'list-group)
+	emit-tag
+	any [
+		'link
+		(tag-name: 'a)
+		init-tag
+		(append tag/class 'list-group-item)
+		opt ['active (append tag/class 'active)]
+		eval
+		set value [ file! | url! | issue! ]
+		(append tag compose [href: (value)])
+		emit-tag
+		eval
+		match-content
+		opt list-badge
+		end-tag
+	]
+	end-tag	
+]
+
+old-link-list-group: [
+	'link-list
+	init-div
+	(append tag/class 'list-group)
+	emit-tag
+	any [
+		'link ; link is read and overwritten with basic lest link
+		opt [
+			'active
+			pos:
+			(
+				remove back pos
+				insert pos '.active
+				pos: back pos
+			)
+			:pos
+		]
+		pos:
+		(
+			probe pos
+			insert next pos '.list-group-item
+			pos: probe back pos
+		)
+		:pos
+		link 	; run basic LINK rule
+		opt list-badge
+	]
 	end-tag
 ]
