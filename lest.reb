@@ -1161,31 +1161,40 @@ heading: [
 table: rule [value] [
 	set tag-name 'table
 	init-tag
+	(append tag/class 'table)
 	style
-	( insert tag/class 'table )
 	emit-tag
 	opt [
 		'header
-		( emit <tr> )
+		(tag-name: 'tr)
+		init-tag
+		emit-tag
 		into [
 			some [
 				set value string!
-				( emit ajoin [<th> value </th>] )
+				(tag-name: 'th)
+				init-tag
+				emit-tag
+				(emit value)
+				end-tag
 			]
 		]
-		( emit </tr> )
-
+		end-tag
 	]
-	some [
+	any [
 		into [
-			( emit <tr> )
+			(tag-name: 'tr)
+			init-tag
+			emit-tag
 			some [
-				( pos: tail buffer )
-				basic-elems
-				( insert pos <td>)
-				( emit </td> )
+				pos: block! :pos 	; check for value before initing <TD>
+				(tag-name: 'td)
+				init-tag
+				emit-tag
+				into main-rule
+				end-tag
 			]
-			( emit </tr> )
+			end-tag
 		]
 	]
 	end-tag
