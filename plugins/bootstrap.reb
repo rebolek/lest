@@ -9,8 +9,9 @@ REBOL[
 
 startup: [
 	stylesheet css-path/bootstrap.min.css 
-	append script js-path/jquery-2.1.0.min.js 
-	append script js-path/bootstrap.min.js 
+	insert script js-path/jquery-2.1.3.min.js 
+	insert script js-path/bootstrap.min.js 
+	insert script js-path/validator.min.js 
 	meta viewport "width=device-width, initial-scale=1"
 	meta http-equiv: X-UA-Compatible "IE=edge"
 ]
