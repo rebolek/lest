@@ -398,27 +398,34 @@ do-code: rule [ p value ] [
 	:p main-rule
 	]
 
-set-rule: rule [ label value ] [
+set-rule: rule [labels values] [
 	'set
-	set label word!
-	set value any-type!
+	set labels [word! | block!]
+	eval set values any-type!
 	(
-		if paren? value [value: do bind to block! value user-words]
-		value: switch/default value [
-			; predefined values
-			true yes on [lib/true]
-			false no off [lib/false]
-		][value]
-		; add rules, if not exists
-		unless in user-words label [
-			append second user-values compose [ 
-				|
-					(to lit-word! label) 
-					(to paren! compose [change pos (to path! reduce ['user-words label])]) 
-			]
+		unless block? labels [
+			labels: reduce [labels]
+			values: reduce [values]
 		]
-		; extend user context with new value
-		repend user-words [to set-word! label value] 
+		repeat i length? labels [
+			label: labels/:i
+			value: values/:i
+			value: switch/default value [
+				; predefined values
+				true yes on [lib/true]
+				false no off [lib/false]
+			][value]
+			; add rules, if not exists
+			unless in user-words label [
+				append second user-values compose [ 
+					|
+						(to lit-word! label) 
+						(to paren! compose [change pos (to path! reduce ['user-words label])]) 
+				]
+			]
+			; extend user context with new value
+			repend user-words [to set-word! label value] 
+		]
 	)
 ]
 
