@@ -68,8 +68,14 @@ insert script compose/deep [
 ;	Title: "Lest (preprocessed)"
 ;]
 
-write %dist/lest.reb mold/only head insert script [
+build-number: load %build-number
+++ build-number
+save %build-number build-number
+
+write %dist/lest.reb mold/only head insert script compose/deep [
 	REBOL [
 		Title: "Lest (processed)"
+		Date: (now)
+		Build: (build-number)
 	]
 ]
