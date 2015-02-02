@@ -899,7 +899,11 @@ page-header: [
 	'head (debug "==HEAD")
 	(header?: true)
 	header-content
-	'body (debug "==BODY")
+	'body (
+		debug "==BODY"
+		; TODO: hack! move elsewhere
+		repend includes/header [{<script src="../js/lest.js">}</script> newline ]
+	)
 ]
 
 header-content: rule [type name value] [
