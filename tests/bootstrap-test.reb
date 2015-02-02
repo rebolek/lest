@@ -38,3 +38,21 @@
 		"Separated link" %#
 	]
 ]
+
+[
+	equal?
+	{<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<title>Page generated with Lest</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body><div class="list-group"><a class="list-group-item active" href="#ahoj">ahoj</a><a class="list-group-item" href="#nazdar">nazdar</a><span class="badge">24</a></div><script src="js/jquery-2.1.0.min.js"></script><script src="js/bootstrap.min.js"></script></body></html>}
+	tf [
+		link-list 
+		link active %#ahoj "ahoj"
+		link %#nazdar "nazdar" badge "24"
+	]
+]
