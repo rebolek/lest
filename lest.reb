@@ -1105,6 +1105,7 @@ basic-elems: [
 |	comment
 |	debug-rule
 |	body-atts
+|	pass
 |	stop
 |	br
 |	hr
@@ -1133,6 +1134,10 @@ basic-string-processing: [
 			markdown 	[markdown value]
 		]
 	)
+]
+
+pass: [
+	'pass
 ]
 
 stop: [
