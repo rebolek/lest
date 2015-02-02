@@ -182,35 +182,78 @@ navbar: [
 	|	style
 	]
 	emit-tag
-	(
-		value-to-emit: [
-		<div class="container">
-		<div class="navbar-collapse collapse">
-		<ul id="page-nav" class="nav navbar-nav">
-	] )
+	(value-to-emit: [<div class="container-fluid">] )
 	emit-value
 	; TODO: add divider
+	opt navbar-brand
+	(
+		value-to-emit: [
+			<div class="navbar-collapse collapse" id="page-nav">	; TODO: ID shouln't be hardcoded
+			<ul class="nav navbar-nav">
+		]
+	)
+	emit-value
 	[some navbar-content | into some navbar-content]
-	( value-to-emit: [ </ul></div></div> ] )
+	( value-to-emit: [ </ul> ] )
+	emit-value
+	opt [
+		'right
+		(value-to-emit: [<ul class="nav navbar-nav navbar-right">])
+		emit-value
+		[some navbar-content | into some navbar-content]
+		( value-to-emit: [ </ul> ] )
+		emit-value
+	]
+	(value-to-emit: [</div></div>])
 	emit-value
 	end-tag
 ]
 
-navbar-content: [
-	'link ( active?: false )
-	opt [ 'active ( active?: true ) ]
+navbar-brand: [
+	'brand
+	set value string!
+	(
+		value-to-emit:  ajoin [
+			<div class="navbar-header">
+		      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#page-nav"> ; TODO: ID shouln't be hardcoded (see above)
+		        <span class="sr-only"> "Toggle navigation" </span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		      </button>
+		      <a class="navbar-brand" href="#"> value </a>
+		    </div>
+		]
+	)
+	emit-value
+]
+
+navbar-link: [
+	'link 
+	(active?: false)
+	(tag-name: 'li)
+	init-tag
+	opt ['active ( active?: true)]
 	some [
 		set target [ file! | url! | issue! ]
-	|	set value string!
+	|	set value [string! | block!]
+	|	style
 	]
-	( value-to-emit: ajoin [
-		{<li}
-		either active? [ { class="active">}] [ #">" ]
-		{<a href="} target {">} value
-		</a>
-		</li>
-	] )
-	emit-value
+	(if active? [append tag/class 'active])
+	emit-tag
+	pos:
+	(
+		pos: back pos
+		pos/1: reduce ['link target value]
+	)
+	:pos
+	into [elements]
+	end-tag
+]
+
+navbar-content: [
+	opt commands
+	opt [navbar-link | form-rule]
 ]
 
 carousel: [
