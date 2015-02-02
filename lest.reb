@@ -652,11 +652,11 @@ commands: [
 
 if-rule: rule [cond true-val pos res] [
 	'if
-	set cond [logic! | word! | block!] 
+	set cond [logic! | word! | paren!] 
 	pos:
 	set true-val any-type! 
 	(
-		res: if/only do bind cond user-words true-val
+		res: if/only do bind to block! cond user-words true-val
 		either res [
 			change/part pos res 1
 		] [
@@ -668,14 +668,14 @@ if-rule: rule [cond true-val pos res] [
 
 either-rule: rule [cond true-val false-val pos] [
 	'either
-	set cond [logic! | word! | block!]
+	set cond [logic! | word! | paren!]
 	set true-val any-type! 
 	pos:
 	set false-val any-type! 
 	(
 		change/part 
 			pos 
-			either/only do bind cond user-words true-val false-val 
+			either/only do bind to block! cond user-words true-val false-val 
 			1
 	)
 	:pos
@@ -741,7 +741,7 @@ repeat-rule: rule [offset element count value values data pos current][
 	'replace
 	some [set value get-word! (append values value)]
 	opt [
-		set count [integer! | block!]
+		set count [integer! | paren!]
 		'times
 	]
 	opt [
@@ -773,13 +773,14 @@ repeat-rule: rule [offset element count value values data pos current][
 		]
 	|	[
 			'with
-			pos: set data block!
+			pos: set data paren!
 			(
-				if block? count [count: do count]
+				if paren? count [count: do bind to block! count user-words]
+				data: to block! data
 				out: make block! length? data
 				repeat index count [
 					current: copy/deep element
-					result: do bind data 'index
+					result: do bind bind data 'index user-words
 					either 1 = length? values [
 						replace-deep current values/1 result
 					] [
