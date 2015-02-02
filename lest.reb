@@ -818,6 +818,7 @@ style: rule [ pos word continue ] [
 			pos: set word word!
 			(
 				continue: either #"." = take form word [
+					append used-styles word
 					append tag/class next form word
 					[]
 				][
@@ -849,6 +850,7 @@ body-atts: rule [value] [
 ]
 
 script: rule [type value] [
+	(type: none)
 	opt [ set type ['insert | 'append] ]
 	'script
 	init-tag
