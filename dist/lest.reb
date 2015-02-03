@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 3-Feb-2015/11:18:43+1:00
-    Build: 32
+    Date: 3-Feb-2015/12:55:15+1:00
+    Build: 40
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1886,10 +1886,12 @@ lest: use [
     plugins
     load-plugin
 ] [
-    output: copy ""
-    buffer: copy ""
-    header?: false
-    tag-stack: copy []
+    comment [
+        output: copy ""
+        buffer: copy ""
+        header?: false
+        tag-stack: copy []
+    ]
     emit: func [
         data [string! block! tag!]
     ] [
@@ -2158,14 +2160,25 @@ lest: use [
         comparators: [
             comparison-rule
         ]
-        comparison-rule: rule [val1 val2 comparator] [
+        comparison-rule: rule [val1 val2 comparator pos number int-rule float-rule] [
             set val1 any-type!
             set comparator ['= | '> | '< | '>= | '<= | '<>]
             set val2 any-type!
             pos:
             (
+                val1: form switch/default type?/word val1 [
+                    word! [get in user-words :val1]
+                ] [val1]
+                val2: form switch/default type?/word val2 [
+                    word! [get in user-words :val2]
+                ] [val2]
+                number: charset "0123456789"
+                float-rule: [opt #"-" some number [opt #"." some number]]
+                int-rule: [opt #"-" some number]
+                if parse val1 int-rule [val1: to integer! val1]
+                if parse val2 int-rule [val2: to integer! val2]
                 pos: back pos
-                pos/1: probe do probe reduce [(form get in user-words val1) comparator (form get in user-words val2)]
+                pos/1: do reduce [val1 comparator val2]
             )
             :pos
         ]
@@ -2966,10 +2979,12 @@ lest: use [
         ]
         none
     ]
-    user-rules: rule [] [fail]
-    user-rule-names: make block! 100
-    user-words: object []
-    user-values: copy/deep [pos: [fail] :pos]
+    comment [
+        user-rules: rule [] [fail]
+        user-rule-names: make block! 100
+        user-words: object []
+        user-values: copy/deep [pos: [fail] :pos]
+    ]
     out-file: none
     func [
         "Parse simple HTML dialect"
@@ -2981,13 +2996,14 @@ lest: use [
             out-file: replace copy data suffix? data %.html
             data: load data
         ]
+        output: copy ""
+        buffer: copy ""
+        header?: false
         tag-stack: copy []
         user-rules: copy [fail]
         user-rule-names: make block! 100
         user-words: object []
         user-values: copy/deep [pos: [fail] :pos]
-        clear head output
-        clear head buffer
         includes: object [
             style: make block! 1000
             stylesheets: copy ""
@@ -3002,7 +3018,6 @@ lest: use [
             meta: copy ""
             lang: "en-US"
         ]
-        header?: false
         unless parse data bind rules/main-rule rules [
             error: make error! "LEST: there was error in LEST dialect"
             error/near: pos
