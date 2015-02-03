@@ -312,8 +312,11 @@ emit-script: func [
 	/insert
 	/append
 ][
-	if insert [lib/append includes/header script]
-	if append [lib/append includes/body-end script]
+	case [
+		insert 		[lib/append includes/header script]
+		append 	[lib/append includes/body-end script]
+		true 		[emit script]
+	]
 ]
 
 emit-stylesheet: func [
@@ -922,7 +925,7 @@ script: rule [type value] [
 			; TODO: rewrite using APPLY
 			insert [ emit-script/insert value ]
 			append [ emit-script/append value ]
-		] [ emit value ]
+		] [ emit-script value ]
 	)
 ]
 

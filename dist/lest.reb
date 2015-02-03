@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 3-Feb-2015/23:41:14+1:00
-    Build: 42
+    Date: 3-Feb-2015/23:48:49+1:00
+    Build: 44
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1905,8 +1905,11 @@ lest: use [
         /insert
         /append
     ] [
-        if insert [lib/append includes/header script]
-        if append [lib/append includes/body-end script]
+        case [
+            insert [lib/append includes/header script]
+            append [lib/append includes/body-end script]
+            true [emit script]
+        ]
     ]
     emit-stylesheet: func [
         stylesheet
@@ -2407,7 +2410,7 @@ lest: use [
                 switch/default type [
                     insert [emit-script/insert value]
                     append [emit-script/append value]
-                ] [emit value]
+                ] [emit-script value]
             )
         ]
         stylesheet: rule [value] [
