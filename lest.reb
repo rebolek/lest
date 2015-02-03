@@ -648,6 +648,7 @@ commands: [
 |	switch-rule
 |	for-rule
 |	repeat-rule
+|	join-rule
 ]
 
 if-rule: rule [cond true-val pos res] [
@@ -796,6 +797,28 @@ repeat-rule: rule [offset element count value values data pos current][
 		]
 	]
 ]
+
+join-rule: rule [values delimiter result] [
+	'join 
+	(delimiter: none)
+	set values block!
+	opt ['with set delimiter [char! | string!]]
+	pos:
+	(
+		pos: back pos
+		result: make string! 100
+		forall values [
+			append result switch/default type?/word values/1 [
+				word! [get in user-words :values/1]
+			] [form values/1]
+			if all [delimiter not tail? next values] [append result delimiter]
+		]
+		pos/1: result
+	)
+	:pos
+]
+
+;---/commands
 
 get-style: rule [pos data type] [
 	set type ['id | 'class]
