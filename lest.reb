@@ -287,12 +287,14 @@ lest: use [
 	load-plugin
 ] [
 
+comment [
 output: copy ""
 buffer: copy ""
 
 header?: false
 
 tag-stack: copy []
+]
 
 ; === actions
 
@@ -646,19 +648,29 @@ comparators: [
 	comparison-rule
 ]
 
-comparison-rule: rule [val1 val2 comparator] [
-	; NOTE: all values are formed before comaprison
-	;			this automagically enables simple number comaprisons ( "5" > "1"...)
-	;			but does not work with math notation ("5e2" = "500" ...)
-	;			stringnumber handling should be improved later
-	;			but for simple cases this is good enough
+comparison-rule: rule [val1 val2 comparator pos number int-rule float-rule] [
+	; NOTE: all values are formed before comparison
+	;			this leads to double conversion if numbers ( 3 -> "3" -> 3 )
+	;			and needs to be optimalized
 	set val1 any-type!
 	set comparator ['= | '> | '< | '>= | '<= | '<>]
 	set val2 any-type!
 	pos:
 	(
+		val1: form switch/default type?/word val1 [
+			word! [get in user-words :val1]
+		][val1]
+		val2: form switch/default type?/word val2 [
+			word! [get in user-words :val2]
+		][val2]
+		; numbers - TODO use float rule, add scientific notation
+		number: charset "0123456789"
+		float-rule: 	[opt #"-" some number [opt #"." some number]]
+		int-rule: 		[opt #"-" some number]
+		if parse val1 int-rule [val1: to integer! val1]
+		if parse val2 int-rule [val2: to integer! val2]
 		pos: back pos
-		pos/1: probe do probe reduce [(form get in user-words val1) comparator (form get in user-words val2)]
+		pos/1: do reduce [val1 comparator val2]
 	)
 	:pos
 ]
@@ -1565,11 +1577,12 @@ load-plugin: func [
 	none
 ]
 
+comment [
 user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
 user-rule-names: make block! 100
 user-words: object []
 user-values: copy/deep [ pos: [fail] :pos ]
-
+]
 ;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
 ; | \  / |    /  \      | |   |  \| |
@@ -1594,14 +1607,20 @@ func [
 
 ; init outside vars
 
+	output: copy ""
+	buffer: copy ""
+
+	header?: false
+
 	tag-stack: copy []
+
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
 	user-rule-names: make block! 100
 	user-words: object []
 	user-values: copy/deep [ pos: [fail] :pos ]
 
-	clear head output
-	clear head buffer
+;	clear head output
+;	clear head buffer
 
 	includes: object [
 		style:			make block! 1000
@@ -1621,8 +1640,6 @@ func [
 		meta: copy {}
 		lang: "en-US"
 	]
-
-	header?: false
 
 	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]

@@ -1,5 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
+    Date: 3-Feb-2015/11:18:43+1:00
+    Build: 32
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2055,10 +2057,10 @@ lest: use [
             (action: replace/all to string! action #"-" "")
             [
                 [
-                    'set set value issue! set data string! (
+                    'set eval set value issue! eval set target word! eval set data any-string! (
                         append tag reduce [
                             to set-word! action
-                            rejoin ["document.getElementById('" next form value "').innerHTML = '" data "';"]
+                            rejoin ["document.getElementById('" next form value "')." target " = '" data "';"]
                         ]
                     )
                 ]
@@ -2153,20 +2155,36 @@ lest: use [
                 emit </div>
             )
         ]
+        comparators: [
+            comparison-rule
+        ]
+        comparison-rule: rule [val1 val2 comparator] [
+            set val1 any-type!
+            set comparator ['= | '> | '< | '>= | '<= | '<>]
+            set val2 any-type!
+            pos:
+            (
+                pos: back pos
+                pos/1: probe do probe reduce [(form get in user-words val1) comparator (form get in user-words val2)]
+            )
+            :pos
+        ]
         commands: [
             if-rule
             | either-rule
             | switch-rule
             | for-rule
             | repeat-rule
+            | join-rule
         ]
         if-rule: rule [cond true-val pos res] [
             'if
-            set cond [logic! | word! | block!]
+            opt comparators
+            set cond [logic! | word! | paren!]
             pos:
             set true-val any-type!
             (
-                res: if/only do bind cond user-words true-val
+                res: if/only do bind to block! cond user-words true-val
                 either res [
                     change/part pos res 1
                 ] [
@@ -2177,14 +2195,15 @@ lest: use [
         ]
         either-rule: rule [cond true-val false-val pos] [
             'either
-            set cond [logic! | word! | block!]
+            opt comparators
+            set cond [logic! | word! | paren!]
             set true-val any-type!
             pos:
             set false-val any-type!
             (
                 change/part
                 pos
-                either/only do bind cond user-words true-val false-val
+                either/only do bind to block! cond user-words true-val false-val
                 1
             )
             :pos
@@ -2244,7 +2263,7 @@ lest: use [
             'replace
             some [set value get-word! (append values value)]
             opt [
-                set count [integer! | block!]
+                set count [integer! | paren!]
                 'times
             ]
             opt [
@@ -2275,13 +2294,14 @@ lest: use [
                 ]
                 | [
                     'with
-                    pos: set data block!
+                    pos: set data paren!
                     (
-                        if block? count [count: do count]
+                        if paren? count [count: do bind to block! count user-words]
+                        data: to block! data
                         out: make block! length? data
                         repeat index count [
                             current: copy/deep element
-                            result: do bind data 'index
+                            result: do bind bind data 'index user-words
                             either 1 = length? values [
                                 replace-deep current values/1 result
                             ] [
@@ -2296,6 +2316,25 @@ lest: use [
                     :pos
                 ]
             ]
+        ]
+        join-rule: rule [values delimiter result] [
+            'join
+            (delimiter: none)
+            set values block!
+            opt ['with set delimiter [char! | string!]]
+            pos:
+            (
+                pos: back pos
+                result: make string! 100
+                forall values [
+                    append result switch/default type?/word values/1 [
+                        word! [get in user-words :values/1]
+                    ] [form values/1]
+                    if all [delimiter not tail? next values] [append result delimiter]
+                ]
+                pos/1: result
+            )
+            :pos
         ]
         get-style: rule [pos data type] [
             set type ['id | 'class]

@@ -200,12 +200,12 @@
 [
 	equal?
 	{<form action="script" method="post" role="form"><div class="checkbox"><label><input type="checkbox" name="cb1">Check me</label></div></form>}
-	tf [ form %script [ checkbox cb1 if [false] checked "Check me" ] ]
+	tf [ form %script [ checkbox cb1 if false checked "Check me" ] ]
 ]
 [
 	equal?
 	{<form action="script" method="post" role="form"><div class="checkbox"><label><input checked="true" type="checkbox" name="cb1">Check me</label></div></form>}
-	tf [ form %script [ checkbox cb1 if [true] checked "Check me" ] ]
+	tf [ form %script [ checkbox cb1 if true checked "Check me" ] ]
 ]
 [
 	equal?
@@ -296,24 +296,24 @@
 [ {<span>nazdar</span>} = tf [ pozdrav: [span "ahoj"] pozdrav: [span "nazdar"] pozdrav] ]
 ; dynamic code
 
-[ {<div>Brno</div>} = tf [ either [true] div span "Brno" ] ]
-[ {<span>Brno</span>} = tf [ either [false] div span "Brno" ] ]
+[ {<div>Brno</div>} = tf [ either true div span "Brno" ] ]
+[ {<span>Brno</span>} = tf [ either false div span "Brno" ] ]
 [ {<div>Brno</div>} = tf [ set val true either val div span "Brno" ] ]
 [ {<span>Brno</span>} = tf [ set val false either val div span "Brno" ] ]
 [ {<div class="city">Brno</div>} = tf [ 
 	set citizens 400'001
-	div either [citizens > 400'000] .city .village "Brno" 
+	div either citizens > 400'000 .city .village "Brno" 
 ] ]
 [ {<div class="village">Adamov</div>} = tf [ 
 	set citizens 4'500 
-	div either [citizens > 400'000] .city .village "Adamov" 
+	div either citizens > 400'000 .city .village "Adamov" 
 ] ]
-[ {<div id="greeting">Hello World</div>} = tf [ div #greeting either [true] "Hello World" "Hello Mars" ] ]
-[ {<div id="greeting">Hello Mars</div>} = tf [ div #greeting either [false] "Hello World" "Hello Mars" ] ]
-[ {<div>Brno</div>} = tf [ if [true] div "Brno" ] ]
-[ {<div>Brno</div>} = tf [ if [true] [ div "Brno" ] ] ]
-[ {} = tf [ if [false] [ div "Brno" ] ] ]
-[ {Brno} = tf [ if [false] div "Brno" ] ]
+[ {<div id="greeting">Hello World</div>} = tf [ div #greeting either true "Hello World" "Hello Mars" ] ]
+[ {<div id="greeting">Hello Mars</div>} = tf [ div #greeting either false "Hello World" "Hello Mars" ] ]
+[ {<div>Brno</div>} = tf [ if true div "Brno" ] ]
+[ {<div>Brno</div>} = tf [ if true [ div "Brno" ] ] ]
+[ {} = tf [ if false [ div "Brno" ] ] ]
+[ {Brno} = tf [ if false div "Brno" ] ]
 [ {<span>value is </span>one} = tf [ set x 1 span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>value is </span>many} = tf [ set x 23 span "value is " switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>value is </span><span>one</span>} = tf [ set x 1 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
@@ -329,12 +329,12 @@
 [
 	equal?
 		"<div>1</div><div>2</div><div>3</div>"
-		tf [repeat [div :x] replace :x 3 times with [form index]] 
+		tf [repeat [div :x] replace :x 3 times with (form index)] 
 ]
 [
 	equal?
 		 {<div>1</div><span>2</span><div>2</div><span>4</span><div>3</div><span>6</span>}
-		tf [repeat [div :x span :y] replace :x :y 3 times with [reduce [form index form 2 * index]]]
+		tf [repeat [div :x span :y] replace :x :y 3 times with (reduce [form index form 2 * index])]
 ]
 
 ; inline code
