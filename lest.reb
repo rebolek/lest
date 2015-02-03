@@ -72,9 +72,9 @@ do %compile-rules.reb
 ; /fuck off
 
 
-debug:
+;debug-print:
 ; :print
-none
+;none
 
 ; SETTINGS
 
@@ -258,6 +258,7 @@ close-tag: func [
 ]
 
 lest: use [
+	debug-print
 	output
 	buffer
 	page
@@ -286,15 +287,6 @@ lest: use [
 	plugins
 	load-plugin
 ] [
-
-comment [
-output: copy ""
-buffer: copy ""
-
-header?: false
-
-tag-stack: copy []
-]
 
 ; === actions
 
@@ -896,7 +888,7 @@ comment: [
 
 debug-rule: rule [ value ] [
 	'debug set value string!
-	( debug ["DEBUG:" value])
+	( debug-print ["debug:" value])
 ]
 
 body-atts: rule [value] [
@@ -949,17 +941,17 @@ stylesheet: rule [value] [
 				value: get first bind reduce [value] user-words 
 			]
 			emit-stylesheet value
-			debug ["==STYLESHEET:" value]
+			debug-print ["==STYLESHEET:" value]
 		)		
 	]
 ]
 
 page-header: [
-	'head (debug "==HEAD")
+	'head (debug-print "==HEAD")
 	(header?: true)
 	header-content
 	'body (
-		debug "==BODY"
+		debug-print "==BODY"
 		; TODO: hack! move elsewhere
 		repend includes/header [{<script src="../js/lest.js">}</script> newline ]
 	)
@@ -967,8 +959,8 @@ page-header: [
 
 header-content: rule [type name value] [
 	any [
-		'title set value string! (page/title: value debug "==TITLE")
-	|	['lang | 'language] set value word! (page/lang: value debug "==LANG")	
+		'title set value string! (page/title: value debug-print "==TITLE")
+	|	['lang | 'language] set value word! (page/lang: value debug-print "==LANG")	
 	|	set-rule	
 	|	stylesheet
 	|	style-rule
@@ -1049,7 +1041,7 @@ paired-tag: rule [] [
 image: rule [value] [
 	['img | 'image]
 	(
-		debug "==IMAGE"
+		debug-print "==IMAGE"
 		tag-name: 'img
 	)
 	init-tag
@@ -1096,7 +1088,7 @@ li: [
 
 ul: [
 	set tag-name 'ul
-	(debug "--UL--")
+	(debug-print "--UL--")
 	init-tag
 	opt style
 	emit-tag
@@ -1519,7 +1511,7 @@ form-rule: rule [value form-type] [
 ; --- put it all together
 
 elements: rule [] [
-	pos: ( debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24] )
+	pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 24] )
 	[
 		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
 	|	page-header	
@@ -1559,7 +1551,7 @@ load-plugin: func [
 	name
 	/local plugin header
 ] [
-	debug ["load plugin" name]
+	debug-print ["load plugin" name]
 	either value? 'plugin-cache [
 		plugin: select plugin-cache name
 		header: object [type: 'lest-plugin]
@@ -1598,6 +1590,8 @@ func [
 	data [block! file! url!]
 	/save
 		"If data is file!, save output as HTML file with same name"
+	/debug
+		"Turn on debug-print mode"
 ] bind [
 
 	if any [file? data url? data] [
@@ -1605,7 +1599,12 @@ func [
 		data: load data
 	]
 
+
 ; init outside vars
+	if debug [
+		debug-print: :print
+		debug-print "Debug output ON"
+	]
 
 	output: copy ""
 	buffer: copy ""
@@ -1652,7 +1651,7 @@ func [
 
 	unless empty? includes/style [
 		write %lest-temp.css prestyle includes/style
-		debug ["CSS wrote to file %lest-temp.css"]
+		debug-print ["CSS wrote to file %lest-temp.css"]
 	]
 
 	body: either header? [

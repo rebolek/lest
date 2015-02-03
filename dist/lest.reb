@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 3-Feb-2015/12:55:15+1:00
-    Build: 40
+    Date: 3-Feb-2015/23:41:14+1:00
+    Build: 42
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1715,8 +1715,6 @@ context [
         ) continue? :here
     ]
 ]
-debug:
-none
 js-path: %../../js/
 css-path: %../../css/
 js-path: %js/
@@ -1863,6 +1861,7 @@ close-tag: func [
     ajoin ["</" type ">"]
 ]
 lest: use [
+    debug-print
     output
     buffer
     page
@@ -1886,12 +1885,6 @@ lest: use [
     plugins
     load-plugin
 ] [
-    comment [
-        output: copy ""
-        buffer: copy ""
-        header?: false
-        tag-stack: copy []
-    ]
     emit: func [
         data [string! block! tag!]
     ] [
@@ -2385,7 +2378,7 @@ lest: use [
         ]
         debug-rule: rule [value] [
             'debug set value string!
-            (debug ["DEBUG:" value])
+            (debug-print ["debug:" value])
         ]
         body-atts: rule [value] [
             'append
@@ -2425,23 +2418,23 @@ lest: use [
                         value: get first bind reduce [value] user-words
                     ]
                     emit-stylesheet value
-                    debug ["==STYLESHEET:" value]
+                    debug-print ["==STYLESHEET:" value]
                 )
             ]
         ]
         page-header: [
-            'head (debug "==HEAD")
+            'head (debug-print "==HEAD")
             (header?: true)
             header-content
             'body (
-                debug "==BODY"
+                debug-print "==BODY"
                 repend includes/header [{<script src="../js/lest.js">} </script> newline]
             )
         ]
         header-content: rule [type name value] [
             any [
-                'title set value string! (page/title: value debug "==TITLE")
-                | ['lang | 'language] set value word! (page/lang: value debug "==LANG")
+                'title set value string! (page/title: value debug-print "==TITLE")
+                | ['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
                 | set-rule
                 | stylesheet
                 | style-rule
@@ -2505,7 +2498,7 @@ lest: use [
         image: rule [value] [
             ['img | 'image]
             (
-                debug "==IMAGE"
+                debug-print "==IMAGE"
                 tag-name: 'img
             )
             init-tag
@@ -2546,7 +2539,7 @@ lest: use [
         ]
         ul: [
             set tag-name 'ul
-            (debug "--UL--")
+            (debug-print "--UL--")
             init-tag
             opt style
             emit-tag
@@ -2931,7 +2924,7 @@ lest: use [
             (emit close-tag 'form)
         ]
         elements: rule [] [
-            pos: (debug ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
+            pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
             [
                 text-settings
                 | page-header
@@ -2964,7 +2957,7 @@ lest: use [
         name
         /local plugin header
     ] [
-        debug ["load plugin" name]
+        debug-print ["load plugin" name]
         either value? 'plugin-cache [
             plugin: select plugin-cache name
             header: object [type: 'lest-plugin]
@@ -2991,10 +2984,16 @@ lest: use [
         data [block! file! url!]
         /save
         {If data is file!, save output as HTML file with same name}
+        /debug
+        "Turn on debug-print mode"
     ] bind [
         if any [file? data url? data] [
             out-file: replace copy data suffix? data %.html
             data: load data
+        ]
+        if debug [
+            debug-print: :print
+            debug-print "Debug output ON"
         ]
         output: copy ""
         buffer: copy ""
@@ -3026,7 +3025,7 @@ lest: use [
         body: head buffer
         unless empty? includes/style [
             write %lest-temp.css prestyle includes/style
-            debug ["CSS wrote to file %lest-temp.css"]
+            debug-print ["CSS wrote to file %lest-temp.css"]
         ]
         body: either header? [
             ajoin [
