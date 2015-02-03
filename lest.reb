@@ -642,6 +642,27 @@ close-div: [
 	)
 ]
 
+comparators: [
+	comparison-rule
+]
+
+comparison-rule: rule [val1 val2 comparator] [
+	; NOTE: all values are formed before comaprison
+	;			this automagically enables simple number comaprisons ( "5" > "1"...)
+	;			but does not work with math notation ("5e2" = "500" ...)
+	;			stringnumber handling should be improved later
+	;			but for simple cases this is good enough
+	set val1 any-type!
+	set comparator ['= | '> | '< | '>= | '<= | '<>]
+	set val2 any-type!
+	pos:
+	(
+		pos: back pos
+		pos/1: probe do probe reduce [(form get in user-words val1) comparator (form get in user-words val2)]
+	)
+	:pos
+]
+
 commands: [
 	if-rule
 |	either-rule
@@ -653,6 +674,7 @@ commands: [
 
 if-rule: rule [cond true-val pos res] [
 	'if
+	opt comparators
 	set cond [logic! | word! | paren!] 
 	pos:
 	set true-val any-type! 
@@ -669,6 +691,7 @@ if-rule: rule [cond true-val pos res] [
 
 either-rule: rule [cond true-val false-val pos] [
 	'either
+	opt comparators
 	set cond [logic! | word! | paren!]
 	set true-val any-type! 
 	pos:
