@@ -387,7 +387,7 @@ text-settings: rule [type] [
 	(text-style: type)
 ]
 
-eval: [any [user-values | process-code]]
+eval: [any [user-values | process-code | commands]]
 
 process-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE

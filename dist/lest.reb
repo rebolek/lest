@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Feb-2015/8:23:30+1:00
-    Build: 46
+    Date: 5-Feb-2015/9:31:01+1:00
+    Build: 47
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -681,6 +681,26 @@ jQuery(document).ready(function () {
                     ]
                 )
             ]
+        ]
+    ] redis [
+        startup: [
+            stylesheet css-path/bootstrap.min.css
+        ]
+        rule: [
+            'redis [
+                open-conn
+                | send-command
+            ]
+        ]
+        redis-conn: none
+        open-conn: [
+            'open set server url!
+            (redis-conn: open server)
+        ]
+        send-command: [
+            pos: set cmd block!
+            (pos/1: send-redis redis-conn cmd)
+            :pos
         ]
     ] google-font [
         startup: [
@@ -1955,7 +1975,7 @@ lest: use [
             'text
             (text-style: type)
         ]
-        eval: [any [user-values | process-code]]
+        eval: [any [user-values | process-code | commands]]
         process-code: rule [p value] [
             p: set value paren!
             (
