@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Feb-2015/9:31:01+1:00
-    Build: 47
+    Date: 5-Feb-2015/9:52:41+1:00
+    Build: 48
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2674,7 +2674,7 @@ lest: use [
             (current-text-style: none)
             opt [set current-text-style ['plain | 'html | 'markdown]]
             opt [user-values]
-            set value [string! | date! | time!]
+            set value [string! | date! | time! | number!]
         ]
         basic-string-processing: [
             (

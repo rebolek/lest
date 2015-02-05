@@ -1218,7 +1218,7 @@ basic-string-match: [
 	(current-text-style: none)
 	opt [set current-text-style ['plain | 'html | 'markdown]]
 	opt [user-values]
-	set value [string! | date! | time!] ; TODO: support integer?
+	set value [string! | date! | time! | number!] ; TODO: support integer?
 ]
 
 
