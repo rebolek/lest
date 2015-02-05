@@ -9,7 +9,7 @@ REBOL[
 
 
 startup: [
-	debug "==ENABLE MARKDOWN"
+	debug-print "==ENABLE MARKDOWN"
 	do %md.reb
 ]
 

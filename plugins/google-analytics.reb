@@ -10,7 +10,7 @@ rule: use [value web] [
 		set value word!
 		set web word!
 		(
-			debug ["==GOOGLE ANALYTICS:" value web]
+			debug-print ["==GOOGLE ANALYTICS:" value web]
 			append includes/body-end reword {
 	<script>
 	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

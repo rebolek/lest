@@ -13,11 +13,11 @@ startup: [
 ]
 
 rule: [
-	'wysiwyg (debug ["==WYSIWYG matched"])
+	'wysiwyg (debug-print ["==WYSIWYG matched"])
 	init-tag
 	opt style
 	(
-		debug ["==WYSIWYG"]
+		debug-print ["==WYSIWYG"]
 		tag-name: 'textarea
 		append tag/class 'wysiwyg
 	)

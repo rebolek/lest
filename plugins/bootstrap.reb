@@ -132,7 +132,7 @@ glyphicon: [
 	init-tag
 	(
 		repend tag/class ['glyphicon join 'glyphicon- name]
-		debug ["==GLYPHICON: " name]
+		debug-print ["==GLYPHICON: " name]
 ;		emit rejoin [ {<span class="glyphicon glyphicon-} name {"></span>} ]
 	)
 	emit-tag
@@ -272,7 +272,7 @@ carousel: [
 	'carousel
 	init-tag
 	(
-		debug "==CAROUSEL"
+		debug-print "==CAROUSEL"
 		tag-name: 'div
 		append tag compose [
 			inner-html: ( copy {} )
@@ -395,12 +395,12 @@ modal: [
 	init-tag
 	( label: 'modal-label )
 	set name word!
-	opt [ 'label set label word! ]
+	opt ['label set label word!]
 	(
-		debug "==MODAL"
+		debug-print "==MODAL"
 		tag-name: 'div
 		tag/id: name
-		append tag/class [ modal fade ]
+		append tag/class [modal fade]
 		append tag [
 			tabindex: -1
 			role: dialog
@@ -410,10 +410,10 @@ modal: [
 	)
 	emit-tag
 	init-div
-	( append tag/class 'modal-dialog )
+	(append tag/class 'modal-dialog)
 	emit-tag
 	init-div
-	( append tag/class 'modal-content )
+	(append tag/class 'modal-content)
 	emit-tag
 	opt modal-header
 	modal-body

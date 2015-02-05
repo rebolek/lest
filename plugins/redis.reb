@@ -6,9 +6,8 @@ REBOL[
 ]
 
 startup: [
-;	lets expect (for now) that prot-redis is already loaded
-; 	proper startup will be added later
-	stylesheet css-path/bootstrap.min.css 
+	; TODO: needs some settigns probably
+	run %../prot-redis/prot-redis.reb
 ]
 
 rule: [
@@ -27,6 +26,9 @@ open-conn: [
 
 send-command: [
 	pos: set cmd block!
-	(pos/1: send-redis redis-conn cmd)
+	(
+;		print mold user-words
+		pos/1: send-redis redis-conn bind cmd user-words
+	)
 	:pos
 ]

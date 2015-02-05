@@ -16,7 +16,7 @@ rule: [
 	'google-font 
 	set name string!
 	(
-		debug ["==GFONT:" name]
+		debug-print ["==GFONT:" name]
 		; TODO: character sets
 		repend includes/header [
 			{<link href='http://fonts.googleapis.com/css?family=}
