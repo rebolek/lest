@@ -9,7 +9,7 @@ REBOL[
 ]
 
 startup: [
-	debug-print "==ENABLE SMOOTH SCROLLING"
+	(debug-print "==ENABLE SMOOTH SCROLLING")
 	; TODO: this expect all controls to be part of UL with ID #page-nav
 	; make more generic, but do not break another anchors!!!
 	append body [data-spy scroll data-target .navbar]

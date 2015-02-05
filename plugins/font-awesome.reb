@@ -24,7 +24,7 @@ rule: use [tag name fixed? size value size-att] [
 			'stack set name block!
 		|	set name word!
 		]
-		(debug ["==FA-ICON:" name])
+		(debug-print ["==FA-ICON:" name])
 		any [
 			set size integer!
 		|	'fixed ( fixed?: " fa-fw" )
