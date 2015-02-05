@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 3-Feb-2015/23:48:49+1:00
-    Build: 44
+    Date: 5-Feb-2015/8:03:06+1:00
+    Build: 45
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1860,6 +1860,16 @@ close-tag: func [
 ] [
     ajoin ["</" type ">"]
 ]
+get-integer: func [
+    {Get integer! value from string! or pass integer! (returns NONE otherwise)}
+    value
+    /local number int-rule
+] [
+    if integer? value [return value]
+    number: charset "0123456789"
+    int-rule: [opt #"-" some number]
+    if parse value int-rule [to integer! value]
+]
 lest: use [
     debug-print
     output
@@ -2156,7 +2166,7 @@ lest: use [
         comparators: [
             comparison-rule
         ]
-        comparison-rule: rule [val1 val2 comparator pos number int-rule float-rule] [
+        comparison-rule: rule [val1 val2 comparator pos number] [
             set val1 any-type!
             set comparator ['= | '> | '< | '>= | '<= | '<>]
             set val2 any-type!
@@ -2168,15 +2178,34 @@ lest: use [
                 val2: form switch/default type?/word val2 [
                     word! [get in user-words :val2]
                 ] [val2]
-                number: charset "0123456789"
-                float-rule: [opt #"-" some number [opt #"." some number]]
-                int-rule: [opt #"-" some number]
-                if parse val1 int-rule [val1: to integer! val1]
-                if parse val2 int-rule [val2: to integer! val2]
+                val1: get-integer val1
+                val2: get-integer val2
                 pos: back pos
                 pos/1: do reduce [val1 comparator val2]
             )
             :pos
+        ]
+        math-commands: [
+            incr-rule
+            | plus-rule
+        ]
+        incr-rule: rule [action word value] [
+            set action ['++ | '--]
+            set word word!
+            (
+                action: select [++ + -- -] action
+                all [
+                    value: get in user-words word
+                    value: get-integer value
+                    integer? value
+                    user-words/:word: form do reduce ['value action 1]
+                ]
+            )
+        ]
+        plus-rule: rule [val1 val2] [
+            set val1 [string! | integer! | word!]
+            '+
+            set val2 [string! | integer! | word!]
         ]
         commands: [
             if-rule
@@ -2185,6 +2214,7 @@ lest: use [
             | for-rule
             | repeat-rule
             | join-rule
+            | math-commands
         ]
         if-rule: rule [cond true-val pos res] [
             'if
