@@ -947,6 +947,12 @@ body-atts: rule [value] [
 	)
 ]
 
+run: rule [file] [
+	'run
+	set file [file! | url!]
+	(do file)
+]
+
 script: rule [type value] [
 	(type: none)
 	opt [ set type ['insert | 'append] ]
@@ -1573,6 +1579,7 @@ elements: rule [] [
 	|	heading
 	|	form-rule
 	|	script
+	|	run
 	|	stylesheet
 	|	plugins
 	]
