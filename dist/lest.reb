@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Feb-2015/8:03:06+1:00
-    Build: 45
+    Date: 5-Feb-2015/8:23:30+1:00
+    Build: 46
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2187,7 +2187,7 @@ lest: use [
         ]
         math-commands: [
             incr-rule
-            | plus-rule
+            | math-rule
         ]
         incr-rule: rule [action word value] [
             set action ['++ | '--]
@@ -2202,10 +2202,18 @@ lest: use [
                 ]
             )
         ]
-        plus-rule: rule [val1 val2] [
+        math-rule: rule [pos action val1 val2] [
             set val1 [string! | integer! | word!]
-            '+
-            set val2 [string! | integer! | word!]
+            set action ['+ | '- | '*]
+            pos: set val2 [string! | integer! | word!]
+            (
+                if word? val1 [val1: get in user-words val1]
+                if word? val2 [val2: get in user-words val2]
+                val1: get-integer val1
+                val2: get-integer val2
+                pos/1: form do reduce ['val1 action 'val2]
+            )
+            :pos
         ]
         commands: [
             if-rule
