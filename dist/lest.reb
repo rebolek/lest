@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Feb-2015/9:52:41+1:00
-    Build: 48
+    Date: 5-Feb-2015/10:49:55+1:00
+    Build: 51
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -699,7 +699,7 @@ jQuery(document).ready(function () {
         ]
         send-command: [
             pos: set cmd block!
-            (pos/1: send-redis redis-conn cmd)
+            (pos/1: send-redis redis-conn bind cmd user-words)
             :pos
         ]
     ] google-font [
@@ -3026,8 +3026,9 @@ lest: use [
             plugin: load/header rejoin [plugin-path name %.reb]
             header: take plugin
         ]
-        plugin: object bind plugin rules
         if equal? 'lest-plugin header/type [
+            plugin: bind plugin object compose [user-words: (user-words)]
+            plugin: object bind plugin rules
             if in plugin 'rule [add-rule rules/plugins bind plugin/rule 'emit]
             if in plugin 'startup [return plugin/startup]
         ]

@@ -1607,10 +1607,11 @@ load-plugin: func [
 		header: take plugin
 	]
 	; FIXME: should use 'construct to be safer, but that doesn't work with USE for local words in rules
-	; TODO: shouln't next line be in following condition?
-	plugin: object bind plugin rules
+	; TODO: parse both rules and user-words in one step
 	if equal? 'lest-plugin header/type [
-		if in plugin 'rule 		[add-rule rules/plugins bind plugin/rule 'emit]
+		plugin: bind plugin object compose [user-words: (user-words)]
+		plugin: object bind plugin rules
+		if in plugin 'rule 			[add-rule rules/plugins bind plugin/rule 'emit]
 		if in plugin 'startup 	[return plugin/startup]
 	]
 	none
