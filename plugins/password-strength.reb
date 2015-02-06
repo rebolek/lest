@@ -15,7 +15,7 @@ startup: [
 	append script js-path/pwstrength.js
 ]
 
-rule: rule [verdicts too-short same-as-user username] [
+main-rule: rule [verdicts too-short same-as-user username] [
 	'password-strength
 	(
 		verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"]

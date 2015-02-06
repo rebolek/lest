@@ -16,7 +16,7 @@ startup: [
 	meta http-equiv: X-UA-Compatible "IE=edge"
 ]
 
-rule: [
+main-rule: [
 	grid-elems
 |	col
 |	bar

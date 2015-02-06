@@ -1,14 +1,14 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 6-Feb-2015/17:04:31+1:00
-    Build: 74
+    Date: 6-Feb-2015/19:17:22+1:00
+    Build: 77
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
         startup: [
             stylesheet css-path/font-awesome.min.css
         ]
-        rule: use [tag name fixed? size value size-att] [
+        main-rule: use [tag name fixed? size value size-att] [
             [
                 'fa-icon
                 init-tag
@@ -83,12 +83,12 @@ plugin-cache: [font-awesome [
             debug-print "==ENABLE MARKDOWN"
             do %md.reb
         ]
-        rule: [
+        main-rule: [
             'markdown
             set value string! (emit markdown value)
         ]
     ] cgi-actions [] google-maps [
-        rule: [
+        main-rule: [
             'map
             set location pair!
             (
@@ -107,7 +107,7 @@ plugin-cache: [font-awesome [
             append plugin js-path/bootstrap3-wysihtml5.js
             append plugin "$('.wysiwyg').wysihtml5();"
         ]
-        rule: [
+        main-rule: [
             'wysiwyg (debug-print ["==WYSIWYG matched"])
             init-tag
             opt style
@@ -125,7 +125,7 @@ plugin-cache: [font-awesome [
             append script js-path/jquery-2.1.0.min.js
             append script js-path/bootstrap.min.js
         ]
-        rule: [
+        main-rule: [
             set type 'crow
             c
             opt style
@@ -137,7 +137,7 @@ plugin-cache: [font-awesome [
         startup: [
             append script js-path/pwstrength.js
         ]
-        rule: rule [verdicts too-short same-as-user username] [
+        main-rule: rule [verdicts too-short same-as-user username] [
             'password-strength
             (
                 verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"]
@@ -194,7 +194,7 @@ jQuery(document).ready(function () {
             meta viewport "width=device-width, initial-scale=1"
             meta http-equiv: X-UA-Compatible "IE=edge"
         ]
-        rule: [
+        main-rule: [
             grid-elems
             | col
             | bar
@@ -656,36 +656,34 @@ jQuery(document).ready(function () {
             end-tag
         ]
     ] google-analytics [
-        rule: use [value web] [
-            [
-                'ga
-                set value word!
-                set web word!
-                (
-                    debug-print ["==GOOGLE ANALYTICS:" value web]
-                    append includes/body-end reword {
-^-<script>
-^-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-^-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-^-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-^-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        main-rule: rule [value web] [
+            'ga
+            set value word!
+            set web word!
+            (
+                debug-print ["==GOOGLE ANALYTICS:" value web]
+                append includes/body-end reword {
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-^-  ga('create', '$value', '$web');
-^-  ga('send', 'pageview');
+  ga('create', '$value', '$web');
+  ga('send', 'pageview');
 
-^-</script>
-^-} [
-                        'value value
-                        'web web
-                    ]
-                )
-            ]
+</script>
+} [
+                    'value value
+                    'web web
+                ]
+            )
         ]
     ] redis [
         startup: [
             run redis-path
         ]
-        rule: [
+        main-rule: [
             'redis [
                 open-conn
                 | use-conn
@@ -717,7 +715,7 @@ jQuery(document).ready(function () {
         startup: [
             stylesheet css-path/bootstrap.min.css
         ]
-        rule: [
+        main-rule: [
             'google-font
             set name string!
             (
@@ -731,7 +729,7 @@ jQuery(document).ready(function () {
             )
         ]
     ] captcha [
-        rule: [
+        main-rule: [
             'captcha set value string! (
                 emit reword {
 <script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=$public-key"></script>
@@ -759,17 +757,17 @@ jQuery(document).ready(function () {
             insert script js-path/moment.min.js
             insert script js-path/bootstrap-datetimepicker.min.js
         ]
-        rule: [
-            (label: none)
+        main-rule: [
+            (dtp-label: none)
             'bootstrap 'datetime
             pos: set value word!
-            opt [set label string!]
+            opt [set dtp-label string!]
             (
                 id: to issue! join "datetimepicker" random 1000
                 pos/1: compose/deep [
                     div .input-group .date (id) [
                         simple text (value) with [data-date-format: "DD.MM.YYYY"]
-                        (either label [label] [])
+                        (either dtp-label [dtp-label] [])
                         span .input-group-addon [glyphicon calendar]
                     ]
                     script (reword/escape {
@@ -2861,10 +2859,12 @@ lest: use [
             set name word!
             set value [word! | string! | number!]
             some [
-                eval set label string!
-                | eval 'checked (append tag [checked: true])
-                | eval 'disabled (append tag [disabled: true])
-                | style
+                eval [
+                    set label string!
+                    | 'checked (append tag [checked: true])
+                    | 'disabled (append tag [disabled: true])
+                    | style
+                ]
             ]
             (
                 unless tag/id [tag/id: ajoin ["radio_" name #"_" value]]
@@ -3048,7 +3048,7 @@ lest: use [
         if equal? 'lest-plugin header/type [
             plugin: bind plugin object compose [user-words: (user-words)]
             plugin: object bind plugin rules
-            if in plugin 'rule [add-rule rules/plugins bind plugin/rule 'emit]
+            if in plugin 'rule [add-rule rules/plugins bind plugin/main-rule 'emit]
             if in plugin 'startup [return plugin/startup]
         ]
         none

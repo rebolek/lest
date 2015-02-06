@@ -12,18 +12,18 @@ startup: [
 	insert script js-path/bootstrap-datetimepicker.min.js 
 ]
 
-rule: [
-	(label: none)
+main-rule: [
+	(dtp-label: none)
 	'bootstrap 'datetime 
 	pos:  set value word!
-	opt [set label string!]
+	opt [set dtp-label string!]
 	; TODO some options
 	(
 		id: to issue! join "datetimepicker" random 1000 	; TODO: replace with something sane
 		pos/1: compose/deep [
 			div .input-group .date (id) [
 				simple text (value) with [data-date-format: "DD.MM.YYYY"]
-				(either label [label] [])
+				(either dtp-label [dtp-label] [])
 				span .input-group-addon [glyphicon calendar]
 			]
 			script ( reword/escape {

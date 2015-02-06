@@ -1413,10 +1413,12 @@ radio: rule [] [
 	set name word!
 	set value [ word! | string! | number! ]
 	some [
-		eval set label string!
-	|	eval 'checked (append tag [checked: true])
-	|	eval 'disabled (append tag [disabled: true])
-	|	style
+		eval [
+			set label string!
+		|	'checked (append tag [checked: true])
+		|	'disabled (append tag [disabled: true])
+		|	style
+		]
 	]
 	(
 		unless tag/id [tag/id: ajoin ["radio_" name #"_" value]]
@@ -1619,7 +1621,7 @@ load-plugin: func [
 	if equal? 'lest-plugin header/type [
 		plugin: bind plugin object compose [user-words: (user-words)]
 		plugin: object bind plugin rules
-		if in plugin 'rule 			[add-rule rules/plugins bind plugin/rule 'emit]
+		if in plugin 'rule 			[add-rule rules/plugins bind plugin/main-rule 'emit]
 		if in plugin 'startup 	[return plugin/startup]
 	]
 	none

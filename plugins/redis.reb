@@ -10,7 +10,7 @@ startup: [
 	run redis-path
 ]
 
-rule: [
+main-rule: [
 	'redis [
 		open-conn
 	|	use-conn

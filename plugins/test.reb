@@ -11,7 +11,7 @@ startup: [
 	append script js-path/bootstrap.min.js 
 ]
 
-rule: [
+main-rule: [
 
 		set type 'crow
 		c
