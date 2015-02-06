@@ -258,7 +258,7 @@ close-tag: func [
 ]
 
 get-integer: func [
-	"Get integer! value from string! or pass integer! (returns NONE otherwise)"
+	"Get integer! value from string! or pass integer! (pass value otherwise)"
 	value
 	/local number int-rule
 ] [
@@ -266,7 +266,7 @@ get-integer: func [
 	number: 		charset "0123456789"
 ;	float-rule: 	[opt #"-" some number [opt #"." some number]]
 	int-rule: 		[opt #"-" some number]
-	if parse value int-rule [to integer! value]
+	either parse value int-rule [to integer! value] [value]
 ]
 
 lest: use [

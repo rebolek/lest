@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 6-Feb-2015/15:44:52+1:00
-    Build: 69
+    Date: 6-Feb-2015/17:04:31+1:00
+    Build: 74
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1893,14 +1893,14 @@ close-tag: func [
     ajoin ["</" type ">"]
 ]
 get-integer: func [
-    {Get integer! value from string! or pass integer! (returns NONE otherwise)}
+    {Get integer! value from string! or pass integer! (pass value otherwise)}
     value
     /local number int-rule
 ] [
     if integer? value [return value]
     number: charset "0123456789"
     int-rule: [opt #"-" some number]
-    if parse value int-rule [to integer! value]
+    either parse value int-rule [to integer! value] [value]
 ]
 lest: use [
     debug-print
