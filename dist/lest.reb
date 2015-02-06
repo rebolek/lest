@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 6-Feb-2015/15:38+1:00
-    Build: 68
+    Date: 6-Feb-2015/15:44:52+1:00
+    Build: 69
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -704,9 +704,12 @@ jQuery(document).ready(function () {
             )
         ]
         send-command: [
+            (quiet?: false)
+            opt ['quiet (quiet?: true)]
             pos: set cmd block!
             (
                 pos/1: send-redis redis-conn bind cmd user-words
+                if quiet? [pos/1: ""]
             )
             :pos
         ]
