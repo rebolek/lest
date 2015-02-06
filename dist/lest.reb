@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 6-Feb-2015/19:17:22+1:00
-    Build: 77
+    Date: 6-Feb-2015/19:24:37+1:00
+    Build: 78
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -3048,7 +3048,7 @@ lest: use [
         if equal? 'lest-plugin header/type [
             plugin: bind plugin object compose [user-words: (user-words)]
             plugin: object bind plugin rules
-            if in plugin 'rule [add-rule rules/plugins bind plugin/main-rule 'emit]
+            if in plugin 'main-rule [add-rule rules/plugins bind plugin/main-rule 'emit]
             if in plugin 'startup [return plugin/startup]
         ]
         none
