@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Feb-2015/11:04:35+1:00
-    Build: 52
+    Date: 6-Feb-2015/15:38+1:00
+    Build: 68
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -20,7 +20,7 @@ plugin-cache: [font-awesome [
                     'stack set name block!
                     | set name word!
                 ]
-                (debug ["==FA-ICON:" name])
+                (debug-print ["==FA-ICON:" name])
                 any [
                     set size integer!
                     | 'fixed (fixed?: " fa-fw")
@@ -57,7 +57,6 @@ plugin-cache: [font-awesome [
         ]
     ] smooth-scrolling [
         startup: [
-            debug "==ENABLE SMOOTH SCROLLING"
             append body [data-spy scroll data-target .navbar]
             append script {
 ^-  $(function() {
@@ -81,14 +80,14 @@ plugin-cache: [font-awesome [
         ]
     ] markdown [
         startup: [
-            debug "==ENABLE MARKDOWN"
+            debug-print "==ENABLE MARKDOWN"
             do %md.reb
         ]
         rule: [
             'markdown
             set value string! (emit markdown value)
         ]
-    ] google-maps [
+    ] cgi-actions [] google-maps [
         rule: [
             'map
             set location pair!
@@ -109,11 +108,11 @@ plugin-cache: [font-awesome [
             append plugin "$('.wysiwyg').wysihtml5();"
         ]
         rule: [
-            'wysiwyg (debug ["==WYSIWYG matched"])
+            'wysiwyg (debug-print ["==WYSIWYG matched"])
             init-tag
             opt style
             (
-                debug ["==WYSIWYG"]
+                debug-print ["==WYSIWYG"]
                 tag-name: 'textarea
                 append tag/class 'wysiwyg
             )
@@ -299,7 +298,7 @@ jQuery(document).ready(function () {
             init-tag
             (
                 repend tag/class ['glyphicon join 'glyphicon- name]
-                debug ["==GLYPHICON: " name]
+                debug-print ["==GLYPHICON: " name]
             )
             emit-tag
             end-tag
@@ -420,7 +419,7 @@ jQuery(document).ready(function () {
             'carousel
             init-tag
             (
-                debug "==CAROUSEL"
+                debug-print "==CAROUSEL"
                 tag-name: 'div
                 append tag compose [
                     inner-html: (copy "")
@@ -539,7 +538,7 @@ jQuery(document).ready(function () {
             set name word!
             opt ['label set label word!]
             (
-                debug "==MODAL"
+                debug-print "==MODAL"
                 tag-name: 'div
                 tag/id: name
                 append tag/class [modal fade]
@@ -663,7 +662,7 @@ jQuery(document).ready(function () {
                 set value word!
                 set web word!
                 (
-                    debug ["==GOOGLE ANALYTICS:" value web]
+                    debug-print ["==GOOGLE ANALYTICS:" value web]
                     append includes/body-end reword {
 ^-<script>
 ^-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -684,18 +683,25 @@ jQuery(document).ready(function () {
         ]
     ] redis [
         startup: [
-            run %../prot-redis/prot-redis.reb
+            run redis-path
         ]
         rule: [
             'redis [
                 open-conn
+                | use-conn
                 | send-command
             ]
         ]
         redis-conn: none
         open-conn: [
-            'open set server url!
+            'open eval set server url!
             (redis-conn: open server)
+        ]
+        use-conn: [
+            'use eval set server word!
+            (
+                redis-conn: get server
+            )
         ]
         send-command: [
             pos: set cmd block!
@@ -712,7 +718,7 @@ jQuery(document).ready(function () {
             'google-font
             set name string!
             (
-                debug ["==GFONT:" name]
+                debug-print ["==GFONT:" name]
                 repend includes/header [
                     {<link href='http://fonts.googleapis.com/css?family=}
                     replace/all name #" " #"+"
@@ -1737,6 +1743,7 @@ context [
         ) continue? :here
     ]
 ]
+debug-print: none
 js-path: %../../js/
 css-path: %../../css/
 js-path: %js/
@@ -1977,7 +1984,7 @@ lest: use [
             'text
             (text-style: type)
         ]
-        eval: [any [user-values | process-code | commands]]
+        eval: [any [user-values | process-code | commands | plugins]]
         process-code: rule [p value] [
             p: set value paren!
             (
@@ -2453,6 +2460,7 @@ lest: use [
         ]
         run: rule [file] [
             'run
+            eval
             set file [file! | url!]
             (do file)
         ]
@@ -3061,6 +3069,7 @@ lest: use [
             out-file: replace copy data suffix? data %.html
             data: load data
         ]
+        debug-print: none
         if debug [
             debug-print: :print
             debug-print "Debug output ON"

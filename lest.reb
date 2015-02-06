@@ -72,7 +72,7 @@ do %compile-rules.reb
 ; /fuck off
 
 
-;debug-print:
+debug-print: none
 ; :print
 ;none
 
@@ -387,7 +387,7 @@ text-settings: rule [type] [
 	(text-style: type)
 ]
 
-eval: [any [user-values | process-code | commands]]
+eval: [any [user-values | process-code | commands | plugins]]
 
 process-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
@@ -949,6 +949,7 @@ body-atts: rule [value] [
 
 run: rule [file] [
 	'run
+	eval
 	set file [file! | url!]
 	(do file)
 ]
@@ -1656,6 +1657,7 @@ func [
 
 
 ; init outside vars
+	debug-print: none
 	if debug [
 		debug-print: :print
 		debug-print "Debug output ON"
