@@ -12,7 +12,7 @@ startup: [
 	stylesheet css-path/bootstrap.min.css 
 ]
 
-main-rule: [
+main: [
 	'google-font 
 	set name string!
 	(

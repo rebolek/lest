@@ -3,7 +3,7 @@ REBOL[
 	Type: 'lest-plugin
 ]
 
-main-rule: rule [value web] [
+main: rule [value web] [
 	; google analytics
 	'ga
 	set value word!

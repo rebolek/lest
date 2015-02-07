@@ -5,7 +5,7 @@ REBOL[
 ]
 
 
-main-rule: [
+main: [
 	; google maps
 
 ;

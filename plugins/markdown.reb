@@ -13,7 +13,7 @@ startup: [
 	do %md.reb
 ]
 
-main-rule: [ 
+main: [ 
 	'markdown 
 	set value string! ( emit markdown value ) 
 ]

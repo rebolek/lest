@@ -12,7 +12,7 @@ startup: [
 	insert script js-path/bootstrap-datetimepicker.min.js 
 ]
 
-main-rule: [
+main: [
 	(dtp-label: none)
 	'bootstrap 'datetime 
 	pos:  set value word!

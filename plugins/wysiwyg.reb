@@ -12,7 +12,7 @@ startup: [
 	append plugin {$('.wysiwyg').wysihtml5();}
 ]
 
-main-rule: [
+main: [
 	'wysiwyg (debug-print ["==WYSIWYG matched"])
 	init-tag
 	opt style

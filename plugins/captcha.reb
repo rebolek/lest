@@ -5,7 +5,7 @@ REBOL[
 	Todo: []
 ]
 
-main-rule: [
+main: [
 	'captcha set value string! (
 		emit reword {
 <script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=$public-key"></script>

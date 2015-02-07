@@ -16,7 +16,7 @@ startup: [
 	meta http-equiv: X-UA-Compatible "IE=edge"
 ]
 
-main-rule: [
+main: [
 	grid-elems
 |	col
 |	bar
@@ -39,7 +39,8 @@ grid-elems: [
 	( insert tag/class type	)
 	emit-tag
 	into [ some elements ]
-	close-div
+;	close-div
+	end-tag
 ]
 
 col: use [ grid-size width offset ] [
