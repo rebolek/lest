@@ -1,14 +1,14 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 6-Feb-2015/19:24:37+1:00
-    Build: 78
+    Date: 7-Feb-2015/7:55:03+1:00
+    Build: 117
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
         startup: [
             stylesheet css-path/font-awesome.min.css
         ]
-        main-rule: use [tag name fixed? size value size-att] [
+        main: use [tag name fixed? size value size-att] [
             [
                 'fa-icon
                 init-tag
@@ -83,12 +83,12 @@ plugin-cache: [font-awesome [
             debug-print "==ENABLE MARKDOWN"
             do %md.reb
         ]
-        main-rule: [
+        main: [
             'markdown
             set value string! (emit markdown value)
         ]
     ] cgi-actions [] google-maps [
-        main-rule: [
+        main: [
             'map
             set location pair!
             (
@@ -107,7 +107,7 @@ plugin-cache: [font-awesome [
             append plugin js-path/bootstrap3-wysihtml5.js
             append plugin "$('.wysiwyg').wysihtml5();"
         ]
-        main-rule: [
+        main: [
             'wysiwyg (debug-print ["==WYSIWYG matched"])
             init-tag
             opt style
@@ -125,7 +125,7 @@ plugin-cache: [font-awesome [
             append script js-path/jquery-2.1.0.min.js
             append script js-path/bootstrap.min.js
         ]
-        main-rule: [
+        main: [
             set type 'crow
             c
             opt style
@@ -137,7 +137,7 @@ plugin-cache: [font-awesome [
         startup: [
             append script js-path/pwstrength.js
         ]
-        main-rule: rule [verdicts too-short same-as-user username] [
+        main: rule [verdicts too-short same-as-user username] [
             'password-strength
             (
                 verdicts: ["Weak" "Normal" "Medium" "Strong" "Very Strong"]
@@ -194,7 +194,7 @@ jQuery(document).ready(function () {
             meta viewport "width=device-width, initial-scale=1"
             meta http-equiv: X-UA-Compatible "IE=edge"
         ]
-        main-rule: [
+        main: [
             grid-elems
             | col
             | bar
@@ -216,7 +216,7 @@ jQuery(document).ready(function () {
             (insert tag/class type)
             emit-tag
             into [some elements]
-            close-div
+            end-tag
         ]
         col: use [grid-size width offset] [
             [
@@ -656,7 +656,7 @@ jQuery(document).ready(function () {
             end-tag
         ]
     ] google-analytics [
-        main-rule: rule [value web] [
+        main: rule [value web] [
             'ga
             set value word!
             set web word!
@@ -683,7 +683,7 @@ jQuery(document).ready(function () {
         startup: [
             run redis-path
         ]
-        main-rule: [
+        main: [
             'redis [
                 open-conn
                 | use-conn
@@ -715,7 +715,7 @@ jQuery(document).ready(function () {
         startup: [
             stylesheet css-path/bootstrap.min.css
         ]
-        main-rule: [
+        main: [
             'google-font
             set name string!
             (
@@ -729,7 +729,7 @@ jQuery(document).ready(function () {
             )
         ]
     ] captcha [
-        main-rule: [
+        main: [
             'captcha set value string! (
                 emit reword {
 <script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=$public-key"></script>
@@ -757,7 +757,7 @@ jQuery(document).ready(function () {
             insert script js-path/moment.min.js
             insert script js-path/bootstrap-datetimepicker.min.js
         ]
-        main-rule: [
+        main: [
             (dtp-label: none)
             'bootstrap 'datetime
             pos: set value word!
@@ -1938,7 +1938,7 @@ lest: use [
         /class
         styles
     ] [
-        emit entag/with label 'label reduce/no-set [for: elem class: styles]
+        unless empty? label [emit entag/with label 'label reduce/no-set [for: elem class: styles]]
     ]
     emit-script: func [
         script
@@ -1986,6 +1986,7 @@ lest: use [
             (text-style: type)
         ]
         eval: [any [user-values | process-code | commands | plugins]]
+        eval-strict: [any [user-values | process-code | commands]]
         process-code: rule [p value] [
             p: set value paren!
             (
@@ -2175,13 +2176,21 @@ lest: use [
         init-tag: [
             (
                 insert tag-stack reduce [tag-name tag: context [id: none class: copy []]]
+                debug-print ["INIT TAG:" tag-name]
+                debug-stack tag-stack
             )
         ]
         take-tag: [(set [tag-name tag] take/part tag-stack 2)]
-        emit-tag: [(emit build-tag tag-name tag)]
+        emit-tag: [(
+                emit build-tag tag-name tag
+                debug-print ["EMIT TAG:" tag-name ", stack: " length? tag-stack]
+            )]
         end-tag: [
             take-tag
-            (emit close-tag tag-name)
+            (
+                emit close-tag tag-name
+                debug-print ["END TAG:" tag-name ", stack: " length? tag-stack]
+            )
         ]
         init-div: [
             (tag-name: 'div)
@@ -2425,17 +2434,18 @@ lest: use [
         ]
         style: rule [pos word continue] [
             any [
-                commands
-                | get-style
-                | set word issue! (tag/id: next form word)
+                get-style
+                | set word issue! (tag/id: next form word debug-print ["** " tag-name "/id: " tag/id])
                 | [
                     pos: set word word!
                     (
                         continue: either #"." = take form word [
                             append used-styles word
                             append tag/class next form word
+                            debug-print ["** " tag-name "/class: " tag/class]
                             []
                         ] [
+                            debug-print ["** " tag-name " not a style: " word]
                             [end skip]
                         ]
                     )
@@ -2566,9 +2576,11 @@ lest: use [
         paired-tag: rule [] [
             set tag-name paired-tags
             init-tag
+            eval
             opt style
             opt actions
             emit-tag
+            eval
             match-content
             end-tag
         ]
@@ -2765,12 +2777,13 @@ lest: use [
                 default: none
             )
             init-tag
-            (
-                tag-name: first tag-stack
-                tag: second tag-stack
-            )
         ]
         emit-input: [
+            (append tag compose [name: (name) placeholder: (default) value: (value)])
+            emit-tag
+            close-tag
+        ]
+        old-emit-input: [
             (
                 switch/default form-type [
                     horizontal [
@@ -2795,16 +2808,19 @@ lest: use [
         ]
         input-parameters: rule [data] [
             set name word!
+            (debug-print ["INPUT:name=" name])
             any [
-                set label string!
-                | 'default eval set default string!
-                | 'value eval set value string!
-                | eval 'checked (append tag [checked: true])
-                | eval 'required (append tag [required: true])
-                | 'error eval set data string! (append tag compose [data-error: (data)])
-                | 'match eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
-                | 'min-length eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
-                | style
+                eval-strict any [
+                    set label string! (debug-print ["INPUT:" name " label:" label])
+                    | 'default eval set default string! (debug-print ["INPUT:" name " default:" default])
+                    | 'value eval set value string! (debug-print ["INPUT:" name " value:" value])
+                    | 'checked (debug-print ["INPUT:" name " checked"]) (append tag [checked: true])
+                    | 'required (debug-print ["INPUT:" name " required"]) (append tag [required: true])
+                    | 'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
+                    | 'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
+                    | 'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+                    | style (debug-print ["INPUT:" name " after style"])
+                ]
             ]
         ]
         input: rule [type simple] [
@@ -2819,11 +2835,17 @@ lest: use [
                 (append tag/class 'form-group)
                 emit-tag
             ]
-            init-input
+            (tag-name: 'input)
+            init-tag
             (append tag/class 'form-control)
             (append tag reduce/no-set [type: type])
+            (debug-print "<input-parameters>")
             input-parameters
-            emit-input
+            (debug-print "</input-parameters>")
+            (append tag compose [name: (name) placeholder: (default) value: (value)])
+            (emit-label label name)
+            emit-tag
+            take-tag
             if (validator?) [
                 init-div
                 (append tag/class [help-block with-errors])
@@ -2973,7 +2995,7 @@ lest: use [
             ]
         ]
         form-type: none
-        form-rule: rule [value form-type] [
+        form-rule: rule [value form-type enctype] [
             set tag-name 'form
             (form-type: enctype: validator?: none)
             init-tag
@@ -2997,10 +3019,9 @@ lest: use [
                 )
                 | style
             ]
-            take-tag
             emit-tag
-            into main-rule
-            (emit close-tag 'form)
+            match-content
+            end-tag
         ]
         elements: rule [] [
             pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
@@ -3048,7 +3069,7 @@ lest: use [
         if equal? 'lest-plugin header/type [
             plugin: bind plugin object compose [user-words: (user-words)]
             plugin: object bind plugin rules
-            if in plugin 'main-rule [add-rule rules/plugins bind plugin/main-rule 'emit]
+            if in plugin 'main [add-rule rules/plugins bind plugin/main 'emit]
             if in plugin 'startup [return plugin/startup]
         ]
         none
@@ -3073,6 +3094,11 @@ lest: use [
             data: load data
         ]
         debug-print: none
+        debug-stack: func [stack] [
+            out: make block! 20
+            forskip stack 2 [append out stack/1]
+            debug-print ["##stack: " mold reverse out]
+        ]
         if debug [
             debug-print: :print
             debug-print "Debug output ON"
