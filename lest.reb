@@ -388,6 +388,7 @@ text-settings: rule [type] [
 ]
 
 eval: [any [user-values | process-code | commands | plugins]]
+eval-strict: [any [user-values | process-code | commands ]]		; ignore plugins
 
 process-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
@@ -627,16 +628,24 @@ make-row: [
 init-tag: [
 	(
 		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
+		debug-print ["INIT TAG:" tag-name]
+		debug-stack tag-stack
 	)
 ]
 
 take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
 
-emit-tag: [ ( emit build-tag tag-name tag ) ]
+emit-tag: [ ( 
+	emit build-tag tag-name tag 
+	debug-print ["EMIT TAG:" tag-name ", stack: " length? tag-stack]
+) ]
 
 end-tag: [
 	take-tag
-	( emit close-tag tag-name )
+	( 
+		emit close-tag tag-name 
+		debug-print ["END TAG:" tag-name ", stack: " length? tag-stack]
+	)
 ]
 
 init-div: [
