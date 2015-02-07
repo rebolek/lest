@@ -1645,7 +1645,7 @@ load-plugin: func [
 	if equal? 'lest-plugin header/type [
 		plugin: bind plugin object compose [user-words: (user-words)]
 		plugin: object bind plugin rules
-		if in plugin 'main-rule	[add-rule rules/plugins bind plugin/main-rule 'emit]
+		if in plugin 'main 		[add-rule rules/plugins bind plugin/main 'emit]
 		if in plugin 'startup 	[return plugin/startup]
 	]
 	none
