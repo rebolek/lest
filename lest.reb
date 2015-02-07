@@ -420,6 +420,7 @@ set-rule: rule [labels values] [
 			labels: reduce [labels]
 			values: reduce [values]
 		]
+		debug-print ["==SET: " length? labels " values"]
 		repeat i length? labels [
 			label: labels/:i
 			value: values/:i
@@ -430,6 +431,7 @@ set-rule: rule [labels values] [
 			][value]
 			; add rules, if not exists
 			unless in user-words label [
+				debug-print ["==SET/create: " label]
 				append second user-values compose [ 
 					|
 						(to lit-word! label) 
@@ -437,6 +439,7 @@ set-rule: rule [labels values] [
 				]
 			]
 			; extend user context with new value
+			debug-print ["==SET: " label ": " value]
 			repend user-words [to set-word! label value] 
 		]
 	)

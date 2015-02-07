@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Feb-2015/14:13:12+1:00
-    Build: 138
+    Date: 7-Feb-2015/14:18:53+1:00
+    Build: 141
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2069,6 +2069,7 @@ lest: use [
                     labels: reduce [labels]
                     values: reduce [values]
                 ]
+                debug-print ["==SET: " length? labels " values"]
                 repeat i length? labels [
                     label: labels/:i
                     value: values/:i
@@ -2077,12 +2078,14 @@ lest: use [
                         false no off [lib/false]
                     ] [value]
                     unless in user-words label [
+                        debug-print ["==SET/create: " label]
                         append second user-values compose [
                             |
                             (to lit-word! label)
                             (to paren! compose [change pos (to path! reduce ['user-words label])])
                         ]
                     ]
+                    debug-print ["==SET: " label ": " value]
                     repend user-words [to set-word! label value]
                 ]
             )
