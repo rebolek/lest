@@ -80,12 +80,6 @@ debug-print: none
 
 ; TODO: move settings to .PAGE files
 
-js-path: %../../js/			; we are in cgi-bin/lib/ so we need to go two levels up
-css-path: %../../css/
-
-js-path: %js/			; we are in work dir so we need to go just one level up
-css-path: %css/
-
 plugin-path: %plugins/
 
 text-style: 'html
@@ -840,7 +834,6 @@ get-style: rule [pos data type] [
 
 style: rule [pos word continue] [
 	any [
-;		commands
 		get-style
 	|	set word issue! (tag/id: next form word debug-print ["** " tag-name "/id: " tag/id])
 	|	[
@@ -1502,12 +1495,9 @@ form-rule: rule [value form-type enctype] [
 		)
 	|	style
 	]
-;	take-tag
 	emit-tag
-;	into main-rule
 	match-content
 	end-tag
-;	(emit close-tag 'form)
 ]
 
 ; --- put it all together
@@ -1572,12 +1562,6 @@ load-plugin: func [
 	none
 ]
 
-comment [
-user-rules: rule [] [ fail ]	; fail is "empty rule", because empty block isn't
-user-rule-names: make block! 100
-user-words: object []
-user-values: copy/deep [ pos: [fail] :pos ]
-]
 ;  __  __              _____   _   _
 ; |  \/  |     /\     |_   _| | \ | |
 ; | \  / |    /  \      | |   |  \| |
@@ -1626,9 +1610,6 @@ func [
 	user-rule-names: make block! 100
 	user-words: object []
 	user-values: copy/deep [ pos: [fail] :pos ]
-
-;	clear head output
-;	clear head buffer
 
 	includes: object [
 		style:			make block! 1000
