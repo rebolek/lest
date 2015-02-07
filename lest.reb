@@ -316,7 +316,7 @@ emit-label: func [
 	/class
 	styles
 ][
-	emit entag/with label 'label reduce/no-set [ for: elem class: styles ]
+	unless empty? label [emit entag/with label 'label reduce/no-set [ for: elem class: styles ]]
 ]
 
 emit-script: func [
@@ -1319,12 +1319,13 @@ init-input: rule [value] [
 		default: none
 	)
 	init-tag
-	(
-		tag-name: first tag-stack
-		tag: second tag-stack
-	)
 ]
 emit-input: [
+	(append tag compose [name: (name) placeholder: (default) value: (value)])
+	emit-tag
+	close-tag
+]
+old-emit-input: [
 	(
 		switch/default form-type [
 			horizontal [
