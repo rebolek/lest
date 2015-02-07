@@ -547,84 +547,6 @@ actions: rule [action value data] [
 	]
 ]
 
-; === FIXME: ROW needs bootstrap plugin enabled
-
-; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM ["Venus" "Earth" "Mars"]
-
-; (block: ["Venus" "Earth" "Mars"] ...)
-; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM block
-
-; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM %data.r
-
-; ROW WITH 3 COLS [span <name>] REPLACE <name> FROM http://www.mraky.net/data.r
-
-make-row: [
-	'row
-	'with
-	(
-		index: 1
-		offset: none
-	)
-	some [
-		set cols integer!
-		[ 'col | 'cols ]
-	|	'offset
-		set offset integer!
-	;
-	; --
-	; -- TODO: COL x COL y COL ...
-	; --
-	; -- set DATA and use it later
-	; --
-	;
-	]
-	set element block!
-	'replace
-	set value get-word!
-	[
-		'from
-		set data pos: [ block! | word! | file! | url! ]
-		(
-			out: make block! length? data
-			switch type?/word data [
-				word!	[ data: get data ]
-				url!	[ data: read data ] 	; CHECK
-				file!	[ data: load data ]
-			]
-			foreach item data [
-				current: copy/deep element
-				replace-deep current value item
-				if offset [
-					insert skip find current 'col 2 reduce [ 'offset offset ]
-					offset: none
-				]
-				append out current
-			]
-			change/only pos compose/deep [ row [ (out) ] ]
-		)
-		:pos into main-rule
-	|	'with
-		pos: set data block!
-		(
-			out: make block! length? data
-			; replace <filename> with [ rejoin [ %img/image- index %.jpg ] ]
-			repeat index cols [
-				current: copy/deep element
-				replace-deep current value do bind data 'index
-				if offset [
-					insert skip find current 'col 2 reduce [ 'offset offset ]
-					offset: none
-				]
-				append out current
-			]
-			change/only pos compose/deep [ row [ (out) ] ]
-		)
-		:pos into main-rule
-	]
-
-]
-
-
 init-tag: [
 	(
 		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
@@ -1599,7 +1521,6 @@ elements: rule [] [
 	|	form-content
 	|	import
 	|	do-code
-	|	make-row
 	|	user-rules
 	|	user-rule
 	|	set-rule

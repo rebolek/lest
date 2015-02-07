@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Feb-2015/7:55:03+1:00
-    Build: 117
+    Date: 7-Feb-2015/8:17:26+1:00
+    Build: 120
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -198,6 +198,7 @@ jQuery(document).ready(function () {
             grid-elems
             | col
             | bar
+            | make-row
             | panel
             | glyphicon
             | address
@@ -654,6 +655,62 @@ jQuery(document).ready(function () {
                 opt list-badge
             ]
             end-tag
+        ]
+        make-row: [
+            'row
+            'with
+            (
+                index: 1
+                offset: none
+            )
+            some [
+                set cols integer!
+                ['col | 'cols]
+                | 'offset
+                set offset integer!
+            ]
+            set element block!
+            'replace
+            set value get-word!
+            [
+                'from
+                set data pos: [block! | word! | file! | url!]
+                (
+                    out: make block! length? data
+                    switch type?/word data [
+                        word! [data: get data]
+                        url! [data: read data]
+                        file! [data: load data]
+                    ]
+                    foreach item data [
+                        current: copy/deep element
+                        replace-deep current value item
+                        if offset [
+                            insert skip find current 'col 2 reduce ['offset offset]
+                            offset: none
+                        ]
+                        append out current
+                    ]
+                    change/only pos compose/deep [row [(out)]]
+                )
+                :pos into main-rule
+                | 'with
+                pos: set data block!
+                (
+                    out: make block! length? data
+                    repeat index cols [
+                        current: copy/deep element
+                        replace-deep current value do bind data 'index
+                        if offset [
+                            insert skip find current 'col 2 reduce ['offset offset]
+                            offset: none
+                        ]
+                        append out current
+                    ]
+                    change/only pos compose/deep [row [(out)]]
+                )
+                :pos into main-rule
+            ]
         ]
     ] google-analytics [
         main: rule [value web] [
@@ -2117,62 +2174,6 @@ lest: use [
                 ]
             ]
         ]
-        make-row: [
-            'row
-            'with
-            (
-                index: 1
-                offset: none
-            )
-            some [
-                set cols integer!
-                ['col | 'cols]
-                | 'offset
-                set offset integer!
-            ]
-            set element block!
-            'replace
-            set value get-word!
-            [
-                'from
-                set data pos: [block! | word! | file! | url!]
-                (
-                    out: make block! length? data
-                    switch type?/word data [
-                        word! [data: get data]
-                        url! [data: read data]
-                        file! [data: load data]
-                    ]
-                    foreach item data [
-                        current: copy/deep element
-                        replace-deep current value item
-                        if offset [
-                            insert skip find current 'col 2 reduce ['offset offset]
-                            offset: none
-                        ]
-                        append out current
-                    ]
-                    change/only pos compose/deep [row [(out)]]
-                )
-                :pos into main-rule
-                | 'with
-                pos: set data block!
-                (
-                    out: make block! length? data
-                    repeat index cols [
-                        current: copy/deep element
-                        replace-deep current value do bind data 'index
-                        if offset [
-                            insert skip find current 'col 2 reduce ['offset offset]
-                            offset: none
-                        ]
-                        append out current
-                    ]
-                    change/only pos compose/deep [row [(out)]]
-                )
-                :pos into main-rule
-            ]
-        ]
         init-tag: [
             (
                 insert tag-stack reduce [tag-name tag: context [id: none class: copy []]]
@@ -3032,7 +3033,6 @@ lest: use [
                 | form-content
                 | import
                 | do-code
-                | make-row
                 | user-rules
                 | user-rule
                 | set-rule
