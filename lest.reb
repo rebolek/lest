@@ -159,6 +159,15 @@ replace-deep: funct [
 	target
 ]
 
+change-code: func [
+	"Replace code at cuurent position (to have unified function for better testing and debugging)"
+	pos
+	data
+	/only 	" Only change a block as a single value (not the contents of the block)"
+] [
+	pos/1: data
+]
+
 rule: func [
 	"Make PARSE rule with local variables"
 	local 	[word! block!]  "Local variable(s)"
@@ -440,7 +449,8 @@ get-user-value: rule [value] [
 		all [
 			word? value 
 			in user-words value
-			pos/1: user-words/:value
+;			pos/1: user-words/:value
+			change-code pos user-words/:value
 		]
 	)
 	:pos
@@ -486,7 +496,8 @@ user-rule: rule [name label type value urule args pos this-rule] [
 				|	skip
 				] )
 				parse temp: copy/deep (value) [ some urule ]
-				change/only pos temp
+;				change/only pos temp
+				change-code/only pos temp
 			]
 			to get-word! 'pos 'into main-rule
 		]
@@ -598,8 +609,9 @@ comparison-rule: rule [val1 val2 comparator pos number] [
 		; numbers - TODO use float rule, add scientific notation
 		val1: get-integer val1
 		val2: get-integer val2
-		pos: back pos
-		pos/1: do reduce [val1 comparator val2]
+;		pos: back pos
+;		pos/1: do reduce [val1 comparator val2]
+		change-code/only pos: back pos do reduce [val1 comparator val2]
 	)
 	:pos
 ]
@@ -633,7 +645,8 @@ math-rule: rule [pos action val1 val2] [
 		if word? val2 [val2: get in user-words val2]
 		val1: get-integer val1
 		val2: get-integer val2
-		pos/1: form do reduce ['val1 action 'val2]
+;		pos/1: form do reduce ['val1 action 'val2]
+		change-code pos form do reduce ['val1 action 'val2]
 	)
 	:pos
 ]
@@ -657,7 +670,8 @@ if-rule: rule [cond true-val pos res] [
 	(
 		res: if/only do bind to block! cond user-words true-val
 		either res [
-			change/part pos res 1
+;			change/part pos res 1
+			change-code/only pos res
 		] [
 			pos: next pos
 		]
@@ -673,10 +687,11 @@ either-rule: rule [cond true-val false-val pos] [
 	pos:
 	set false-val any-type! 
 	(
-		change/part 
-			pos 
-			either/only do bind to block! cond user-words true-val false-val 
-			1
+;		change/part 
+;			pos 
+;			either/only do bind to block! cond user-words true-val false-val 
+;			1
+		change-code/only pos do bind to block! cond user-words true-val false-val 
 	)
 	:pos
 ]
@@ -695,10 +710,11 @@ switch-rule: rule [value cases defval pos] [
 	(
 		forskip cases 2 [cases/2: append/only copy [] cases/2]
 		value: get bind value user-words
-		change/part
-			pos
-			switch/default value cases append/only copy [] defval
-			1
+;		change/part
+;			pos
+;			switch/default value cases append/only copy [] defval
+;			1
+		change-code/only pos switch/default value cases append/only copy [] defval
 	)
 	:pos
 ]
@@ -725,7 +741,8 @@ for-rule: rule [pos out var src content] [
 				append out compose/only [set (var) (src/1) (copy/deep content)]
 			]
 		]
-		change/only/part pos out 1
+;		change/only/part pos out 1
+		change-code/only pos out
 	)
 	:pos main-rule
 ]
@@ -767,7 +784,8 @@ repeat-rule: rule [offset element count value values data pos current][
 					]
 					append out current
 				]
-				change/part pos out 1
+;				change/part pos out 1
+				change-code pos out
 			)
 			:pos
 		]
@@ -790,7 +808,8 @@ repeat-rule: rule [offset element count value values data pos current][
 					]
 					append out current
 				]
-				change/part pos out 1
+;				change/part pos out 1
+				change-code pos out
 			)
 			:pos
 		]
@@ -812,7 +831,8 @@ join-rule: rule [values delimiter result] [
 			] [form values/1]
 			if all [delimiter not tail? next values] [append result delimiter]
 		]
-		pos/1: result
+;		pos/1: result
+		change-code pos result
 	)
 	:pos
 ]
@@ -827,7 +847,8 @@ get-style: rule [pos data type] [
 ;			and I'm not sure what's it's purpose
 		data: either word? data [get bind data user-words] [rejoin bind data user-words]
 		data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
-		change/part pos data 1
+;		change/part pos data 1
+		change-code pos data
 	)
 	:pos
 ]
@@ -884,7 +905,8 @@ script: rule [type value] [
 	(type: none)
 	opt [ set type ['insert | 'append] ]
 	'script
-	init-tag
+	(debug-print ["$$ SCRIPT:" type])
+;	init-tag
 	set value [ string! | file! | url! | path! ]
 	(
 		if path? value [ 
@@ -898,6 +920,7 @@ script: rule [type value] [
 			[{<script src="} value {">} ]
 		]
 		append value close-tag 'script
+		(debug-print ["$$SCRIPT emit: " value])
 		switch/default type [
 			; TODO: rewrite using APPLY
 			insert [ emit-script/insert value ]
@@ -932,7 +955,7 @@ page-header: [
 	header-content
 	'body (
 		debug-print "==BODY"
-		; TODO: hack! move elsewhere
+		; TODO: UGLY hack! move elsewhere
 		repend includes/header [{<script src="../js/lest.js">}</script> newline ]
 	)
 ]
@@ -1532,7 +1555,10 @@ plugins: rule [name t] [
 	'enable pos: set name word! (
 		; NOTE: [change/part pos t 1] is absolute neccessity,
 		; 		because [pos/1: t] crashes Rebol!!!
-		either t: load-plugin name [change/part pos t 1] [pos: next pos]
+		either t: load-plugin name [
+;			change/part pos t 1
+			change-code pos t
+		] [pos: next pos]
 	)
 	:pos [main-rule | into main-rule]
 ]

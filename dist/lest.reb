@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Feb-2015/8:17:26+1:00
-    Build: 120
+    Date: 7-Feb-2015/10:53:59+1:00
+    Build: 131
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -191,8 +191,6 @@ jQuery(document).ready(function () {
             insert script js-path/jquery-2.1.3.min.js
             insert script js-path/bootstrap.min.js
             insert script js-path/validator.min.js
-            meta viewport "width=device-width, initial-scale=1"
-            meta http-equiv: X-UA-Compatible "IE=edge"
         ]
         main: [
             grid-elems
@@ -1802,10 +1800,6 @@ context [
     ]
 ]
 debug-print: none
-js-path: %../../js/
-css-path: %../../css/
-js-path: %js/
-css-path: %css/
 plugin-path: %plugins/
 text-style: 'html
 dot: #"."
@@ -1867,6 +1861,14 @@ replace-deep: funct [
     ]
     parse target [some rule]
     target
+]
+change-code: func [
+    {Replace code at cuurent position (to have unified function for better testing and debugging)}
+    pos
+    data
+    /only { Only change a block as a single value (not the contents of the block)}
+] [
+    pos/1: data
 ]
 rule: func [
     "Make PARSE rule with local variables"
@@ -2092,7 +2094,7 @@ lest: use [
                 all [
                     word? value
                     in user-words value
-                    pos/1: user-words/:value
+                    change-code pos user-words/:value
                 ]
             )
             :pos
@@ -2132,7 +2134,7 @@ lest: use [
                                 | skip
                             ])
                         parse temp: copy/deep (value) [some urule]
-                        change/only pos temp
+                        change-code/only pos temp
                     ]
                     to get-word! 'pos 'into main-rule
                 ]
@@ -2220,8 +2222,7 @@ lest: use [
                 ] [val2]
                 val1: get-integer val1
                 val2: get-integer val2
-                pos: back pos
-                pos/1: do reduce [val1 comparator val2]
+                change-code/only pos: back pos do reduce [val1 comparator val2]
             )
             :pos
         ]
@@ -2251,7 +2252,7 @@ lest: use [
                 if word? val2 [val2: get in user-words val2]
                 val1: get-integer val1
                 val2: get-integer val2
-                pos/1: form do reduce ['val1 action 'val2]
+                change-code pos form do reduce ['val1 action 'val2]
             )
             :pos
         ]
@@ -2273,7 +2274,7 @@ lest: use [
             (
                 res: if/only do bind to block! cond user-words true-val
                 either res [
-                    change/part pos res 1
+                    change-code/only pos res
                 ] [
                     pos: next pos
                 ]
@@ -2288,10 +2289,7 @@ lest: use [
             pos:
             set false-val any-type!
             (
-                change/part
-                pos
-                either/only do bind to block! cond user-words true-val false-val
-                1
+                change-code/only pos do bind to block! cond user-words true-val false-val
             )
             :pos
         ]
@@ -2309,10 +2307,7 @@ lest: use [
             (
                 forskip cases 2 [cases/2: append/only copy [] cases/2]
                 value: get bind value user-words
-                change/part
-                pos
-                switch/default value cases append/only copy [] defval
-                1
+                change-code/only pos switch/default value cases append/only copy [] defval
             )
             :pos
         ]
@@ -2335,7 +2330,7 @@ lest: use [
                         append out compose/only [set (var) (src/1) (copy/deep content)]
                     ]
                 ]
-                change/only/part pos out 1
+                change-code/only pos out
             )
             :pos main-rule
         ]
@@ -2375,7 +2370,7 @@ lest: use [
                             ]
                             append out current
                         ]
-                        change/part pos out 1
+                        change-code pos out
                     )
                     :pos
                 ]
@@ -2398,7 +2393,7 @@ lest: use [
                             ]
                             append out current
                         ]
-                        change/part pos out 1
+                        change-code pos out
                     )
                     :pos
                 ]
@@ -2419,7 +2414,7 @@ lest: use [
                     ] [form values/1]
                     if all [delimiter not tail? next values] [append result delimiter]
                 ]
-                pos/1: result
+                change-code pos result
             )
             :pos
         ]
@@ -2429,7 +2424,7 @@ lest: use [
             set data [word! | block!] (
                 data: either word? data [get bind data user-words] [rejoin bind data user-words]
                 data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
-                change/part pos data 1
+                change-code pos data
             )
             :pos
         ]
@@ -2480,7 +2475,7 @@ lest: use [
             (type: none)
             opt [set type ['insert | 'append]]
             'script
-            init-tag
+            (debug-print ["$$ SCRIPT:" type])
             set value [string! | file! | url! | path!]
             (
                 if path? value [
@@ -2492,6 +2487,7 @@ lest: use [
                     [{<script src="} value {">}]
                 ]
                 append value close-tag 'script
+                (debug-print ["$$SCRIPT emit: " value])
                 switch/default type [
                     insert [emit-script/insert value]
                     append [emit-script/append value]
@@ -3049,7 +3045,9 @@ lest: use [
         ]
         plugins: rule [name t] [
             'enable pos: set name word! (
-                either t: load-plugin name [change/part pos t 1] [pos: next pos]
+                either t: load-plugin name [
+                    change-code pos t
+                ] [pos: next pos]
             )
             :pos [main-rule | into main-rule]
         ]
@@ -3073,12 +3071,6 @@ lest: use [
             if in plugin 'startup [return plugin/startup]
         ]
         none
-    ]
-    comment [
-        user-rules: rule [] [fail]
-        user-rule-names: make block! 100
-        user-words: object []
-        user-values: copy/deep [pos: [fail] :pos]
     ]
     out-file: none
     func [
