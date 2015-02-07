@@ -1684,6 +1684,11 @@ func [
 
 ; init outside vars
 	debug-print: none
+	debug-stack: func [stack] [
+		out: make block! 20
+		forskip stack 2 [append out stack/1]
+		debug-print ["##stack: " mold reverse out]
+	]
 	if debug [
 		debug-print: :print
 		debug-print "Debug output ON"
