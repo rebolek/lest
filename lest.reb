@@ -1580,10 +1580,12 @@ form-rule: rule [value form-type enctype] [
 		)
 	|	style
 	]
-	take-tag
+;	take-tag
 	emit-tag
-	into main-rule
-	(emit close-tag 'form)
+;	into main-rule
+	match-content
+	end-tag
+;	(emit close-tag 'form)
 ]
 
 ; --- put it all together
