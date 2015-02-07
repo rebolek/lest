@@ -1,0 +1,178 @@
+set css-path %css/
+set js-path %js/
+
+head
+
+title "lest"
+favicon http://lest.iluminat.cz/favicon.png
+enable bootstrap
+stylesheet css-path/lest.css
+enable google-font
+google-font "Inika"
+google-font "Share Tech Mono"
+
+body
+
+markdown text
+
+; TODO: move to separate file
+
+head-row: [
+	container .topcon [
+		row [
+			h1 "lest"
+			h2 "low entropy system for templating"
+		]
+	]
+]
+
+intro: [
+	h3 "introduction"
+	p "**Lest** is unique system for making web sites that is simple to use thanks to its low entropy foundation."
+	p "**Lest** uses rich, efficient and natural [REN](https://github.com/humanistic/REN) syntax to describe both document structure ([template engine](https://en.wikipedia.org/wiki/Web_template_system)) and look and layout ([stylesheet language](https://en.wikipedia.org/wiki/Stylesheet_language)). Using same syntax results in *faster development and deployment*, *less space for error* and *overall increase of hapiness*."
+]
+
+install: [
+	h3 "installation"
+	ol
+	li [
+		a https://github.com/rebolek/lest .btn .btn-default .btn-lg [
+			glyphicon floppy-disk "Fork me on GitHub"
+		]
+		p "Download source from above or do it from command line with"
+		precode "git clone https://github.com/rebolek/lest.git"
+	]
+	li [
+		p "If you haven't got [Rebol](http://www.rebol.com) interpreter already, download it from [here](http://www.rebolsouce.net) (half a megabyte, no installation) or compile it yourself from [sources](https://github.com/rebol/rebol)."
+	]
+	li [
+		ul
+		li {Start **Rebol** in **Lest** directory.}
+		li {In the **Rebol** console, type `do %lest.reb` to run **Lest**.}
+		li {Type `lest [div "Hello world"]` to test it.}
+		li {If you see `"<div>Hello world</div>"`, congratulations! Everything works and you're ready to take over the world.}
+	]
+]
+
+documentation: [
+	h3 "documentation"
+	ul
+	li [a %docs.html "introduction"]
+	li "simple templates"
+	li "complex templates"
+	li "bootstrap support"
+	li "plugins"
+]
+
+precode: value string! [pre [code value]]
+
+; TODO: needs to creat IDs on the fly. How?
+code-example: src-code string! out-code string! [
+	ul #tab-code-1 .list-inline
+	li .active [a #code-1-src with [data-toggle: tab] "lest"]
+	li [a #code-1-out with [data-toggle: tab] "html"]
+	div .tab-content [
+		div .tab-pane .active #code-1-src [precode src-code]
+		div .tab-pane #code-1-out [precode out-code]
+	]
+]
+
+head-row
+container [
+	row [
+		col 6 [
+			intro
+			install
+			documentation
+		]
+		col 6 [
+			plain text
+			h3 "examples"
+			h4 "simplified tags"
+;			ul #tab-code-1 .list-inline
+;			li .active [a #code-1-src with [data-toggle: tab] "lest"]
+;			li [a #code-1-out with [data-toggle: tab] "html"]
+;			div .tab-content [
+;				div .tab-pane .active #code-1-src [
+					precode {div #id .class [span "content"]}
+;				]
+;				div .tab-pane #code-1-out [
+;					precode {&lt;div id="id" class="class"&gt;&lt;span&gt;content&lt;/span&gt;&lt;/div&gt;}
+;				]
+;			]
+			hr
+			precode {img http://dummyimage.com/600x400/000/fff 300x200}
+			hr			
+			precode 
+{ul #list
+li "item 1"
+li "item 2"
+li "item 3"}
+
+			h4 "user templates"
+			precode 
+{reply: [div .reply-div [button "Reply"]]
+p "Message #1"
+reply
+p "Message #2"
+reply}
+			hr
+			precode 
+{reply: [div .reply-div [button "Reply"]]
+msg: data string! [
+	p data 
+	reply
+]
+msg "Message #1"
+msg "Message #2"}
+
+			h4 "dynamic code"
+			precode
+{set name "Lest"
+span id ["id-" random 100] name}
+			hr
+			precode
+{if lest-user? [
+	span .wonderful "You have great taste!"
+]}
+			hr
+			precode
+{div either (now/time < 12:00) .am .pm "Hello!"}
+
+			hr
+			precode
+{set users ["Bobík" "Myšpulín" "Fifinka" "Piňda"]
+for user in users [
+	span ["User name: " user]
+]}
+			hr			
+			precode
+{switch user-type [
+	guest [page-info registration]
+	user  [page-info user-panel]
+	admin [page-info user-panel admin-panel]
+]}			
+
+			h4 "markdown support"
+			precode
+{"[Markdown](http://daringfireball.net/projects/markdown/) `syntax` is **no problem**!!!"}
+
+			h4 "bootstrap support"
+			precode
+{container [
+	row .first-row [
+		col 4 [h3 "left column"]
+		col 4 [h3 "middle column"]
+		col 4 [h3 "right column"]
+	]
+	row .second-row [
+		col 4 offset 4 [h3 "middle column"]
+	]
+]}
+		]
+	]
+]
+
+footer [
+	p "© 2014 Boleslav Březovský"
+]
