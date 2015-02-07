@@ -1362,16 +1362,19 @@ old-emit-input: [
 ]
 input-parameters: rule [data] [
 	set name word!
+	(debug-print ["INPUT:name=" name])
 	any [
-		set label string!
-	|	'default eval set default string!
-	|	'value eval set value string!
-	|	eval 'checked						(append tag [checked: true])
-	|	eval 'required						(append tag [required: true])
-	|	'error eval set data string!		(append tag compose [data-error: (data)])
-	|	'match eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
-	|	'min-length eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
-	|	style
+		eval-strict any [
+			set label string! (debug-print ["INPUT:" name " label:" label])
+		|	'default eval set default string! (debug-print ["INPUT:" name " default:" default])
+		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
+		|	'checked	(debug-print ["INPUT:" name " checked"])					(append tag [checked: true])
+		|	'required	 (debug-print ["INPUT:" name " required"])					(append tag [required: true])
+		|	'error (debug-print ["INPUT:" name " error"]) eval set data string!		(append tag compose [data-error: (data)])
+		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
+		|	'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+		|	style (debug-print ["INPUT:" name " after style"])
+		]
 	]
 ]
 input: rule [type simple] [
@@ -1386,11 +1389,17 @@ input: rule [type simple] [
 		(append tag/class 'form-group)
 		emit-tag	
 	]
-	init-input
-	( append tag/class 'form-control )
-	( append tag reduce/no-set [type: type] )
+	(tag-name: 'input)
+	init-tag
+	(append tag/class 'form-control)
+	(append tag reduce/no-set [type: type])
+	(debug-print "<input-parameters>")
 	input-parameters
-	emit-input
+	(debug-print "</input-parameters>")
+	(append tag compose [name: (name) placeholder: (default) value: (value)])
+	(emit-label label name)
+	emit-tag
+	take-tag ; INPUT has no closing tag
 	if (validator?) [
 		init-div
 		(append tag/class [help-block with-errors])
