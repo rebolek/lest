@@ -641,10 +641,12 @@ math-rule: rule [pos action val1 val2] [
 	set action ['+ | '- | '*]
 	pos: set val2 [string! | integer! | word!]
 	(
+		debug-print ["++MATH  input:" val1 action val2]
 		if word? val1 [val1: get in user-words val1]
 		if word? val2 [val2: get in user-words val2]
 		val1: get-integer val1
 		val2: get-integer val2
+		debug-print ["++MATH output:" val1 action val2]
 ;		pos/1: form do reduce ['val1 action 'val2]
 		change-code pos form do reduce ['val1 action 'val2]
 	)
@@ -1526,7 +1528,7 @@ form-rule: rule [value form-type enctype] [
 ; --- put it all together
 
 elements: rule [] [
-	pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 24] )
+	pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 64 "..."] )
 	[
 		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
 	|	page-header	
@@ -1606,12 +1608,12 @@ func [
 	/debug
 		"Turn on debug-print mode"
 ] bind [
+	start-time: now/time/precise
 
 	if any [file? data url? data] [
 		out-file: replace copy data suffix? data %.html
 		data: load data
 	]
-
 
 ; init outside vars
 	debug-print: none
@@ -1695,6 +1697,7 @@ func [
 	if out-file [
 		write out-file body
 	]
+	debug-print ["== generated in " now/time/precise - start-time]
 	body
 ] 'buffer
 

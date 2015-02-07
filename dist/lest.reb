@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Feb-2015/10:53:59+1:00
-    Build: 131
+    Date: 7-Feb-2015/14:13:12+1:00
+    Build: 138
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2248,10 +2248,12 @@ lest: use [
             set action ['+ | '- | '*]
             pos: set val2 [string! | integer! | word!]
             (
+                debug-print ["++MATH  input:" val1 action val2]
                 if word? val1 [val1: get in user-words val1]
                 if word? val2 [val2: get in user-words val2]
                 val1: get-integer val1
                 val2: get-integer val2
+                debug-print ["++MATH output:" val1 action val2]
                 change-code pos form do reduce ['val1 action 'val2]
             )
             :pos
@@ -3021,7 +3023,7 @@ lest: use [
             end-tag
         ]
         elements: rule [] [
-            pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 24])
+            pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 64 "..."])
             [
                 text-settings
                 | page-header
@@ -3081,6 +3083,7 @@ lest: use [
         /debug
         "Turn on debug-print mode"
     ] bind [
+        start-time: now/time/precise
         if any [file? data url? data] [
             out-file: replace copy data suffix? data %.html
             data: load data
@@ -3151,6 +3154,7 @@ lest: use [
         if out-file [
             write out-file body
         ]
+        debug-print ["== generated in " now/time/precise - start-time]
         body
     ] 'buffer
 ]
