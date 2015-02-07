@@ -1095,10 +1095,11 @@ paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'stro
 paired-tag: rule [] [
 	set tag-name paired-tags
 	init-tag
+	eval
 	opt style
 	opt actions
 	emit-tag
-;	throw "Expected string, tag or block of tags"
+	eval
 	match-content
 	end-tag
 ]
