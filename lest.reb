@@ -916,19 +916,21 @@ get-style: rule [pos data type] [
 	:pos
 ]
 
-style: rule [ pos word continue ] [
+style: rule [pos word continue] [
 	any [
-		commands
-	|	get-style
-	|	set word issue! ( tag/id: next form word )
+;		commands
+		get-style
+	|	set word issue! (tag/id: next form word debug-print ["** " tag-name "/id: " tag/id])
 	|	[
 			pos: set word word!
 			(
 				continue: either #"." = take form word [
 					append used-styles word
 					append tag/class next form word
+					debug-print ["** " tag-name "/class: " tag/class]
 					[]
 				][
+					debug-print ["** " tag-name " not a style: " word]
 					[end skip]
 				]
 			)
