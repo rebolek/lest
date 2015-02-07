@@ -1556,7 +1556,7 @@ form-content: [
 	]
 ]
 form-type: none
-form-rule: rule [value form-type] [
+form-rule: rule [value form-type enctype] [
 	set tag-name 'form
 	( form-type: enctype: validator?: none )
 	init-tag
