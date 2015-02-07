@@ -673,6 +673,7 @@ if-rule: rule [cond true-val pos res] [
 	pos:
 	set true-val any-type! 
 	(
+		debug-print ["??COMPARE/if: " cond " +" mold true-val]
 		res: if/only do bind to block! cond user-words true-val
 		either res [
 ;			change/part pos res 1
@@ -684,7 +685,7 @@ if-rule: rule [cond true-val pos res] [
 	:pos
 ]
 
-either-rule: rule [cond true-val false-val pos] [
+either-rule: rule [cond true-val false-val pos ret] [
 	'either
 	opt comparators
 	set cond [logic! | word! | paren!]
@@ -692,11 +693,12 @@ either-rule: rule [cond true-val false-val pos] [
 	pos:
 	set false-val any-type! 
 	(
+		debug-print ["??COMPARE/either: " cond " +" mold true-val " -" mold false-val]
 ;		change/part 
 ;			pos 
 ;			either/only do bind to block! cond user-words true-val false-val 
 ;			1
-		change-code/only pos do bind to block! cond user-words true-val false-val 
+		change-code/only pos either/only do bind to block! cond user-words true-val false-val 
 	)
 	:pos
 ]
@@ -713,6 +715,7 @@ switch-rule: rule [value cases defval pos] [
 		set defval any-type!
 	]
 	(
+		debug-print ["??COMPARE/switch: " cond " ?" mold cases]
 		forskip cases 2 [cases/2: append/only copy [] cases/2]
 		value: get bind value user-words
 ;		change/part
