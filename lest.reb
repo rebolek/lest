@@ -664,6 +664,7 @@ commands: [
 |	repeat-rule
 |	join-rule
 |	length-rule
+|	insert-append-rule
 |	math-commands
 ]
 
@@ -852,6 +853,17 @@ length-rule: rule [series] [
 	pos: set series block! 
 	(change-code pos form length? series)
 	:pos
+]
+
+insert-append-rule: rule [command series value] [
+	set command ['append | 'insert]
+	; FIXME: currently very dangerous!
+	; you could do: [set x [] insert x now] and NOW will get executed
+	eval
+	set series block!
+	eval
+	set value any-type!
+	(do reduce [command series 'value]) ; <- temporary fix for above problem until final solution is found
 ]
 
 ;---/commands
