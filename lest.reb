@@ -663,6 +663,7 @@ commands: [
 |	for-rule
 |	repeat-rule
 |	join-rule
+|	length-rule
 |	math-commands
 ]
 
@@ -842,6 +843,14 @@ join-rule: rule [values delimiter result] [
 ;		pos/1: result
 		change-code pos result
 	)
+	:pos
+]
+
+length-rule: rule [series] [
+	'length?
+	eval
+	pos: set series block! 
+	(change-code pos form length? series)
 	:pos
 ]
 
