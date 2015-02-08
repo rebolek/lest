@@ -1629,7 +1629,7 @@ func [
 		debug-print ["##stack: " mold reverse out]
 	]
 	if debug [
-		debug-print: :print
+		debug-print: func [value] [print rejoin reduce [value]]
 		debug-print "Debug output ON"
 	]
 
