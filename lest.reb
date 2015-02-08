@@ -435,7 +435,7 @@ set-rule: rule [labels values] [
 				append second user-values compose [ 
 					|
 						(to lit-word! label) 
-						(to paren! compose [change pos (to path! reduce ['user-words label])]) 
+						(to paren! compose [change/only pos (to path! reduce ['user-words label])]) 
 				]
 			]
 			; extend user context with new value
@@ -453,7 +453,7 @@ get-user-value: rule [value] [
 			word? value 
 			in user-words value
 ;			pos/1: user-words/:value
-			change-code pos user-words/:value
+			change-code/only pos user-words/:value
 		]
 	)
 	:pos
