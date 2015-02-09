@@ -685,8 +685,8 @@ if-rule: rule [cond true-val pos res] [
 		res: if/only do bind to block! cond user-words true-val
 		debug-print ["??COMPARE/if: " res]
 		either res [
-;			change/part pos res 1
-			change-code/only pos res
+			change/part pos res 1
+;			change-code/only pos res
 		] [
 			pos: next pos
 		]
