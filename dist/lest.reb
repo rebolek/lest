@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 9-Feb-2015/10:50:39+1:00
-    Build: 176
+    Date: 9-Feb-2015/11:10:39+1:00
+    Build: 177
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2287,6 +2287,7 @@ lest: use [
             (
                 debug-print ["??COMPARE/if: " cond " +" mold true-val]
                 res: if/only do bind to block! cond user-words true-val
+                debug-print ["??COMPARE/if: " res]
                 either res [
                     change-code/only pos res
                 ] [
@@ -3076,6 +3077,7 @@ lest: use [
                 | heading
                 | form-rule
                 | script
+                | meta-rule
                 | run
                 | stylesheet
                 | plugins

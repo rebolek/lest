@@ -683,6 +683,7 @@ if-rule: rule [cond true-val pos res] [
 	(
 		debug-print ["??COMPARE/if: " cond " +" mold true-val]
 		res: if/only do bind to block! cond user-words true-val
+		debug-print ["??COMPARE/if: " res]
 		either res [
 ;			change/part pos res 1
 			change-code/only pos res
@@ -1592,6 +1593,7 @@ elements: rule [] [
 	|	heading
 	|	form-rule
 	|	script
+	|	meta-rule 	; FIXME: header only
 	|	run
 	|	stylesheet
 	|	plugins
