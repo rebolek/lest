@@ -260,6 +260,49 @@ close-tag: func [
 	ajoin ["</" type ">"]
 ]
 
+set-user-word: func [
+	'name
+	'value
+	/type
+		'word-type
+	/custom
+		custom-data
+] [
+	word-type: case [
+		word-type						(to lit-word! word-type)
+		get-integer value 				(value: form value 'integer!)
+		string? value						('string!)
+		equal? #"." first form value 	('class!)		; doesn't check for word! but should be sufficient
+		word? value						('word!)
+		block? value						('block!)
+		issue? value						('id!)
+	]
+	obj: object reduce/no-set [
+		type: :word-type
+		value: :value
+	]
+	if custom [append object custom-data]
+	append user-words compose [
+		(to set-word! name) (obj)
+	]
+]
+
+get-user-word: func [
+	'name
+] [
+	if name: get in user-words name [
+		name/value
+	]
+]
+
+get-user-type: func [
+	 'name
+] [
+	if name: get in user-words name [
+		name/type
+	]	
+]
+
 get-integer: func [
 	"Get integer! value from string! or pass integer! (pass value otherwise)"
 	value
