@@ -516,8 +516,14 @@ user-rule: rule [name label type value urule args pos this-rule] [
 
 style-rule: rule [data] [
 	'style
-	set data block!
-	(append includes/style data)
+	set data [block! | string!]
+	(
+		either string? data [
+			append includes/stylesheet entag data 'style
+		] [
+			append includes/style data
+		]
+	)
 ]
 
 ; dynamic actions
@@ -981,7 +987,8 @@ stylesheet: rule [value] [
 page-header: [
 	'head (debug-print "==HEAD")
 	(header?: true)
-	header-content
+	header-rule
+	pos: 
 	'body (
 		debug-print "==BODY"
 		; TODO: UGLY hack! move elsewhere
@@ -989,39 +996,55 @@ page-header: [
 	)
 ]
 
-header-content: rule [type name value] [
-	any [
-		'title set value string! (page/title: value debug-print "==TITLE")
-	|	['lang | 'language] set value word! (page/lang: value debug-print "==LANG")	
-	|	set-rule	
-	|	stylesheet
-	|	style-rule
-	|	'style set value string! (
-			append includes/stylesheet entag value 'style
-		)
-	|	'script [
-			set value [ file! | url! ] (
-				repend includes/header [{<script src="} value {">}</script> newline ]
-			)
-		|	set value string! (
-				append includes/header entag value 'script
-			)
-		]
-	|	'meta set name word! set value string! (
+header-title: rule [value] [
+	'title set value string! (page/title: value debug-print "==TITLE")
+]
+
+header-language: rule [value] [
+	['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
+]
+
+meta-rule: rule [type name value] [
+	'meta [
+		set name word! set value string! (
 			repend page/meta [ {<meta name="} name {" content="} value {">}]
 		)
-	|	'meta set type set-word! set name word! set value string! (
+	|	set type set-word! set name word! set value string! (
 			repend page/meta [ {<meta } to word! type {="} name {" content="} value {">}]
 		)	
-	|	'favicon set value url! (
-			repend includes/header [
-				{<link rel="icon" type="image/png" href="} value {">}
-			]
-	)
-	|	import
-	|	debug-rule
-	|	plugins
 	]
+]
+
+favicon-rule: rule [value] [
+	'favicon set value url! (
+		repend includes/header [
+			{<link rel="icon" type="image/png" href="} value {">}
+		]
+	)
+]
+
+header-rule: [
+	any [
+		eval 
+		pos:
+		[header-content | into header-content]
+	]
+	:pos
+	; NOTE: without this :pos, position is not preserved when returning to PAGE-HEADER rule
+	; TODO: check for possible problems
+]
+
+header-content: [
+	header-title
+|	header-language
+|	stylesheet
+|	style-rule
+|	script
+|	meta-rule
+|	favicon-rule
+|	import
+|	debug-rule
+|	plugins
 ]
 
 

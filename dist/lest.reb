@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Feb-2015/14:48:37+1:00
-    Build: 146
+    Date: 9-Feb-2015/10:50:39+1:00
+    Build: 176
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2082,7 +2082,7 @@ lest: use [
                         append second user-values compose [
                             |
                             (to lit-word! label)
-                            (to paren! compose [change pos (to path! reduce ['user-words label])])
+                            (to paren! compose [change/only pos (to path! reduce ['user-words label])])
                         ]
                     ]
                     debug-print ["==SET: " label ": " value]
@@ -2097,7 +2097,7 @@ lest: use [
                 all [
                     word? value
                     in user-words value
-                    change-code pos user-words/:value
+                    change-code/only pos user-words/:value
                 ]
             )
             :pos
@@ -2150,8 +2150,14 @@ lest: use [
         ]
         style-rule: rule [data] [
             'style
-            set data block!
-            (append includes/style data)
+            set data [block! | string!]
+            (
+                either string? data [
+                    append includes/stylesheet entag data 'style
+                ] [
+                    append includes/style data
+                ]
+            )
         ]
         actions: rule [action value data] [
             set action ['on-click]
@@ -2268,6 +2274,8 @@ lest: use [
             | for-rule
             | repeat-rule
             | join-rule
+            | length-rule
+            | insert-append-rule
             | math-commands
         ]
         if-rule: rule [cond true-val pos res] [
@@ -2426,6 +2434,21 @@ lest: use [
             )
             :pos
         ]
+        length-rule: rule [series] [
+            'length?
+            eval
+            pos: set series block!
+            (change-code pos form length? series)
+            :pos
+        ]
+        insert-append-rule: rule [command series value] [
+            set command ['append | 'insert]
+            eval
+            set series block!
+            eval
+            set value any-type!
+            (do reduce [command series 'value])
+        ]
         get-style: rule [pos data type] [
             set type ['id | 'class]
             pos:
@@ -2517,45 +2540,55 @@ lest: use [
         page-header: [
             'head (debug-print "==HEAD")
             (header?: true)
-            header-content
+            header-rule
+            pos:
             'body (
                 debug-print "==BODY"
                 repend includes/header [{<script src="../js/lest.js">} </script> newline]
             )
         ]
-        header-content: rule [type name value] [
-            any [
-                'title set value string! (page/title: value debug-print "==TITLE")
-                | ['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
-                | set-rule
-                | stylesheet
-                | style-rule
-                | 'style set value string! (
-                    append includes/stylesheet entag value 'style
-                )
-                | 'script [
-                    set value [file! | url!] (
-                        repend includes/header [{<script src="} value {">} </script> newline]
-                    )
-                    | set value string! (
-                        append includes/header entag value 'script
-                    )
-                ]
-                | 'meta set name word! set value string! (
+        header-title: rule [value] [
+            'title set value string! (page/title: value debug-print "==TITLE")
+        ]
+        header-language: rule [value] [
+            ['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
+        ]
+        meta-rule: rule [type name value] [
+            'meta [
+                set name word! set value string! (
                     repend page/meta [{<meta name="} name {" content="} value {">}]
                 )
-                | 'meta set type set-word! set name word! set value string! (
+                | set type set-word! set name word! set value string! (
                     repend page/meta ["<meta " to word! type {="} name {" content="} value {">}]
                 )
-                | 'favicon set value url! (
-                    repend includes/header [
-                        {<link rel="icon" type="image/png" href="} value {">}
-                    ]
-                )
-                | import
-                | debug-rule
-                | plugins
             ]
+        ]
+        favicon-rule: rule [value] [
+            'favicon set value url! (
+                repend includes/header [
+                    {<link rel="icon" type="image/png" href="} value {">}
+                ]
+            )
+        ]
+        header-rule: [
+            any [
+                eval
+                pos:
+                [header-content | into header-content]
+            ]
+            :pos
+        ]
+        header-content: [
+            header-title
+            | header-language
+            | stylesheet
+            | style-rule
+            | script
+            | meta-rule
+            | favicon-rule
+            | import
+            | debug-rule
+            | plugins
         ]
         br: ['br (emit <br>)]
         hr: ['hr (emit <hr>)]
@@ -3101,7 +3134,7 @@ lest: use [
             debug-print ["##stack: " mold reverse out]
         ]
         if debug [
-            debug-print: :print
+            debug-print: func [value] [print rejoin reduce [value]]
             debug-print "Debug output ON"
         ]
         output: copy ""
