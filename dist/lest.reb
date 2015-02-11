@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 9-Feb-2015/11:35:51+1:00
-    Build: 182
+    Date: 11-Feb-2015/22:29:54+1:00
+    Build: 257
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -191,6 +191,8 @@ jQuery(document).ready(function () {
             insert script js-path/jquery-2.1.3.min.js
             insert script js-path/bootstrap.min.js
             insert script js-path/validator.min.js
+            meta viewport "width=device-width, initial-scale=1"
+            meta http-equiv: X-UA-Compatible "IE=edge"
         ]
         main: [
             grid-elems
@@ -1834,6 +1836,7 @@ escape-entities: funct [
         ]
     ]
     append rule [set value skip (append output value)]
+    debug-print ["parse escape entities"]
     parse data [some rule]
     output
 ]
@@ -1859,6 +1862,7 @@ replace-deep: funct [
         | into [some rule]
         | skip
     ]
+    debug-print "parse replace-deep"
     parse target [some rule]
     target
 ]
@@ -1950,14 +1954,16 @@ close-tag: func [
     ajoin ["</" type ">"]
 ]
 get-integer: func [
-    {Get integer! value from string! or pass integer! (pass value otherwise)}
+    {Get integer! value from string! or pass integer! (return NONE otherwise)}
     value
     /local number int-rule
 ] [
+    debug-print ["++GET INTEGER:" value type? value]
     if integer? value [return value]
+    unless string? value [return none]
     number: charset "0123456789"
     int-rule: [opt #"-" some number]
-    either parse value int-rule [to integer! value] [value]
+    either parse value int-rule [to integer! value] [none]
 ]
 lest: use [
     debug-print
@@ -1980,10 +1986,52 @@ lest: use [
     emit-stylesheet
     user-rules
     user-words
+    user-words-meta
     user-values
     plugins
     load-plugin
 ] [
+    set-user-word: func [
+        'name
+        value
+        /type
+        'word-type
+        /custom
+        custom-data
+    ] [
+        debug-print ["SET:" name value]
+        word-type: case [
+            word-type (to lit-word! word-type)
+            get-integer value (value: form value 'integer!)
+            string? value ('string!)
+            equal? #"." first form value ('class!)
+            word? value ('word!)
+            block? value ('block!)
+            issue? value ('id!)
+        ]
+        obj: object reduce/no-set [
+            type: :word-type
+        ]
+        if custom [append object custom-data]
+        append user-words compose [
+            (to set-word! get name) (:value)
+        ]
+        append user-words-meta compose [
+            (to set-word! get name) (obj)
+        ]
+    ]
+    get-user-word: func [
+        'name
+    ] [
+        get in user-words name
+    ]
+    get-user-type: func [
+        'name
+    ] [
+        if name: get in user-words-meta name [
+            name/type
+        ]
+    ]
     emit: func [
         data [string! block! tag!]
     ] [
@@ -2082,11 +2130,11 @@ lest: use [
                         append second user-values compose [
                             |
                             (to lit-word! label)
-                            (to paren! compose [change/only pos (to path! reduce ['user-words label])])
+                            (to paren! compose [change/only pos get-user-word (label)])
                         ]
                     ]
-                    debug-print ["==SET: " label ": " value]
-                    repend user-words [to set-word! label value]
+                    debug-print ["==SET:" label ":" value]
+                    set-user-word label value
                 ]
             )
         ]
@@ -2099,6 +2147,14 @@ lest: use [
                     in user-words value
                     change-code/only pos user-words/:value
                 ]
+            )
+            :pos
+        ]
+        new-get-user-value: rule [name] [
+            pos:
+            set name word!
+            (
+                change-code/only pos get-user-word name
             )
             :pos
         ]
@@ -2136,6 +2192,7 @@ lest: use [
                                 | (args)
                                 | skip
                             ])
+                        debug-print ["parse in user-rule"]
                         parse temp: copy/deep (value) [some urule]
                         change-code/only pos temp
                     ]
@@ -2224,10 +2281,10 @@ lest: use [
             pos:
             (
                 val1: form switch/default type?/word val1 [
-                    word! [get in user-words :val1]
+                    word! [get-user-word :val1]
                 ] [val1]
                 val2: form switch/default type?/word val2 [
-                    word! [get in user-words :val2]
+                    word! [get-user-word :val2]
                 ] [val2]
                 val1: get-integer val1
                 val2: get-integer val2
@@ -2243,12 +2300,14 @@ lest: use [
             set action ['++ | '--]
             set word word!
             (
+                debug-print ["++MATH  incr:" word action]
                 action: select [++ + -- -] action
                 all [
-                    value: get in user-words word
+                    value: get-user-word :word
                     value: get-integer value
                     integer? value
-                    user-words/:word: form do reduce ['value action 1]
+                    value: do reduce ['value action 1]
+                    set-user-word word form value
                 ]
             )
         ]
@@ -2258,8 +2317,8 @@ lest: use [
             pos: set val2 [string! | integer! | word!]
             (
                 debug-print ["++MATH  input:" val1 action val2]
-                if word? val1 [val1: get in user-words val1]
-                if word? val2 [val2: get in user-words val2]
+                if word? val1 [val1: get-user-word :val1]
+                if word? val2 [val2: get-user-word :val2]
                 val1: get-integer val1
                 val2: get-integer val2
                 debug-print ["++MATH output:" val1 action val2]
@@ -2313,18 +2372,22 @@ lest: use [
             'switch
             (defval: none)
             set value word!
-            pos:
             set cases block!
             opt [
                 'default
-                pos:
                 set defval any-type!
             ]
+            pos:
             (
-                debug-print ["??COMPARE/switch: " cond " ?" mold cases]
-                forskip cases 2 [cases/2: append/only copy [] cases/2]
+                pos: back pos
+                forskip cases 2 [
+                    if integer? cases/1 [cases/1: form cases/1]
+                    cases/2: append/only copy/deep [] cases/2
+                ]
                 value: get bind value user-words
-                change-code/only pos switch/default value cases append/only copy [] defval
+                defval: append/only copy [] defval
+                debug-print ["??COMPARE/switch: " mold value " ?" mold cases "-" mold defval]
+                change-code/only pos switch/default value cases defval
             )
             :pos
         ]
@@ -2335,7 +2398,7 @@ lest: use [
             set src [word! | block!]
             pos: set content block! (
                 out: make block! length? src
-                if word? src [src: get in user-words src]
+                if word? src [src: get-user-word :src]
                 forall src [
                     either block? var [
                         repeat i length? var [
@@ -2427,7 +2490,7 @@ lest: use [
                 result: make string! 100
                 forall values [
                     append result switch/default type?/word values/1 [
-                        word! [get in user-words :values/1]
+                        word! [get-user-word :values/1]
                     ] [form values/1]
                     if all [delimiter not tail? next values] [append result delimiter]
                 ]
@@ -3146,6 +3209,7 @@ lest: use [
         user-rules: copy [fail]
         user-rule-names: make block! 100
         user-words: object []
+        user-words-meta: object []
         user-values: copy/deep [pos: [fail] :pos]
         includes: object [
             style: make block! 1000
@@ -3161,6 +3225,7 @@ lest: use [
             meta: copy ""
             lang: "en-US"
         ]
+        debug-print "run main parse"
         unless parse data bind rules/main-rule rules [
             error: make error! "LEST: there was error in LEST dialect"
             error/near: pos
