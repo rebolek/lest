@@ -216,6 +216,9 @@ parser: context [
 	]
 	text-style: ['bold | 'italic | 'underline]
 ;	border-style: ['solid | 'dotted | 'dashed]
+	overflow-style: [
+		'visible | 'hidden | 'scroll | 'auto | 'initial | 'inherit
+	]
 	border-style: [ 
 		'none | 'hidden | 'dotted | 'dashed | 'solid | 'double | 
 		'groove | 'ridge | 'inset | 'outset | 'initial
@@ -474,6 +477,7 @@ parser: context [
 			| mark 1 4 color capture (emits 'outline-color)
 			| mark 1 4 length capture (emits 'outline-width)
 		]
+		| 'overflow mark overflow-style capture (emits 'overflow)
 		| 'font any [
 			  mark length capture (emits 'font-size)
 			| mark some font-name capture (
