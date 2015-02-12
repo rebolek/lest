@@ -1079,7 +1079,7 @@ meta-rule: rule [type name value] [
 ]
 
 favicon-rule: rule [value] [
-	'favicon set value url! (
+	'favicon set value [file! | url!] (
 		repend includes/header [
 			{<link rel="icon" type="image/png" href="} value {">}
 		]

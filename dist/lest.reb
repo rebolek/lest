@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 12-Feb-2015/10:31:21+1:00
-    Build: 258
+    Date: 12-Feb-2015/10:50:39+1:00
+    Build: 259
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2628,7 +2628,7 @@ lest: use [
             ]
         ]
         favicon-rule: rule [value] [
-            'favicon set value url! (
+            'favicon set value [file! | url!] (
                 repend includes/header [
                     {<link rel="icon" type="image/png" href="} value {">}
                 ]
