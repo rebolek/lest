@@ -319,6 +319,8 @@
 [ {<span>value is </span><span>one</span>} = tf [ set x 1 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>value is </span><span>many</span>} = tf [ set x 23 span "value is " span switch x [ 0 "zero" 1 "one" 2 "two"] default "many" ] ]
 [ {<span>Brno</span>} = tf [ set name "Brno" span name ] ]
+[ {<span>Brno</span>} = tf [ set name ["Br" "no"] span name] ]
+[ {<span>Brno</span>} = tf [ set name [span "Brno"] name] ]
 
 ; loops
 [ 	

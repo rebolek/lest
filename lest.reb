@@ -309,33 +309,36 @@ lest: use [
 ] [
 
 set-user-word: func [
-	'name
+	name
 	value
 	/type
 		'word-type
 	/custom
 		custom-data
 ] [
-	debug-print ["SET:" name value]
+	name: to lit-word! name
+	debug-print ["SET-USER-WORD"]
+	debug-print ["SET:" name mold value "(rebol:" type? value ")"]
 	word-type: case [
 		word-type						(to lit-word! word-type)
 		get-integer value 				(value: form value 'integer!)
 		string? value						('string!)
-		equal? #"." first form value 	('class!)		; doesn't check for word! but should be sufficient
+		equal? #"." first form value 	(word!) ;('class!)		; doesn't check for word! but should be sufficient
 		word? value						('word!)
 		block? value						('block!)
 		issue? value						('id!)
 	]
+	debug-print ["SET:" name mold value "(lest:" word-type ")"]
 	obj: object reduce/no-set [
 		type: :word-type
 ;		value: :value
 	]
 	if custom [append object custom-data]
-	append user-words compose [
-		(to set-word! get name) (:value)
+	append user-words compose/only [
+		(to set-word! name) (:value)
 	]
 	append user-words-meta compose [
-		(to set-word! get name) (obj)
+		(to set-word! name) (obj)
 	]	
 ]
 
@@ -470,7 +473,7 @@ set-rule: rule [labels values] [
 			labels: reduce [labels]
 			values: reduce [values]
 		]
-		debug-print ["==SET: " length? labels " values"]
+		debug-print ["==SET:" length? labels "values"]
 		repeat i length? labels [
 			label: labels/:i
 			value: values/:i
@@ -481,7 +484,7 @@ set-rule: rule [labels values] [
 			][value]
 			; add rules, if not exists
 			unless in user-words label [
-				debug-print ["==SET/create: " label]
+				debug-print ["==SET/create:" label]
 				append second user-values compose [ 
 					|
 						(to lit-word! label) 
@@ -489,7 +492,7 @@ set-rule: rule [labels values] [
 				]
 			]
 			; extend user context with new value
-			debug-print ["==SET:" label ":" value]
+			debug-print ["==SET:" label ":" mold value]
 			set-user-word label value
 		]
 	)
@@ -979,8 +982,17 @@ comment: [
 ]
 
 debug-rule: rule [ value ] [
-	'debug set value string!
-	( debug-print ["debug:" value])
+	'debug [
+		set value string!
+		(debug-print ["debug:" value])
+	|	pos: 'words
+		(
+			value: rejoin ["user-words:" mold user-words]
+			pos/1: value
+			debug-print value
+		)
+		:pos
+	]
 ]
 
 body-atts: rule [value] [
@@ -1721,7 +1733,7 @@ func [
 		"If data is file!, save output as HTML file with same name"
 	/debug
 		"Turn on debug-print mode"
-] bind [
+] [
 	start-time: now/time/precise
 
 	if any [file? data url? data] [
@@ -1814,7 +1826,7 @@ func [
 	]
 	debug-print ["== generated in " now/time/precise - start-time]
 	body
-] 'buffer
+]
 
 
 ] ; --- end main context

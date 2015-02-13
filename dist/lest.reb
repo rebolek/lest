@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 12-Feb-2015/10:50:39+1:00
-    Build: 259
+    Date: 13-Feb-2015/17:05:56+1:00
+    Build: 281
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -289,7 +289,11 @@ jQuery(document).ready(function () {
                     end-tag
                 ]
             ]
+            init-div
+            (append tag/class 'panel-body)
+            emit-tag
             into [some elements]
+            end-tag
             end-tag
         ]
         glyphicon: [
@@ -298,8 +302,8 @@ jQuery(document).ready(function () {
             (tag-name: 'span)
             init-tag
             (
-                repend tag/class ['glyphicon join 'glyphicon- name]
                 debug-print ["==GLYPHICON: " name]
+                repend tag/class ['glyphicon join 'glyphicon- name]
             )
             emit-tag
             end-tag
@@ -1992,32 +1996,35 @@ lest: use [
     load-plugin
 ] [
     set-user-word: func [
-        'name
+        name
         value
         /type
         'word-type
         /custom
         custom-data
     ] [
-        debug-print ["SET:" name value]
+        name: to lit-word! name
+        debug-print ["SET-USER-WORD"]
+        debug-print ["SET:" name mold value "(rebol:" type? value ")"]
         word-type: case [
             word-type (to lit-word! word-type)
             get-integer value (value: form value 'integer!)
             string? value ('string!)
-            equal? #"." first form value ('class!)
+            equal? #"." first form value (word!)
             word? value ('word!)
             block? value ('block!)
             issue? value ('id!)
         ]
+        debug-print ["SET:" name mold value "(lest:" word-type ")"]
         obj: object reduce/no-set [
             type: :word-type
         ]
         if custom [append object custom-data]
-        append user-words compose [
-            (to set-word! get name) (:value)
+        append user-words compose/only [
+            (to set-word! name) (:value)
         ]
         append user-words-meta compose [
-            (to set-word! get name) (obj)
+            (to set-word! name) (obj)
         ]
     ]
     get-user-word: func [
@@ -2117,7 +2124,7 @@ lest: use [
                     labels: reduce [labels]
                     values: reduce [values]
                 ]
-                debug-print ["==SET: " length? labels " values"]
+                debug-print ["==SET:" length? labels "values"]
                 repeat i length? labels [
                     label: labels/:i
                     value: values/:i
@@ -2126,14 +2133,14 @@ lest: use [
                         false no off [lib/false]
                     ] [value]
                     unless in user-words label [
-                        debug-print ["==SET/create: " label]
+                        debug-print ["==SET/create:" label]
                         append second user-values compose [
                             |
                             (to lit-word! label)
                             (to paren! compose [change/only pos get-user-word (label)])
                         ]
                     ]
-                    debug-print ["==SET:" label ":" value]
+                    debug-print ["==SET:" label ":" mold value]
                     set-user-word label value
                 ]
             )
@@ -2549,8 +2556,17 @@ lest: use [
             'comment [block! | string!]
         ]
         debug-rule: rule [value] [
-            'debug set value string!
-            (debug-print ["debug:" value])
+            'debug [
+                set value string!
+                (debug-print ["debug:" value])
+                | pos: 'words
+                (
+                    value: rejoin ["user-words:" mold user-words]
+                    pos/1: value
+                    debug-print value
+                )
+                :pos
+            ]
         ]
         body-atts: rule [value] [
             'append
@@ -3186,7 +3202,7 @@ lest: use [
         {If data is file!, save output as HTML file with same name}
         /debug
         "Turn on debug-print mode"
-    ] bind [
+    ] [
         start-time: now/time/precise
         if any [file? data url? data] [
             out-file: replace copy data suffix? data %.html
@@ -3262,5 +3278,5 @@ lest: use [
         ]
         debug-print ["== generated in " now/time/precise - start-time]
         body
-    ] 'buffer
+    ]
 ]
