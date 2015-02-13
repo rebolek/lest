@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 13-Feb-2015/17:05:56+1:00
-    Build: 281
+    Date: 13-Feb-2015/18:12:46+1:00
+    Build: 282
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -292,7 +292,7 @@ jQuery(document).ready(function () {
             init-div
             (append tag/class 'panel-body)
             emit-tag
-            into [some elements]
+            match-content
             end-tag
             end-tag
         ]

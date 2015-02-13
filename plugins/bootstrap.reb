@@ -87,7 +87,7 @@ panel: [
 	)
 	init-tag
 	opt [
-		[ not ['heading | 'footer] ]
+		[not ['heading | 'footer]]
 		and
 		[set panel-type word!]
 		skip
@@ -109,7 +109,6 @@ panel: [
 				set value string!
 				(value-to-emit: ajoin [<h3 class="panel-title"> value </h3>])
 				emit-value
-;				( emit probe ajoin [<h3 class="panel-title"> value </h3>] )
 			|	into [ some elements ]
 			]
 			end-tag
@@ -123,8 +122,13 @@ panel: [
 			end-tag
 		]
 	]
-	into [ some elements ]
-	end-tag
+	init-div
+	(append tag/class 'panel-body)
+	emit-tag
+;	into [some elements]
+	match-content
+	end-tag	;/panel-body
+	end-tag	;/panel
 ]
 
 glyphicon: [
@@ -133,9 +137,8 @@ glyphicon: [
 	(tag-name: 'span)
 	init-tag
 	(
-		repend tag/class ['glyphicon join 'glyphicon- name]
 		debug-print ["==GLYPHICON: " name]
-;		emit rejoin [ {<span class="glyphicon glyphicon-} name {"></span>} ]
+		repend tag/class ['glyphicon join 'glyphicon- name]
 	)
 	emit-tag
 	end-tag
