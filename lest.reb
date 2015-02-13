@@ -262,6 +262,8 @@ close-tag: func [
 	ajoin ["</" type ">"]
 ]
 
+; TODO: get-integer and lest-integer? should be one function (or get-integer should use lest-integer?)
+
 get-integer: func [
 	"Get integer! value from string! or pass integer! (return NONE otherwise)"
 	value
@@ -274,6 +276,18 @@ get-integer: func [
 ;	float-rule: 	[opt #"-" some number [opt #"." some number]]
 	int-rule: 		[opt #"-" some number]
 	either parse value int-rule [to integer! value] [none]
+]
+
+lest-integer?: func [
+	value
+	/local number int-rule
+] [
+	number: 		charset "0123456789"
+	int-rule: 		[opt #"-" some number]
+	any [
+		integer? value
+		parse value int-rule
+	]
 ]
 
 lest: use [
@@ -321,16 +335,16 @@ set-user-word: func [
 	debug-print ["SET:" name mold value "(rebol:" type? value ")"]
 	word-type: case [
 		word-type						(to lit-word! word-type)
-		get-integer value 				(value: form value 'integer!)
-		string? value						('string!)
-		equal? #"." first form value 	(word!) ;('class!)		; doesn't check for word! but should be sufficient
-		word? value						('word!)
-		block? value						('block!)
-		issue? value						('id!)
+		get-integer value 				(value: form value 'integer)
+		string? value						('string)
+		equal? #"." first form value 	('class)		; doesn't check for word! but should be sufficient
+		word? value						('word)
+		block? value						('block)
+		issue? value						('id)
 	]
 	debug-print ["SET:" name mold value "(lest:" word-type ")"]
 	obj: object reduce/no-set [
-		type: :word-type
+		type: quote word-type
 ;		value: :value
 	]
 	if custom [append object custom-data]
@@ -349,8 +363,10 @@ get-user-word: func [
 ]
 
 get-user-type: func [
-	 'name
+	 name
 ] [
+;	debug-print ["GUT:" mold name "in" mold user-words-meta]
+;	debug-print ["GUT:" mold get in user-words-meta :name]
 	if name: get in user-words-meta name [
 		name/type
 	]	
@@ -663,7 +679,7 @@ comparators: [
 	comparison-rule
 ]
 
-comparison-rule: rule [val1 val2 comparator pos number] [
+comparison-rule: rule [val1 val2 comparator pos res] [
 	; NOTE: all values are formed before comparison
 	;			this leads to double conversion if numbers ( 3 -> "3" -> 3 )
 	;			and needs to be optimalized
@@ -672,18 +688,26 @@ comparison-rule: rule [val1 val2 comparator pos number] [
 	set val2 any-type!
 	pos:
 	(
-		val1: form switch/default type?/word val1 [
-			word! [get-user-word :val1]
-		][val1]
-		val2: form switch/default type?/word val2 [
-			word! [get-user-word :val2]
-		][val2]
-		; numbers - TODO use float rule, add scientific notation
-		val1: get-integer val1
-		val2: get-integer val2
-;		pos: back pos
-;		pos/1: do reduce [val1 comparator val2]
-		change-code/only pos: back pos do reduce [val1 comparator val2]
+		debug-print ["<>COMPARE:" mold val1 type? val1 comparator mold val2 type? val2]
+		; TODO: simplify this american engineering
+		if word? val1 [
+			type: get-user-type val1
+			val1: get-user-word :val1
+			debug-print ["GOT" mold val1]
+		;	if type = 'integer [val1: get-integer val1]
+		]
+		if lest-integer? val1 [val1: get-integer val1]
+		if word? val2 [
+			type: get-user-type val2
+			val2: get-user-word :val2
+			debug-print ["GOT" mold val2]
+		;	if type = 'integer [val2: get-integer val2]
+		]
+		if lest-integer? val2 [val2: get-integer val2]
+		debug-print ["<>COMPARE:" mold val1 comparator mold val2]
+		res: do reduce [val1 comparator val2]
+		debug-print ["<>COMPARE:" mold res]
+		change-code/only pos: back pos res
 	)
 	:pos
 ]

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 13-Feb-2015/18:12:46+1:00
-    Build: 282
+    Date: 13-Feb-2015/19:10:17+1:00
+    Build: 316
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1969,6 +1969,17 @@ get-integer: func [
     int-rule: [opt #"-" some number]
     either parse value int-rule [to integer! value] [none]
 ]
+lest-integer?: func [
+    value
+    /local number int-rule
+] [
+    number: charset "0123456789"
+    int-rule: [opt #"-" some number]
+    any [
+        integer? value
+        parse value int-rule
+    ]
+]
 lest: use [
     debug-print
     output
@@ -2008,16 +2019,16 @@ lest: use [
         debug-print ["SET:" name mold value "(rebol:" type? value ")"]
         word-type: case [
             word-type (to lit-word! word-type)
-            get-integer value (value: form value 'integer!)
-            string? value ('string!)
-            equal? #"." first form value (word!)
-            word? value ('word!)
-            block? value ('block!)
-            issue? value ('id!)
+            get-integer value (value: form value 'integer)
+            string? value ('string)
+            equal? #"." first form value ('class)
+            word? value ('word)
+            block? value ('block)
+            issue? value ('id)
         ]
         debug-print ["SET:" name mold value "(lest:" word-type ")"]
         obj: object reduce/no-set [
-            type: :word-type
+            type: quote word-type
         ]
         if custom [append object custom-data]
         append user-words compose/only [
@@ -2033,7 +2044,7 @@ lest: use [
         get in user-words name
     ]
     get-user-type: func [
-        'name
+        name
     ] [
         if name: get in user-words-meta name [
             name/type
@@ -2281,21 +2292,29 @@ lest: use [
         comparators: [
             comparison-rule
         ]
-        comparison-rule: rule [val1 val2 comparator pos number] [
+        comparison-rule: rule [val1 val2 comparator pos res] [
             set val1 any-type!
             set comparator ['= | '> | '< | '>= | '<= | '<>]
             set val2 any-type!
             pos:
             (
-                val1: form switch/default type?/word val1 [
-                    word! [get-user-word :val1]
-                ] [val1]
-                val2: form switch/default type?/word val2 [
-                    word! [get-user-word :val2]
-                ] [val2]
-                val1: get-integer val1
-                val2: get-integer val2
-                change-code/only pos: back pos do reduce [val1 comparator val2]
+                debug-print ["<>COMPARE:" mold val1 type? val1 comparator mold val2 type? val2]
+                if word? val1 [
+                    type: get-user-type val1
+                    val1: get-user-word :val1
+                    debug-print ["GOT" mold val1]
+                ]
+                if lest-integer? val1 [val1: get-integer val1]
+                if word? val2 [
+                    type: get-user-type val2
+                    val2: get-user-word :val2
+                    debug-print ["GOT" mold val2]
+                ]
+                if lest-integer? val2 [val2: get-integer val2]
+                debug-print ["<>COMPARE:" mold val1 comparator mold val2]
+                res: do reduce [val1 comparator val2]
+                debug-print ["<>COMPARE:" mold res]
+                change-code/only pos: back pos res
             )
             :pos
         ]

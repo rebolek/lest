@@ -429,3 +429,10 @@
 [equal? {4} tf [set x "2" 2 * x]]
 [equal? {4} tf [set x "2" "2" * x]]
 [equal? {4} tf [set x "2" x * x]]
+
+; comparison
+
+[equal? {true} tf [if 1 = 1 "true"]]
+[equal? {} tf [if 1 = 2 "true"]]
+[equal? {true} tf [if 1 = "1" "true"]]
+[equal? {} tf [if 1 = "2" "true"]]
