@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 13-Feb-2015/19:10:17+1:00
-    Build: 316
+    Date: 15-Feb-2015/20:18:09+1:00
+    Build: 390
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1434,6 +1434,8 @@ import module [
         md-buffer
     ]
 ]
+css-path: %css/
+js-path: %js/
 control-functions: none
 context [
     element: [
@@ -1805,7 +1807,6 @@ context [
         ) continue? :here
     ]
 ]
-debug-print: none
 plugin-path: %plugins/
 text-style: 'html
 dot: #"."
@@ -1840,7 +1841,6 @@ escape-entities: funct [
         ]
     ]
     append rule [set value skip (append output value)]
-    debug-print ["parse escape entities"]
     parse data [some rule]
     output
 ]
@@ -1866,7 +1866,6 @@ replace-deep: funct [
         | into [some rule]
         | skip
     ]
-    debug-print "parse replace-deep"
     parse target [some rule]
     target
 ]
@@ -1962,7 +1961,6 @@ get-integer: func [
     value
     /local number int-rule
 ] [
-    debug-print ["++GET INTEGER:" value type? value]
     if integer? value [return value]
     unless string? value [return none]
     number: charset "0123456789"
@@ -3227,14 +3225,15 @@ lest: use [
             out-file: replace copy data suffix? data %.html
             data: load data
         ]
-        debug-print: none
+        debug-print: func [value] [
+            if debug [print rejoin reduce [value]]
+        ]
         debug-stack: func [stack] [
             out: make block! 20
             forskip stack 2 [append out stack/1]
             debug-print ["##stack: " mold reverse out]
         ]
         if debug [
-            debug-print: func [value] [print rejoin reduce [value]]
             debug-print "Debug output ON"
         ]
         output: copy ""

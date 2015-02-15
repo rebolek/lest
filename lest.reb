@@ -65,6 +65,9 @@ Add webserver that can serve pages directly:
 	]
 ]
 
+css-path: %css/
+js-path: %js/
+
 ; fuck off current module system
 
 do %compile-rules.reb
@@ -72,7 +75,7 @@ do %compile-rules.reb
 ; /fuck off
 
 
-debug-print: none
+;debug-print: none
 ; :print
 ;none
 
@@ -128,7 +131,7 @@ escape-entities: funct [
 		]
 	]
 	append rule [set value skip (append output value)]
-	debug-print ["parse escape entities"]
+;	debug-print ["parse escape entities"]
 	parse data [some rule]
 	output
 ]
@@ -156,7 +159,7 @@ replace-deep: funct [
 	|	into [ some rule ]
 	|	skip
 	]
-	debug-print "parse replace-deep"
+;	debug-print "parse replace-deep"
 	parse target [ some rule ]
 	target
 ]
@@ -269,7 +272,7 @@ get-integer: func [
 	value
 	/local number int-rule
 ] [
-	debug-print ["++GET INTEGER:" value type? value]
+;	debug-print ["++GET INTEGER:" value type? value]
 	if integer? value [return value]
 	unless string? value [return none]
 	number: 		charset "0123456789"
@@ -1766,14 +1769,15 @@ func [
 	]
 
 ; init outside vars
-	debug-print: none
+	debug-print: func [value] [
+		if debug [print rejoin reduce [value]]
+	]
 	debug-stack: func [stack] [
 		out: make block! 20
 		forskip stack 2 [append out stack/1]
 		debug-print ["##stack: " mold reverse out]
 	]
 	if debug [
-		debug-print: func [value] [print rejoin reduce [value]]
 		debug-print "Debug output ON"
 	]
 
