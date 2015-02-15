@@ -295,7 +295,6 @@ lest-integer?: func [
 
 lest: use [
 	debug-print
-	output
 	buffer
 	page
 	tag
@@ -1760,6 +1759,9 @@ func [
 		"If data is file!, save output as HTML file with same name"
 	/debug
 		"Turn on debug-print mode"
+	/into
+		"Generate input into given series"
+		out
 ] [
 	start-time: now/time/precise
 
@@ -1781,8 +1783,7 @@ func [
 		debug-print "Debug output ON"
 	]
 
-	output: copy ""
-	buffer: copy ""
+	buffer: either into [out] [make string! 10000]
 
 	header?: false
 

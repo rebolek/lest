@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 15-Feb-2015/20:18:09+1:00
-    Build: 390
+    Date: 15-Feb-2015/20:25:41+1:00
+    Build: 392
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -1980,7 +1980,6 @@ lest-integer?: func [
 ]
 lest: use [
     debug-print
-    output
     buffer
     page
     tag
@@ -3219,6 +3218,9 @@ lest: use [
         {If data is file!, save output as HTML file with same name}
         /debug
         "Turn on debug-print mode"
+        /into
+        "Generate input into given series"
+        out
     ] [
         start-time: now/time/precise
         if any [file? data url? data] [
@@ -3236,8 +3238,7 @@ lest: use [
         if debug [
             debug-print "Debug output ON"
         ]
-        output: copy ""
-        buffer: copy ""
+        buffer: either into [out] [make string! 10000]
         header?: false
         tag-stack: copy []
         user-rules: copy [fail]
