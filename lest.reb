@@ -762,6 +762,7 @@ commands: [
 	|	for-rule
 	|	repeat-rule
 	|	join-rule
+	|	default-rule
 	|	length-rule
 	|	insert-append-rule
 	|	math-commands
@@ -929,7 +930,18 @@ repeat-rule: rule [offset element count value values data pos current][
 	]
 ]
 
+default-rule: rule [value word default] [
+	'default
+	set word word!
+	set default any-type!
+	(
+		value: get-user-word word
+		unless value [set-user-word word default]
+	)
+]
+
 join-rule: rule [values delimiter result] [
+	;TODO: support commands?
 	'join 
 	(delimiter: none)
 	set values block!
@@ -942,7 +954,11 @@ join-rule: rule [values delimiter result] [
 			append result switch/default type?/word values/1 [
 				word! [get-user-word :values/1]
 			] [form values/1]
-			if all [delimiter not tail? next values] [append result delimiter]
+			all [
+				delimiter 
+				not tail? next values
+				append result delimiter
+			]
 		]
 ;		pos/1: result
 		change-code pos result
@@ -1846,8 +1862,8 @@ func [
 	body: head buffer
 
 	unless empty? includes/style [
-		write %lest-temp.css prestyle includes/style
-		debug-print ["CSS wrote to file %lest-temp.css"]
+;		write %lest-temp.css prestyle includes/style
+;		debug-print ["CSS wrote to file %lest-temp.css"]
 	]
 
 	body: either header? [

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 17-Feb-2015/8:37:34+1:00
-    Build: 404
+    Date: 17-Feb-2015/9:45:53+1:00
+    Build: 407
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2358,6 +2358,7 @@ lest: use [
                 | for-rule
                 | repeat-rule
                 | join-rule
+                | default-rule
                 | length-rule
                 | insert-append-rule
                 | math-commands
@@ -2506,6 +2507,15 @@ lest: use [
                 ]
             ]
         ]
+        default-rule: rule [value word default] [
+            'default
+            set word word!
+            set default any-type!
+            (
+                value: get-user-word word
+                unless value [set-user-word word default]
+            )
+        ]
         join-rule: rule [values delimiter result] [
             'join
             (delimiter: none)
@@ -2519,7 +2529,11 @@ lest: use [
                     append result switch/default type?/word values/1 [
                         word! [get-user-word :values/1]
                     ] [form values/1]
-                    if all [delimiter not tail? next values] [append result delimiter]
+                    all [
+                        delimiter
+                        not tail? next values
+                        append result delimiter
+                    ]
                 ]
                 change-code pos result
             )
@@ -3288,10 +3302,7 @@ lest: use [
             do error
         ]
         body: head buffer
-        unless empty? includes/style [
-            write %lest-temp.css prestyle includes/style
-            debug-print ["CSS wrote to file %lest-temp.css"]
-        ]
+        unless empty? includes/style []
         body: either header? [
             ajoin [
                 <!DOCTYPE html> newline
