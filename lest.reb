@@ -754,15 +754,19 @@ math-rule: rule [pos action val1 val2] [
 ]
 
 commands: [
-	if-rule
-|	either-rule
-|	switch-rule
-|	for-rule
-|	repeat-rule
-|	join-rule
-|	length-rule
-|	insert-append-rule
-|	math-commands
+	pos: (debug-print ["match commands@" pos/1])
+	[
+		if-rule
+	|	either-rule
+	|	switch-rule
+	|	for-rule
+	|	repeat-rule
+	|	join-rule
+	|	length-rule
+	|	insert-append-rule
+	|	math-commands
+	
+	]
 ]
 
 if-rule: rule [cond true-val pos res] [
@@ -799,6 +803,7 @@ either-rule: rule [cond true-val false-val pos ret] [
 ;			either/only do bind to block! cond user-words true-val false-val 
 ;			1
 		change-code/only pos either/only do bind to block! cond user-words true-val false-val 
+		debug-print ["??COMPARE/either[out]: " pos/1]
 	)
 	:pos
 ]
@@ -1324,13 +1329,29 @@ basic-elems: [
 |	list-elems
 ]
 
+basic-string: [
+	(current-text-style: none)
+	opt [set current-text-style ['plain | 'html | 'markdown]]
+	opt [user-values]
+	set value [string! | date! | time! | number!] ; TODO: support integer?
+	(
+		unless current-text-style [current-text-style: text-style]
+		value: form value
+		value: switch current-text-style [
+			plain		[value]
+			html 		[escape-entities value]
+			markdown 	[markdown value]
+		]
+	)
+	(emit value)	
+]
+
 basic-string-match: [
 	(current-text-style: none)
 	opt [set current-text-style ['plain | 'html | 'markdown]]
 	opt [user-values]
 	set value [string! | date! | time! | number!] ; TODO: support integer?
 ]
-
 
 basic-string-processing: [
 	(
@@ -1360,6 +1381,7 @@ heading: [
 	init-tag
 	opt style
 	emit-tag
+	eval
 	match-content
 	end-tag
 ]

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 15-Feb-2015/20:25:41+1:00
-    Build: 392
+    Date: 17-Feb-2015/8:37:34+1:00
+    Build: 404
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2350,15 +2350,18 @@ lest: use [
             :pos
         ]
         commands: [
-            if-rule
-            | either-rule
-            | switch-rule
-            | for-rule
-            | repeat-rule
-            | join-rule
-            | length-rule
-            | insert-append-rule
-            | math-commands
+            pos: (debug-print ["match commands@" pos/1])
+            [
+                if-rule
+                | either-rule
+                | switch-rule
+                | for-rule
+                | repeat-rule
+                | join-rule
+                | length-rule
+                | insert-append-rule
+                | math-commands
+            ]
         ]
         if-rule: rule [cond true-val pos res] [
             'if
@@ -2388,6 +2391,7 @@ lest: use [
             (
                 debug-print ["??COMPARE/either: " cond " +" mold true-val " -" mold false-val]
                 change-code/only pos either/only do bind to block! cond user-words true-val false-val
+                debug-print ["??COMPARE/either[out]: " pos/1]
             )
             :pos
         ]
@@ -2832,6 +2836,22 @@ lest: use [
             | link
             | list-elems
         ]
+        basic-string: [
+            (current-text-style: none)
+            opt [set current-text-style ['plain | 'html | 'markdown]]
+            opt [user-values]
+            set value [string! | date! | time! | number!]
+            (
+                unless current-text-style [current-text-style: text-style]
+                value: form value
+                value: switch current-text-style [
+                    plain [value]
+                    html [escape-entities value]
+                    markdown [markdown value]
+                ]
+            )
+            (emit value)
+        ]
         basic-string-match: [
             (current-text-style: none)
             opt [set current-text-style ['plain | 'html | 'markdown]]
@@ -2861,6 +2881,7 @@ lest: use [
             init-tag
             opt style
             emit-tag
+            eval
             match-content
             end-tag
         ]
