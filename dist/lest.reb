@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 17-Feb-2015/9:45:53+1:00
-    Build: 407
+    Date: 17-Feb-2015/9:53:04+1:00
+    Build: 408
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2512,8 +2512,8 @@ lest: use [
             set word word!
             set default any-type!
             (
-                value: get-user-word word
-                unless value [set-user-word word default]
+                value: get-user-word :word
+                unless value [set-user-word :word default]
             )
         ]
         join-rule: rule [values delimiter result] [

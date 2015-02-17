@@ -935,8 +935,8 @@ default-rule: rule [value word default] [
 	set word word!
 	set default any-type!
 	(
-		value: get-user-word word
-		unless value [set-user-word word default]
+		value: get-user-word :word
+		unless value [set-user-word :word default]
 	)
 ]
 
