@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 18-Feb-2015/8:53:21+1:00
-    Build: 410
+    Date: 18-Feb-2015/10:39:20+1:00
+    Build: 422
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -216,7 +216,8 @@ jQuery(document).ready(function () {
             opt style
             (insert tag/class type)
             emit-tag
-            into [some elements]
+            eval
+            match-content
             end-tag
         ]
         col: use [grid-size width offset] [
@@ -2184,6 +2185,7 @@ lest: use [
                 this-rule: reduce [
                     to set-word! 'pos
                     to lit-word! name
+                    to paren! compose [debug-print (rejoin ["UU:user-rule: " name " <start> matched."])]
                 ]
             )
             any [
@@ -3274,6 +3276,20 @@ lest: use [
             out: make block! 20
             forskip stack 2 [append out stack/1]
             debug-print ["##stack: " mold reverse out]
+        ]
+        debug-lest: func [
+            type "Debug type: words, rules, stack ...."
+        ] [
+            switch type [
+                words [print mold user-words print mold user-words-meta]
+                rules [print mold user-rule-names print mold user-rules]
+                values [print mold user-values]
+                stack [
+                    out: make block! 20
+                    forskip stack 2 [append out stack/1]
+                    print mold reverse out
+                ]
+            ]
         ]
         if debug [
             debug-print "Debug output ON"
