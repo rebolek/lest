@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 17-Feb-2015/9:53:04+1:00
-    Build: 408
+    Date: 18-Feb-2015/8:53:21+1:00
+    Build: 410
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2423,10 +2423,15 @@ lest: use [
             'for
             set var [word! | block!]
             'in
-            set src [word! | block!]
+            set src [word! | block! | file! | url!]
             pos: set content block! (
+                debug-print "FOR matched"
                 out: make block! length? src
-                if word? src [src: get-user-word :src]
+                src: case [
+                    any [url? src file? src] [load src]
+                    word? src [src: get-user-word :src]
+                    true [src]
+                ]
                 forall src [
                     either block? var [
                         repeat i length? var [

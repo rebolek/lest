@@ -840,10 +840,16 @@ for-rule: rule [pos out var src content] [
 	'for
 	set var [word! | block!]
 	'in
-	set src [word! | block!]
+	set src [word! | block! | file! | url!]
 	pos: set content block! (
+		debug-print "FOR matched"
 		out: make block! length? src
-		if word? src [src: get-user-word :src]
+
+		src: case [
+			any [url? src file? src] [load src]
+			word? src [src: get-user-word :src]
+			true [src]
+		]
 		forall src [
 			either block? var [
 				repeat i length? var [
