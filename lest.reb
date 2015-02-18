@@ -564,7 +564,7 @@ user-rule: rule [name label type value urule args pos this-rule] [
 				to paren! reduce/no-set [ to set-path! 'px/1 label ]
 			]
 
-			repend this-rule [ to set-word! 'pos 'set label type ]
+			repend this-rule ['eval to set-word! 'pos 'set label type ]
 		)
 	]
 	set value block!

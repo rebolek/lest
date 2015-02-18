@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 18-Feb-2015/10:39:20+1:00
-    Build: 422
+    Date: 18-Feb-2015/10:39:45+1:00
+    Build: 423
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2196,7 +2196,7 @@ lest: use [
                         to set-word! 'px to lit-word! label
                         to paren! reduce/no-set [to set-path! 'px/1 label]
                     ]
-                    repend this-rule [to set-word! 'pos 'set label type]
+                    repend this-rule ['eval to set-word! 'pos 'set label type]
                 )
             ]
             set value block!
