@@ -1126,7 +1126,7 @@ page-header: [
 ]
 
 header-title: rule [value] [
-	'title set value string! (page/title: value debug-print "==TITLE")
+	'title eval set value string! (page/title: value debug-print "==TITLE")
 ]
 
 header-language: rule [value] [

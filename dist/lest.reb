@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 18-Feb-2015/10:39:45+1:00
-    Build: 423
+    Date: 18-Feb-2015/18:57:41+1:00
+    Build: 424
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -2669,7 +2669,7 @@ lest: use [
             )
         ]
         header-title: rule [value] [
-            'title set value string! (page/title: value debug-print "==TITLE")
+            'title eval set value string! (page/title: value debug-print "==TITLE")
         ]
         header-language: rule [value] [
             ['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
