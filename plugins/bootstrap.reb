@@ -39,7 +39,9 @@ grid-elems: [
 	opt style
 	( insert tag/class type	)
 	emit-tag
-	into [ some elements ]
+;	into [ some elements ]
+	eval
+	match-content
 ;	close-div
 	end-tag
 ]
@@ -66,7 +68,7 @@ col: use [ grid-size width offset ] [
 			]
 		)
 		emit-tag
-		into [ some elements ]
+		eval  match-content
 		close-div
 	]
 ]
