@@ -38,14 +38,23 @@ main: [
 	(
 		debug-print "&&SPINNER"
 		out: [
+;			spinner-circles: [for i 4 times [div join as class ["spin-circle" i] ""]]
+;			spinner-div: style word! [div .spinner-container style spinner-circles]
+;			spinner-div .somestyle
+;			div .spinner [
+;				for i 3 times [spinner-div join as class ["spinner-container" i] ]
+;			]
+
 			spinner-circles: [
+;				for i 4 times [div join as class ["spin-circle" i] ""]
 				div .spin-circle1 ""
 				div .spin-circle2 ""
 				div .spin-circle3 ""
-				div .spin-circle4 ""				
+				div .spin-circle4 ""
 			]
 			spinner-div: style word! [div .spinner-container style spinner-circles]
 			div .spinner [
+;				for i 3 times [spinner-div join as class ["spinner-container" i] ]
 				spinner-div .spinner-container1
 				spinner-div .spinner-container2
 				spinner-div .spinner-container3
