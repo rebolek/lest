@@ -19,6 +19,7 @@ main: use [tag name fixed? size value size-att] [
 		(
 			name: none
 			fixed?: ""
+			size: none
 		)
 		[
 			'stack set name block!
