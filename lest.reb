@@ -840,26 +840,28 @@ switch-rule: rule [value cases defval pos] [
 for-rule: rule [pos out var src content] [
 	'for
 	set var [word! | block!]
-	'in
-	set src [word! | block! | file! | url!]
+	[
+			'in set src [word! | block! | file! | url!]
+		|	set src integer! 'times
+	]
 	pos: set content block! (
 		debug-print "FOR matched"
-		out: make block! length? src
-
 		src: case [
 			any [url? src file? src] [load src]
-			word? src [src: get-user-word :src]
+			word? src [get-user-word :src]
+			integer? src [use 'i [reverse array/initial i: src func [][-- i]]]
 			true [src]
 		]
+		out: make block! length? src
 		forall src [
 			either block? var [
 				repeat i length? var [
-					append out compose/only [set (var/:i) (src/:i)]
+					append out compose/only copy/deep [set (var/:i) (src/:i)]
 				]
 				src: skip src -1 + length? var
 				append/only out copy/deep content
 			] [
-				append out compose/only [set (var) (src/1) (copy/deep content)]
+				append out compose/only copy/deep [set (var) (src/1) (copy/deep content)]
 			]
 		]
 ;		change/only/part pos out 1
