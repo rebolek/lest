@@ -949,14 +949,16 @@ default-rule: rule [value word default] [
 	)
 ]
 
-join-rule: rule [values delimiter result] [
+join-rule: rule [values type delimiter result] [
 	;TODO: support commands?
 	'join 
-	(delimiter: none)
+	(delimiter: type: none)
+	opt ['as set type word!]
 	set values block!
 	opt ['with set delimiter [char! | string!]]
 	pos:
 	(
+		debug-print "++JOIN"
 		pos: back pos
 		result: make string! 100
 		forall values [
@@ -967,6 +969,12 @@ join-rule: rule [values delimiter result] [
 				delimiter 
 				not tail? next values
 				append result delimiter
+			]
+		]
+		if type [
+			result: switch type [
+				class 	[to word! head insert result #"."]
+				id 		[to issue! result]
 			]
 		]
 ;		pos/1: result
