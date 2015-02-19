@@ -145,7 +145,7 @@ container .cont-3 [
 		col 6 [
 			dl 
 				html "IF <condition> <true-branch>" 
-				plain {IF [logged? = true] [<br>
+				plain {IF logged? [<br>
 &nbsp;&nbsp;span .welcome "Welcome back!"<br>
 ]}
 		]
@@ -159,7 +159,7 @@ emitted when the condition is TRUE, second is emitted when the condition is FALS
 		col 6 [
 			dl
 				html "EITHER <condition> <true-branch> <false-branch>"
-				plain {EITHER [valid-password?] [<br>
+				plain {EITHER valid-password? [<br>
 &nbsp;&nbsp;span .welcome "Login succesful." ] [<br>
 &nbsp;&nbsp;span .warning "Indvalid user or password."<br>
 ]}
@@ -178,6 +178,10 @@ emitted when the condition is TRUE, second is emitted when the condition is FALS
 	]
 	row .tight [
 		h3 "Loops"
+		h4 "FOR"
+		col 6 [
+			p markdown {info about FOR}
+		]
 		h4 "REPEAT"
 		col 6 [
 			p markdown {**REPEAT** takes template that is emitted number of times.
@@ -188,7 +192,7 @@ It can also execute REBOL code to process more complicated cases.
 the *get-word* syntax - value name is prefixed with colon, i.e.: `:my-value`.
 This block is followed by name or list of names of values to be replaced.
 Here is an example:} 
-	precode 
+			precode 
 {REPEAT [
   li .my-item [
     strong "Name: " :name
@@ -224,13 +228,13 @@ There are currently two modes of operation, `FROM` and `WITH`:}
     none
   ]
 ]}				
-			]
-
 		]
-		col 6 [
-			dl
-				html {REPEAT <lest-code> REPLACE <value> FROM <data-source>}
-				plain {REPEAT [<br>
+
+	]
+	col 6 [
+		dl
+			html {REPEAT <lest-code> REPLACE <value> FROM <data-source>}
+			plain {REPEAT [<br>
 &nbsp;&nbsp;div :value<br>
 ] REPLACE :value FROM [<br>
 &nbsp;&nbsp;"one" "two" "three"<br>
