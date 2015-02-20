@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 18-Feb-2015/18:57:41+1:00
-    Build: 424
+    Date: 20-Feb-2015/9:43:08+1:00
+    Build: 465
 ]
 comment "plugin cache"
 plugin-cache: [font-awesome [
@@ -15,6 +15,7 @@ plugin-cache: [font-awesome [
                 (
                     name: none
                     fixed?: ""
+                    size: none
                 )
                 [
                     'stack set name block!
@@ -242,7 +243,7 @@ jQuery(document).ready(function () {
                     ]
                 )
                 emit-tag
-                into [some elements]
+                eval match-content
                 close-div
             ]
         ]
@@ -789,6 +790,33 @@ jQuery(document).ready(function () {
                 ]
                 repend includes/style ['google 'fonts name #400]
             )
+        ]
+    ] spinner [
+        startup: [
+            stylesheet css-path/spinner.css
+        ]
+        main: [
+            pos: 'spinner
+            (
+                debug-print "&&SPINNER"
+                out: [
+                    spinner-circles: [
+                        div .spin-circle1 ""
+                        div .spin-circle2 ""
+                        div .spin-circle3 ""
+                        div .spin-circle4 ""
+                    ]
+                    spinner-div: style word! [div .spinner-container style spinner-circles]
+                    div .spinner [
+                        spinner-div .spinner-container1
+                        spinner-div .spinner-container2
+                        spinner-div .spinner-container3
+                    ]
+                ]
+                change-code pos out
+            )
+            :pos
+            into [match-content]
         ]
     ] captcha [
         main: [
@@ -1990,6 +2018,8 @@ lest: use [
     rules
     header?
     pos
+    locals
+    local
     current-text-style
     used-styles
     name
@@ -2233,30 +2263,35 @@ lest: use [
                 ]
             )
         ]
-        actions: rule [action value data] [
-            set action ['on-click]
-            (action: replace/all to string! action #"-" "")
+        action-set: rule [name target data] [
+            'set eval set name issue! eval set target word! eval set data any-string! (
+                append tag reduce [
+                    to set-word! locals/action
+                    rejoin ["document.getElementById('" next form name "')." target " = '" data "';"]
+                ]
+            )
+        ]
+        action-action: rule [name data target] [
+            'action
+            set name word!
+            opt [set data block!]
+            eval set target issue!
+            (
+                append tag reduce [
+                    to set-word! locals/action
+                    rejoin ["action('" name "', '" data "', '" form to word! target "')"]
+                ]
+            )
+        ]
+        actions: rule [action] [
+            set action ['on-click | 'on-keypress]
+            (
+                local action replace/all to string! action #"-" ""
+                debug-print ["!!action:" action]
+            )
             [
-                [
-                    'set eval set value issue! eval set target word! eval set data any-string! (
-                        append tag reduce [
-                            to set-word! action
-                            rejoin ["document.getElementById('" next form value "')." target " = '" data "';"]
-                        ]
-                    )
-                ]
-                |
-                [
-                    'action
-                    set name word!
-                    opt [set data block!]
-                    eval set target issue!
-                    (
-                        append tag compose [
-                            onClick: (rejoin ["action('" name "', '" data "', '" form to word! target "')"])
-                        ]
-                    )
-                ]
+                action-set
+                | action-action
             ]
         ]
         init-tag: [
@@ -2424,25 +2459,28 @@ lest: use [
         for-rule: rule [pos out var src content] [
             'for
             set var [word! | block!]
-            'in
-            set src [word! | block! | file! | url!]
+            [
+                'in set src [word! | block! | file! | url!]
+                | set src integer! 'times
+            ]
             pos: set content block! (
                 debug-print "FOR matched"
-                out: make block! length? src
                 src: case [
                     any [url? src file? src] [load src]
-                    word? src [src: get-user-word :src]
+                    word? src [get-user-word :src]
+                    integer? src [use 'i [reverse array/initial i: src func [] [-- i]]]
                     true [src]
                 ]
+                out: make block! length? src
                 forall src [
                     either block? var [
                         repeat i length? var [
-                            append out compose/only [set (var/:i) (src/:i)]
+                            append out compose/only copy/deep [set (var/:i) (src/:i)]
                         ]
                         src: skip src -1 + length? var
                         append/only out copy/deep content
                     ] [
-                        append out compose/only [set (var) (src/1) (copy/deep content)]
+                        append out compose/only copy/deep [set (var) (src/1) (copy/deep content)]
                     ]
                 ]
                 change-code/only pos out
@@ -2523,13 +2561,15 @@ lest: use [
                 unless value [set-user-word :word default]
             )
         ]
-        join-rule: rule [values delimiter result] [
+        join-rule: rule [values type delimiter result] [
             'join
-            (delimiter: none)
+            (delimiter: type: none)
+            opt ['as set type word!]
             set values block!
             opt ['with set delimiter [char! | string!]]
             pos:
             (
+                debug-print "++JOIN"
                 pos: back pos
                 result: make string! 100
                 forall values [
@@ -2540,6 +2580,12 @@ lest: use [
                         delimiter
                         not tail? next values
                         append result delimiter
+                    ]
+                ]
+                if type [
+                    result: switch type [
+                        class [to word! head insert result #"."]
+                        id [to issue! result]
                     ]
                 ]
                 change-code pos result
@@ -3281,6 +3327,7 @@ lest: use [
             type "Debug type: words, rules, stack ...."
         ] [
             switch type [
+                local [print mold locals]
                 words [print mold user-words print mold user-words-meta]
                 rules [print mold user-rule-names print mold user-rules]
                 values [print mold user-values]
@@ -3311,6 +3358,10 @@ lest: use [
             body-end: make string! 1000
         ]
         used-styles: make block! 20
+        locals: context []
+        local: func ['word value] [
+            append locals reduce [to set-word! :word value]
+        ]
         page: reduce/no-set [
             title: "Page generated with Lest"
             meta: copy ""

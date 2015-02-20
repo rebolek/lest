@@ -304,6 +304,8 @@ lest: use [
 	rules
 	header?
 	pos
+	locals
+	local
 
 	current-text-style
 	used-styles
@@ -322,6 +324,7 @@ lest: use [
 
 	plugins
 	load-plugin
+
 ] [
 
 set-user-word: func [
@@ -616,30 +619,38 @@ style-rule: rule [data] [
 ;		- set content of ID element to DATA 
 ;		- document.getElementById(id).innerHTML = data;
 
-actions: rule [action value data] [
-	set action ['on-click]
-	(action: replace/all to string! action #"-" "")
+action-set: rule [name target data] [
+	; name - ID of element, target - field in element (color, innerHTML, etc...), data - new data to set
+	'set eval set name issue! eval set target word! eval set data any-string! (
+		append tag reduce [
+			to set-word! locals/action
+			rejoin [{document.getElementById('} next form name {').} target { = '} data {';}]
+		]
+	)
+]
+
+action-action: rule [name data target] [
+	'action
+	set name word!
+	opt [set data block!]
+	eval set target issue!
+	(
+		append tag reduce [
+			to set-word! locals/action
+			rejoin [{action('} name {', '}  data {', '} form to word! target {')}]
+		]
+	)	
+]
+
+actions: rule [action] [
+	set action ['on-click | 'on-keypress]
+	(
+		local action replace/all to string! action #"-" ""
+		debug-print ["!!action:" action]
+	)
 	[
-		[
-			'set eval set value issue! eval set target word! eval set data any-string! (
-				append tag reduce [
-					to set-word! action
-					rejoin [{document.getElementById('} next form value {').} target { = '} data {';}]
-				]
-			)
-		]
-	|	
-		[
-			'action
-			set name word!
-			opt [set data block!]
-			eval set target issue!
-			(
-				append tag compose [
-					onClick: (rejoin [{action('} name {', '}  data {', '} form to word! target {')}])
-				]
-			)	
-		]
+		action-set
+	|	action-action
 	]
 ]
 
@@ -1839,6 +1850,7 @@ func [
 		type 	"Debug type: words, rules, stack ...."
 	] [
 		switch type [
+			local 		[print mold locals]
 			words 	[print mold user-words print mold user-words-meta]
 			rules 		[print mold user-rule-names print mold user-rules]
 			values 	[print mold user-values]
@@ -1876,7 +1888,10 @@ func [
 	]
 
 	used-styles: make block! 20
-
+	locals: context []
+	local: func ['word value] [
+		append locals reduce [to set-word! :word value]
+	]
 ; ---
 
 	page: reduce/no-set [
