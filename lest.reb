@@ -621,7 +621,9 @@ style-rule: rule [data] [
 
 action-set: rule [name target data] [
 	; name - ID of element, target - field in element (color, innerHTML, etc...), data - new data to set
-	'set eval set name issue! eval set target word! eval set data any-string! (
+	'set 
+	(debug-print ["!!action fc: SET"]) 
+	eval set name issue! eval set target word! eval set data any-string! (
 		append tag reduce [
 			to set-word! locals/action
 			rejoin [{document.getElementById('} next form name {').} target { = '} data {';}]
@@ -631,6 +633,7 @@ action-set: rule [name target data] [
 
 action-action: rule [name data target] [
 	'action
+	(debug-print ["!!action fc: SET"]) 
 	set name word!
 	opt [set data block!]
 	eval set target issue!
@@ -1530,6 +1533,7 @@ input-parameters: rule [data] [
 		|	'error (debug-print ["INPUT:" name " error"]) eval set data string!		(append tag compose [data-error: (data)])
 		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
 		|	'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+		|	actions (debug-print ["INPUT:" name " after actions"])
 		|	style (debug-print ["INPUT:" name " after style"])
 		]
 	]
@@ -1557,7 +1561,7 @@ input: rule [type simple] [
 	(emit-label label name)
 	emit-tag
 	take-tag ; INPUT has no closing tag
-	if (validator?) [
+	if (locals/validator?) [
 		init-div
 		(append tag/class [help-block with-errors])
 		emit-tag
@@ -1714,12 +1718,15 @@ form-content: [
 form-type: none
 form-rule: rule [value form-type enctype] [
 	set tag-name 'form
-	( form-type: enctype: validator?: none )
+	( 
+		form-type: enctype: none 
+		local validator? none
+	)
 	init-tag
 	any [
 		'multipart 	(enctype: "multipart/form-data")
 	|	'horizontal 	(form-type: 'horizontal)
-	|	'validator 	(append tag [data-toggle: 'validator] validator?: true)
+	|	'validator 	(append tag [data-toggle: 'validator] local validator? true)
 	]
 	(
 		append tag compose [
@@ -1887,10 +1894,15 @@ func [
 	]
 
 	used-styles: make block! 20
+	; LOCALS is context for variables that can be shared across rules (note: isn't it global??)
 	locals: context []
-	local: func ['word value] [
+	local: func [
+		"Set word in LOCALS context for sharing values between PARSE rules"
+		'word value
+	] [
 		append locals reduce [to set-word! :word value]
 	]
+	local validator? none
 ; ---
 
 	page: reduce/no-set [

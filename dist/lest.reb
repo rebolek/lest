@@ -1,8 +1,9 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 20-Feb-2015/9:43:08+1:00
-    Build: 465
+    Date: 20-Feb-2015/10:16:23+1:00
+    Build: 472
 ]
+debug-print: none
 comment "plugin cache"
 plugin-cache: [font-awesome [
         startup: [
@@ -2264,7 +2265,9 @@ lest: use [
             )
         ]
         action-set: rule [name target data] [
-            'set eval set name issue! eval set target word! eval set data any-string! (
+            'set
+            (debug-print ["!!action fc: SET"])
+            eval set name issue! eval set target word! eval set data any-string! (
                 append tag reduce [
                     to set-word! locals/action
                     rejoin ["document.getElementById('" next form name "')." target " = '" data "';"]
@@ -2273,6 +2276,7 @@ lest: use [
         ]
         action-action: rule [name data target] [
             'action
+            (debug-print ["!!action fc: SET"])
             set name word!
             opt [set data block!]
             eval set target issue!
@@ -3041,6 +3045,7 @@ lest: use [
                     | 'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
                     | 'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
                     | 'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+                    | actions (debug-print ["INPUT:" name " after actions"])
                     | style (debug-print ["INPUT:" name " after style"])
                 ]
             ]
@@ -3068,7 +3073,7 @@ lest: use [
             (emit-label label name)
             emit-tag
             take-tag
-            if (validator?) [
+            if (locals/validator?) [
                 init-div
                 (append tag/class [help-block with-errors])
                 emit-tag
@@ -3206,8 +3211,7 @@ lest: use [
         ]
         form-content: [
             [
-                br
-                | input
+                input
                 | textarea
                 | checkbox
                 | radio
@@ -3219,12 +3223,15 @@ lest: use [
         form-type: none
         form-rule: rule [value form-type enctype] [
             set tag-name 'form
-            (form-type: enctype: validator?: none)
+            (
+                form-type: enctype: none
+                local validator? none
+            )
             init-tag
             any [
                 'multipart (enctype: "multipart/form-data")
                 | 'horizontal (form-type: 'horizontal)
-                | 'validator (append tag [data-toggle: 'validator] validator?: true)
+                | 'validator (append tag [data-toggle: 'validator] local validator? true)
             ]
             (
                 append tag compose [
@@ -3359,9 +3366,13 @@ lest: use [
         ]
         used-styles: make block! 20
         locals: context []
-        local: func ['word value] [
+        local: func [
+            {Set word in LOCALS context for sharing values between PARSE rules}
+            'word value
+        ] [
             append locals reduce [to set-word! :word value]
         ]
+        local validator? none
         page: reduce/no-set [
             title: "Page generated with Lest"
             meta: copy ""
