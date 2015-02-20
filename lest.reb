@@ -1700,8 +1700,7 @@ select-input: rule [label name value] [
 
 form-content: [
 	[
-		br
-	|	input
+		input
 	|	textarea
 	|	checkbox
 	|	radio
