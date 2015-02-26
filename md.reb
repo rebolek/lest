@@ -396,7 +396,7 @@ markdown: func [
 	end-para?: true
 	para?: false
 	clear head md-buffer
-	probe rules
-	parse probe data [some rules]
+;	probe rules
+	parse data [some rules]
 	md-buffer
 ]
