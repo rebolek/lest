@@ -1334,7 +1334,9 @@ ul: [
 	init-tag
 	opt style
 	emit-tag
-	some li
+	eval
+	match-content
+;	[some [set-rule (debug-print "after set-rule") into li] | some li]
 	end-tag
 ]
 
@@ -1389,6 +1391,10 @@ list-elems: [
 |	dl
 ]
 
+list-content: [
+	some li
+]
+
 basic-elems: [
 	[
 		basic-string-match
@@ -1407,6 +1413,7 @@ basic-elems: [
 |	image
 |	link
 |	list-elems
+|	dom-rules
 ]
 
 basic-string: [
