@@ -657,6 +657,39 @@ actions: rule [action] [
 	]
 ]
 
+;-----
+
+; ---- DOM Access
+;
+;	for DOMacces we use set-path! (set value in DOM), get-path! (get value from DOM) and path! (call a DOM function)
+;
+
+dom-rules: [
+	get-dom
+;|	set-dom
+;|	call-dom	
+]
+
+get-dom: rule [pos path] [
+	pos: set path get-path!
+	(
+		print path: rejoin [{getAttribute("} path/1 {", "} path/2 {")}]
+		change-code pos compose [script (path)]
+	)
+	:pos
+	match-content
+]
+
+set-dom: rule [] [
+
+]
+
+call-dom: rule [] [	
+
+]
+
+; ----
+
 init-tag: [
 	(
 		insert tag-stack reduce [ tag-name tag: context [ id: none class: copy [] ] ]
