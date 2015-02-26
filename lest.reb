@@ -1178,7 +1178,7 @@ page-header: [
 	'body (
 		debug-print "==BODY"
 		; TODO: UGLY hack! move elsewhere
-		repend includes/header [{<script src="../js/lest.js">}</script> newline ]
+		repend includes/header [{<script src="} js-path {lest.js">}</script> newline ]
 	)
 ]
 
