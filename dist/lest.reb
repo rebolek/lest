@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 20-Feb-2015/10:16:23+1:00
-    Build: 472
+    Date: 26-Feb-2015/12:46:44+1:00
+    Build: 498
 ]
 debug-print: none
 comment "plugin cache"
@@ -1459,8 +1459,7 @@ import module [
         end-para?: true
         para?: false
         clear head md-buffer
-        probe rules
-        parse probe data [some rules]
+        parse data [some rules]
         md-buffer
     ]
 ]
@@ -2298,6 +2297,20 @@ lest: use [
                 | action-action
             ]
         ]
+        dom-rules: [
+            get-dom
+        ]
+        get-dom: rule [pos path] [
+            pos: set path get-path!
+            (
+                print path: rejoin [{getAttribute("} path/1 {", "} path/2 {")}]
+                change-code pos compose [script (path)]
+            )
+            :pos
+            match-content
+        ]
+        set-dom: rule [] []
+        call-dom: rule [] []
         init-tag: [
             (
                 insert tag-stack reduce [tag-name tag: context [id: none class: copy []]]
@@ -2579,6 +2592,7 @@ lest: use [
                 forall values [
                     append result switch/default type?/word values/1 [
                         word! [get-user-word :values/1]
+                        lit-word! [form to word! values/1]
                     ] [form values/1]
                     all [
                         delimiter
@@ -2715,7 +2729,7 @@ lest: use [
             pos:
             'body (
                 debug-print "==BODY"
-                repend includes/header [{<script src="../js/lest.js">} </script> newline]
+                repend includes/header [{<script src="} js-path {lest.js">} </script> newline]
             )
         ]
         header-title: rule [value] [
@@ -2841,7 +2855,8 @@ lest: use [
             init-tag
             opt style
             emit-tag
-            some li
+            eval
+            match-content
             end-tag
         ]
         ol: rule [value] [
@@ -2888,6 +2903,9 @@ lest: use [
             | ol
             | dl
         ]
+        list-content: [
+            some li
+        ]
         basic-elems: [
             [
                 basic-string-match
@@ -2906,6 +2924,7 @@ lest: use [
             | image
             | link
             | list-elems
+            | dom-rules
         ]
         basic-string: [
             (current-text-style: none)
@@ -3258,6 +3277,7 @@ lest: use [
                 text-settings
                 | page-header
                 | basic-elems
+                | list-content
                 | form-content
                 | import
                 | do-code

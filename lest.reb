@@ -1010,7 +1010,8 @@ join-rule: rule [values type delimiter result] [
 		result: make string! 100
 		forall values [
 			append result switch/default type?/word values/1 [
-				word! [get-user-word :values/1]
+				word! 		[get-user-word :values/1]
+				lit-word! 	[form to word! values/1]
 			] [form values/1]
 			all [
 				delimiter 
