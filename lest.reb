@@ -1796,6 +1796,7 @@ elements: rule [] [
 		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
 	|	page-header	
 	|	basic-elems
+	|	list-content
 	|	form-content
 	|	import
 	|	do-code
