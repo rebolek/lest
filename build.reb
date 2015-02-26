@@ -78,4 +78,6 @@ write %dist/lest.reb mold/only head insert script compose/deep [
 		Date: (now)
 		Build: (build-number)
 	]
+
+	debug-print: none ; FIXME: makes problem on server (debug-print no-value), not sure why
 ]
