@@ -141,7 +141,7 @@ catenate: funct [
     src [ block! ]
     delimiter [ char! string! ]
     /as-is "Mold values"
-][
+] [
     out: make string! 200
     forall src [ repend out [ either as-is [mold src/1] [src/1] delimiter ] ]
     len: either char? delimiter [ 1 ][ length? delimiter ]
@@ -152,15 +152,14 @@ replace-deep: funct [
 	target
 	'search
 	'replace
-][
+] [
 	rule: compose [
 		change (:search) (:replace)
 	|	any-string!
-	|	into [ some rule ]
+	|	into [some rule]
 	|	skip
 	]
-;	debug-print "parse replace-deep"
-	parse target [ some rule ]
+	parse target [some rule]
 	target
 ]
 
@@ -177,7 +176,7 @@ rule: func [
 	"Make PARSE rule with local variables"
 	local 	[word! block!]  "Local variable(s)"
 	rule 	[block!]		"PARSE rule"
-][
+] [
 	if word? local [local: reduce [local]]
 	compile-rules use local reduce [rule]
 ]
@@ -272,7 +271,6 @@ get-integer: func [
 	value
 	/local number int-rule
 ] [
-;	debug-print ["++GET INTEGER:" value type? value]
 	if integer? value [return value]
 	unless string? value [return none]
 	number: 		charset "0123456789"
@@ -317,6 +315,8 @@ lest: use [
 	emit-label
 	emit-stylesheet
 
+	add-js
+
 	user-rules
 	user-words
 	user-words-meta
@@ -326,6 +326,13 @@ lest: use [
 	load-plugin
 
 ] [
+
+add-js: func [
+	target
+	data
+] [
+	head append target rejoin [data #";"]
+]
 
 set-user-word: func [
 	name
@@ -619,7 +626,61 @@ style-rule: rule [data] [
 ;		- set content of ID element to DATA 
 ;		- document.getElementById(id).innerHTML = data;
 
-action-set: rule [name target data] [
+window-events: [
+	'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage 
+	| 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
+]
+
+form-events: [
+	'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
+]
+
+keyboard-events: [
+	'onkeydown | 'onkeypress 	| 'onkeyup
+]
+
+mouse-events: [
+	'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop 
+	| 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
+]
+
+clipboard-events: [
+	'oncopy | 'oncut | 'onpaste
+]
+
+media-events: [
+	'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata 
+	| 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking 
+	| 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
+]
+
+misc-events: [
+	'onerror | 'onshow | 'ontoggle
+]
+
+events: [
+	window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
+]
+
+; ---------
+
+js-debug: rule [value] [
+	'debug
+	set value any-type!
+	(debug-print ["!!action fc: DEBUG"]) 
+	(
+		unless word? value [value: rejoin [{'} form value {'}]]
+		append locals/code rejoin ["console.debug(" value ");"]
+	)
+]
+
+js-assign-value: rule [name] [
+	set name set-word!
+	(debug-print ["!!action fc: ASSIGN"]) 
+	(append locals/code rejoin ["var " to word! name " = "])
+]
+
+js-set: rule [name target data] [
 	; name - ID of element, target - field in element (color, innerHTML, etc...), data - new data to set
 	'set 
 	(debug-print ["!!action fc: SET"]) 
@@ -631,7 +692,7 @@ action-set: rule [name target data] [
 	)
 ]
 
-action-action: rule [name data target] [
+js-action: rule [name data target] [
 	'action
 	(debug-print ["!!action fc: SET"]) 
 	set name word!
@@ -645,47 +706,57 @@ action-action: rule [name data target] [
 	)	
 ]
 
-actions: rule [action] [
-	set action ['on-click | 'on-keypress]
+get-dom: rule [path] [
+	set path get-path!
+	(debug-print ["!!action fc: GET DOM"]) 
 	(
-		local action replace/all to string! action #"-" ""
-		debug-print ["!!action:" action]
+		add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
 	)
-	[
-		action-set
-	|	action-action
-	]
 ]
 
-;-----
-
-; ---- DOM Access
-;
-;	for DOMacces we use set-path! (set value in DOM), get-path! (get value from DOM) and path! (call a DOM function)
-;
-
-dom-rules: [
-	get-dom
-;|	set-dom
-;|	call-dom	
-]
-
-get-dom: rule [pos path] [
-	pos: set path get-path!
+set-dom: rule [path value] [
+	set path set-path!
+	set value any-type!
+	(debug-print ["!!action fc: SET DOM"]) 
 	(
-		print path: rejoin [{getAttribute("} path/1 {", "} path/2 {")}]
-		change-code pos compose [script (path)]
+		unless word? value [value: rejoin [{'} form value {'}]]
+		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {)}]
 	)
-	:pos
-	match-content
-]
-
-set-dom: rule [] [
-
 ]
 
 call-dom: rule [] [	
 
+]
+
+
+js-code: rule [] [
+	(debug-print "^/JS: Match JS code^/---------------")
+	some [
+		js-debug
+	|	js-set
+	|	js-action
+	|	js-assign-value
+	|	get-dom
+	|	set-dom
+	]
+	(debug-print "^/JS: End JS code^/---------------")
+	(replace/all locals/code #"^"" #"'") ; change all quotation marks to apostrohes 
+	(debug-print mold locals/code)
+]
+
+actions: rule [action data] [
+	set action events
+	(
+		local code make string! 1000
+		local action replace/all to string! action #"-" ""
+		debug-print ["!!action:" action]
+	)
+	[
+		set data string!
+		(append tag reduce [to set-word! locals/action data])
+	|	into js-code
+		(append tag reduce [to set-word! locals/action locals/code])
+	]
 ]
 
 ; ----
@@ -698,7 +769,7 @@ init-tag: [
 	)
 ]
 
-take-tag: [ ( set [tag-name tag] take/part tag-stack 2 ) ]
+take-tag: [(set [tag-name tag] take/part tag-stack 2)]
 
 emit-tag: [ ( 
 	emit build-tag tag-name tag 
@@ -998,6 +1069,9 @@ default-rule: rule [value word default] [
 
 join-rule: rule [values type delimiter result] [
 	;TODO: support commands?
+	;
+	;TODO: change JOIN dialect: word is word, to access variables, use get-word [set x "zdar" join as class [na :x]] -> .nazdar
+	;
 	'join 
 	(delimiter: type: none)
 	opt ['as set type word!]
@@ -1012,6 +1086,7 @@ join-rule: rule [values type delimiter result] [
 			append result switch/default type?/word values/1 [
 				word! 		[get-user-word :values/1]
 				lit-word! 	[form to word! values/1]
+				issue!		[form to word! values/1]
 			] [form values/1]
 			all [
 				delimiter 
@@ -1414,7 +1489,7 @@ basic-elems: [
 |	image
 |	link
 |	list-elems
-|	dom-rules
+;|	dom-rules
 ]
 
 basic-string: [
@@ -1525,6 +1600,24 @@ table: rule [value] [
 ; | |      | |__| | | | \ \  | |  | |  ____) |
 ; |_|       \____/  |_|  \_\ |_|  |_| |_____/
 ;
+
+label-rule: rule [value elem] [
+	set tag-name 'label
+	(elem: none)
+	opt [set elem issue!]
+	set value string!
+	init-tag
+	(
+		all [
+			elem
+			append tag compose [for: (next form elem)]
+		]
+		value-to-emit: value
+	)
+	emit-tag
+	emit-value
+	end-tag
+]
 
 init-input: rule [value] [
 	(
@@ -1805,6 +1898,7 @@ elements: rule [] [
 	|	user-rule
 	|	set-rule
 	|	heading
+	|	label-rule
 	|	form-rule
 	|	script
 	|	meta-rule 	; FIXME: header only
