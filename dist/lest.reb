@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Mar-2015/0:12:36+1:00
-    Build: 562
+    Date: 5-Mar-2015/0:35:31+1:00
+    Build: 573
 ]
 debug-print: none
 comment "plugin cache"
@@ -2155,7 +2155,7 @@ lest: use [
             'text
             (text-style: type)
         ]
-        eval: [any [user-values | process-code | commands | plugins]]
+        eval: [any [commands | user-values | process-code | plugins]]
         eval-strict: [any [user-values | process-code | commands]]
         process-code: rule [p value] [
             p: set value paren!
@@ -2490,7 +2490,9 @@ lest: use [
                 | switch-rule
                 | for-rule
                 | repeat-rule
+                | as-rule
                 | join-rule
+                | map-rule
                 | default-rule
                 | length-rule
                 | insert-append-rule
@@ -2655,6 +2657,30 @@ lest: use [
             (
                 value: get-user-word :word
                 unless value [set-user-word :word default]
+            )
+        ]
+        as-rule: rule [pos value type] [
+            'as
+            eval set type ['string | 'date | 'integer]
+            eval pos: set value any-type!
+            (
+                debug-print ["++AS" type "-" value ":" mold pos]
+                value: switch type [
+                    string [form value]
+                    date [attempt [to date! value]]
+                    integer [attempt [to integer! value]]
+                ]
+                change-code pos value
+            )
+            :pos
+        ]
+        map-rule: rule [values code] [
+            'map
+            eval set values block!
+            eval set code block!
+            (
+                debug-print ["++MAP " mold code " on " mold values]
+                foreach value values []
             )
         ]
         join-rule: rule [values type delimiter result] [

@@ -472,7 +472,7 @@ text-settings: rule [type] [
 	(text-style: type)
 ]
 
-eval: [any [user-values | process-code | commands | plugins]]
+eval: [any [commands | user-values | process-code | plugins]]
 eval-strict: [any [user-values | process-code | commands ]]		; ignore plugins
 
 process-code: rule [ p value ] [
@@ -881,6 +881,7 @@ commands: [
 	|	switch-rule
 	|	for-rule
 	|	repeat-rule
+	|	as-rule
 	|	join-rule
 	|	default-rule
 	|	length-rule
@@ -1066,6 +1067,23 @@ default-rule: rule [value word default] [
 		value: get-user-word :word
 		unless value [set-user-word :word default]
 	)
+]
+
+as-rule: rule [pos value type] [
+	'as
+	; TODO: move datatypes to separate rule for reusability
+	eval set type ['string | 'date | 'integer]
+	eval pos: set value any-type!
+	(
+		debug-print ["++AS" type "-" value ":" mold pos]
+		value: switch type [
+			string 		[form value]
+			date 		[attempt [to date! value]]
+			integer 	[attempt [to integer! value]]
+		]
+		change-code pos value
+	)
+	:pos
 ]
 
 join-rule: rule [values type delimiter result] [
