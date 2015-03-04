@@ -1076,7 +1076,7 @@ join-rule: rule [values type delimiter result] [
 	'join 
 	(delimiter: type: none)
 	opt ['as set type word!]
-	set values block!
+	eval set values block!
 	opt ['with set delimiter [char! | string!]]
 	pos:
 	(

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 4-Mar-2015/21:43:11+1:00
-    Build: 560
+    Date: 5-Mar-2015/0:12:36+1:00
+    Build: 562
 ]
 debug-print: none
 comment "plugin cache"
@@ -2661,7 +2661,7 @@ lest: use [
             'join
             (delimiter: type: none)
             opt ['as set type word!]
-            set values block!
+            eval set values block!
             opt ['with set delimiter [char! | string!]]
             pos:
             (
