@@ -307,6 +307,7 @@ lest: use [
 
 	current-text-style
 	used-styles
+	last-id
 
 	name
 	value
@@ -1654,9 +1655,12 @@ old-emit-input: [
 		]
 	)
 ]
-input-parameters: rule [data] [
+input-parameters: rule [list data] [
 	set name word!
-	(debug-print ["INPUT:name=" name])
+	(
+		debug-print ["INPUT:name=" name]
+		local datalist none
+	)
 	any [
 		eval-strict any [
 			set label string! (debug-print ["INPUT:" name " label:" label])
@@ -1667,12 +1671,14 @@ input-parameters: rule [data] [
 		|	'error (debug-print ["INPUT:" name " error"]) eval set data string!		(append tag compose [data-error: (data)])
 		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
 		|	'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+		|	'datalist (list: none debug-print ["INPUT:" name " minlength"]) eval opt [set list word!] eval set data block! (local datalist data local datalist-id list)
 		|	actions (debug-print ["INPUT:" name " after actions"])
 		|	style (debug-print ["INPUT:" name " after style"])
 		]
 	]
 ]
-input: rule [type simple] [
+
+input: rule [type simple continue] [
 	(simple: default: value: label: def-error: none)
 	opt ['simple (simple: true)]
 	set type [
@@ -1690,9 +1696,24 @@ input: rule [type simple] [
 	(append tag reduce/no-set [type: type])
 	(debug-print "<input-parameters>")
 	input-parameters
-	(debug-print "</input-parameters>")
-	(append tag compose [name: (name) placeholder: (default) value: (value)])
-	(emit-label label name)
+	(
+;		unless tag/id [tag/id: rejoin [type '- get-id]]
+		if locals/datalist [
+			append tag compose [
+				list: (
+					either locals/datalist-id [
+						locals/datalist-id
+					] [
+						rejoin [type '- get-id]
+					]
+				)
+			]
+			local datalist-id tag/list
+		]
+		debug-print "</input-parameters>"
+		append tag compose [name: (name) placeholder: (default) value: (value)]
+		emit-label label name
+	)
 	emit-tag
 	take-tag ; INPUT has no closing tag
 	if (locals/validator?) [
@@ -1703,6 +1724,18 @@ input: rule [type simple] [
 		end-tag
 	]
 	if (not simple) [end-tag]
+	if (locals/datalist) [
+		(tag-name: 'datalist)
+		init-tag
+		(tag/id: locals/datalist-id)
+		emit-tag
+		(
+			foreach value locals/datalist [
+				emit build-tag 'option compose [value: (value)]
+			]
+		)
+		end-tag
+	]
 ]
 checkbox: rule [] [
 	'checkbox
@@ -1846,7 +1879,6 @@ form-content: [
 	|	hidden
 	|	select-input
 ;	|	plugins ; to enable captcha, password-strength, etc.
-	; TODO: elements ?
 	]
 ]
 form-type: none
@@ -2012,6 +2044,9 @@ func [
 
 	header?: false
 
+	last-id: 0
+	get-id: does [++ last-id]
+
 	tag-stack: copy []
 
 	user-rules: copy [ fail ]	; fail is "empty rule", because empty block isn't
@@ -2023,10 +2058,10 @@ func [
 	includes: object [
 		style:			make block! 1000
 		stylesheets: 	copy {}
-		header:			copy {}
+		header:		copy {}
 		body-tag:		make block! 10
-		body-start:		make string! 1000
-		body-end: 		make string! 1000
+		body-start:	make string! 1000
+		body-end: 	make string! 1000
 	]
 
 	used-styles: make block! 20

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 3-Mar-2015/9:29+1:00
-    Build: 544
+    Date: 4-Mar-2015/21:43:11+1:00
+    Build: 560
 ]
 debug-print: none
 comment "plugin cache"
@@ -2031,6 +2031,7 @@ lest: use [
     local
     current-text-style
     used-styles
+    last-id
     name
     value
     emit
@@ -3146,9 +3147,12 @@ lest: use [
                 ]
             )
         ]
-        input-parameters: rule [data] [
+        input-parameters: rule [list data] [
             set name word!
-            (debug-print ["INPUT:name=" name])
+            (
+                debug-print ["INPUT:name=" name]
+                local datalist none
+            )
             any [
                 eval-strict any [
                     set label string! (debug-print ["INPUT:" name " label:" label])
@@ -3159,12 +3163,13 @@ lest: use [
                     | 'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
                     | 'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
                     | 'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+                    | 'datalist (list: none debug-print ["INPUT:" name " minlength"]) eval opt [set list word!] eval set data block! (local datalist data local datalist-id list)
                     | actions (debug-print ["INPUT:" name " after actions"])
                     | style (debug-print ["INPUT:" name " after style"])
                 ]
             ]
         ]
-        input: rule [type simple] [
+        input: rule [type simple continue] [
             (simple: default: value: label: def-error: none)
             opt ['simple (simple: true)]
             set type [
@@ -3182,9 +3187,23 @@ lest: use [
             (append tag reduce/no-set [type: type])
             (debug-print "<input-parameters>")
             input-parameters
-            (debug-print "</input-parameters>")
-            (append tag compose [name: (name) placeholder: (default) value: (value)])
-            (emit-label label name)
+            (
+                if locals/datalist [
+                    append tag compose [
+                        list: (
+                            either locals/datalist-id [
+                                locals/datalist-id
+                            ] [
+                                rejoin [type '- get-id]
+                            ]
+                        )
+                    ]
+                    local datalist-id tag/list
+                ]
+                debug-print "</input-parameters>"
+                append tag compose [name: (name) placeholder: (default) value: (value)]
+                emit-label label name
+            )
             emit-tag
             take-tag
             if (locals/validator?) [
@@ -3195,6 +3214,18 @@ lest: use [
                 end-tag
             ]
             if (not simple) [end-tag]
+            if (locals/datalist) [
+                (tag-name: 'datalist)
+                init-tag
+                (tag/id: locals/datalist-id)
+                emit-tag
+                (
+                    foreach value locals/datalist [
+                        emit build-tag 'option compose [value: (value)]
+                    ]
+                )
+                end-tag
+            ]
         ]
         checkbox: rule [] [
             'checkbox
@@ -3466,6 +3497,8 @@ lest: use [
         ]
         buffer: either into [out] [make string! 10000]
         header?: false
+        last-id: 0
+        get-id: does [++ last-id]
         tag-stack: copy []
         user-rules: copy [fail]
         user-rule-names: make block! 100
