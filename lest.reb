@@ -493,6 +493,20 @@ do-code: rule [ p value ] [
 	:p main-rule
 	]
 
+set-at-rule: rule [word index value block] [
+	'set
+	set word word!
+	'at
+	eval set index integer!
+	eval set value any-type!
+	(
+		debug-print ["==SET@:" word "@" index "=" value]
+		block: get-user-word :word
+		block/:index: value
+		set-user-word word block
+	)
+]
+
 set-rule: rule [labels values] [
 	'set
 	set labels [word! | block!]
@@ -883,6 +897,7 @@ commands: [
 	|	repeat-rule
 	|	as-rule
 	|	join-rule
+;	|	map-rule
 	|	default-rule
 	|	length-rule
 	|	insert-append-rule
@@ -1431,7 +1446,6 @@ ul: [
 	emit-tag
 	eval
 	match-content
-;	[some [set-rule (debug-print "after set-rule") into li] | some li]
 	end-tag
 ]
 
@@ -1946,7 +1960,8 @@ elements: rule [] [
 	|	do-code
 	|	user-rules
 	|	user-rule
-	|	set-rule
+	|	set-at-rule	; TODO: move to commands
+	|	set-rule 		; TODO: move to commands
 	|	heading
 	|	label-rule
 	|	form-rule

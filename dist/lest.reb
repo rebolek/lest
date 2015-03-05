@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Mar-2015/0:35:31+1:00
-    Build: 573
+    Date: 5-Mar-2015/1:21:49+1:00
+    Build: 575
 ]
 debug-print: none
 comment "plugin cache"
@@ -2171,6 +2171,19 @@ lest: use [
             )
             :p main-rule
         ]
+        set-at-rule: rule [word index value block] [
+            'set
+            set word word!
+            'at
+            eval set index integer!
+            eval set value any-type!
+            (
+                debug-print ["==SET@:" word "@" index "=" value]
+                block: get-user-word :word
+                block/:index: value
+                set-user-word word block
+            )
+        ]
         set-rule: rule [labels values] [
             'set
             set labels [word! | block!]
@@ -2492,7 +2505,6 @@ lest: use [
                 | repeat-rule
                 | as-rule
                 | join-rule
-                | map-rule
                 | default-rule
                 | length-rule
                 | insert-append-rule
@@ -2673,15 +2685,6 @@ lest: use [
                 change-code pos value
             )
             :pos
-        ]
-        map-rule: rule [values code] [
-            'map
-            eval set values block!
-            eval set code block!
-            (
-                debug-print ["++MAP " mold code " on " mold values]
-                foreach value values []
-            )
         ]
         join-rule: rule [values type delimiter result] [
             'join
@@ -3435,6 +3438,7 @@ lest: use [
                 | do-code
                 | user-rules
                 | user-rule
+                | set-at-rule
                 | set-rule
                 | heading
                 | label-rule
