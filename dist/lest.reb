@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 16-Mar-2015/10:26:45+1:00
-    Build: 602
+    Date: 16-Mar-2015/10:31:11+1:00
+    Build: 603
 ]
 debug-print: none
 comment "plugin cache"
@@ -2152,10 +2152,13 @@ lest: use [
             )
             :pos
         ]
-        import: rule [p value] [
-            'import p: set value [file! | url!]
-            (p/1: load value)
-            :p main-rule
+        import: rule [pos value] [
+            'import pos: set value [file! | url!]
+            (
+                debug-print ["##IMPORT" value]
+                change-code/only pos load value
+            )
+            :pos main-rule
         ]
         text-settings: rule [type] [
             set type ['plain | 'html | 'markdown]

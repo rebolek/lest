@@ -469,11 +469,14 @@ load-rule: rule [pos value] [
 	:pos
 ]
 
-import: rule [p value] [
+import: rule [pos value] [
 	; LOAD AND EMIT FILE
-	'import p: set value [ file! | url! ]
-	( p/1: load value )
-	:p main-rule
+	'import pos: set value [ file! | url! ]
+	(
+		debug-print ["##IMPORT" value]
+		change-code/only pos load value
+	)
+	:pos main-rule
 ]
 
 text-settings: rule [type] [
