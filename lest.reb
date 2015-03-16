@@ -459,6 +459,16 @@ rules: object [
 
 ; --- subrules
 
+load-rule: rule [pos value] [
+	; LOAD AND RETURN FILE
+	'load pos: set value [ file! | url! ]
+	(
+		debug-print ["##LOAD" value]
+		change-code/only pos load value
+	)
+	:pos
+]
+
 import: rule [p value] [
 	; LOAD AND EMIT FILE
 	'import p: set value [ file! | url! ]
@@ -897,12 +907,11 @@ commands: [
 	|	repeat-rule
 	|	as-rule
 	|	join-rule
-;	|	map-rule
 	|	default-rule
 	|	length-rule
 	|	insert-append-rule
 	|	math-commands
-	
+	|	load-rule
 	]
 ]
 
@@ -989,6 +998,7 @@ for-rule: rule [pos out var src content] [
 		]
 		out: make block! length? src
 		forall src [
+			append out compose [set index (index? src)]
 			either block? var [
 				repeat i length? var [
 					append out compose/only copy/deep [set (var/:i) (src/:i)]
@@ -999,7 +1009,6 @@ for-rule: rule [pos out var src content] [
 				append out compose/only copy/deep [set (var) (src/1) (copy/deep content)]
 			]
 		]
-;		change/only/part pos out 1
 		change-code/only pos out
 	)
 	:pos main-rule
@@ -1090,12 +1099,16 @@ as-rule: rule [pos value type] [
 	eval set type ['string | 'date | 'integer]
 	eval pos: set value any-type!
 	(
-		debug-print ["++AS" type "-" value ":" mold pos]
-		value: switch type [
-			string 		[form value]
-			date 		[attempt [to date! value]]
-			integer 	[attempt [to integer! value]]
+		debug-print ["++AS" type "-" mold value ":" mold pos]
+		unless block? value [value: reduce [value]]
+		value: map-each val value [
+			switch type [
+				string 		[form val]
+				date 		[attempt [to date! val]]
+				integer 	[attempt [to integer! val]]
+			]
 		]
+		debug-print ["++AS" type "=" mold value]
 		change-code pos value
 	)
 	:pos

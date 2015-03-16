@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 5-Mar-2015/1:21:49+1:00
-    Build: 575
+    Date: 16-Mar-2015/10:26:45+1:00
+    Build: 602
 ]
 debug-print: none
 comment "plugin cache"
@@ -653,9 +653,8 @@ jQuery(document).ready(function () {
                 ]
                 pos:
                 (
-                    probe pos
                     insert next pos '.list-group-item
-                    pos: probe back pos
+                    pos: back pos
                 )
                 :pos
                 link
@@ -2145,6 +2144,14 @@ lest: use [
         emit-value: [
             (emit value-to-emit)
         ]
+        load-rule: rule [pos value] [
+            'load pos: set value [file! | url!]
+            (
+                debug-print ["##LOAD" value]
+                change-code/only pos load value
+            )
+            :pos
+        ]
         import: rule [p value] [
             'import p: set value [file! | url!]
             (p/1: load value)
@@ -2509,6 +2516,7 @@ lest: use [
                 | length-rule
                 | insert-append-rule
                 | math-commands
+                | load-rule
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -2583,6 +2591,7 @@ lest: use [
                 ]
                 out: make block! length? src
                 forall src [
+                    append out compose [set index (index? src)]
                     either block? var [
                         repeat i length? var [
                             append out compose/only copy/deep [set (var/:i) (src/:i)]
@@ -2676,12 +2685,16 @@ lest: use [
             eval set type ['string | 'date | 'integer]
             eval pos: set value any-type!
             (
-                debug-print ["++AS" type "-" value ":" mold pos]
-                value: switch type [
-                    string [form value]
-                    date [attempt [to date! value]]
-                    integer [attempt [to integer! value]]
+                debug-print ["++AS" type "-" mold value ":" mold pos]
+                unless block? value [value: reduce [value]]
+                value: map-each val value [
+                    switch type [
+                        string [form val]
+                        date [attempt [to date! val]]
+                        integer [attempt [to integer! val]]
+                    ]
                 ]
+                debug-print ["++AS" type "=" mold value]
                 change-code pos value
             )
             :pos
