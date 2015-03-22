@@ -1,0 +1,166 @@
+/* StyleTalk Output */
+
+@import url ('http://fonts.googleapis.com/css?family=Inika:400|Fira+Mono:400');
+
+/** StyleTalk Output Begin */
+
+
+body {
+	font-size: 16pt;
+	font-family: "Inika", serif;
+	text-shadow: 0 1.0px 0 rgb(250,251,248);
+	color: rgb(37,47,18);
+	background-color: rgb(228,238,210);
+}
+
+h1 {
+	font-size: 60pt;
+	text-shadow: 3.0px 3.0px 0 black;
+	color: rgb(79,102,40);
+}
+
+h2 {
+	font-size: 30pt;
+	text-align: center;
+	color: rgb(37,47,18);
+}
+
+a,
+a:hover {
+	color: rgb(83,116,26);
+}
+
+hr {
+	width: 50%;
+}
+
+pre {
+	font-family: "Fira Mono", monospace;
+	font-size: 12pt;
+	text-shadow: 0 1.0px 0 rgb(250,251,248);
+	padding: 2px 4px;
+	border-radius: 4px;
+	color: rgb(37,47,18);
+	background-color: rgb(228,238,210);
+}
+
+code {
+	font-family: "Fira Mono", monospace;
+	color: rgb(83,116,26);
+}
+
+.panel p {
+	font-size: 10pt;
+	margin: 1em;
+}
+
+p {
+	margin-top: 1em;
+	text-indent: 1em;
+}
+
+.container {
+	background-color: rgb(206,227,170);
+	padding: 0.5em;
+}
+
+.topcon {
+	background-color: rgb(228,238,210);
+}
+
+.panel-default {
+	background-color: rgb(250,251,248);
+}
+
+.panel-default .panel-heading {
+	background-color: rgb(228,238,210);
+}
+
+.panel-default pre {
+	margin: 10pt;
+}
+
+.btn-default {
+	border-color: rgb(79,102,40);
+	color: rgb(37,47,18);
+	background-color: rgb(228,238,210);
+}
+
+.btn-default:hover {
+	background-color: rgb(183,209,137);
+}
+
+ul.list-inline li a {
+	font-family: "Fira Mono", monospace;
+}
+
+li:active a {
+}
+
+.list-inline {
+	font-family: "Fira Mono", monospace;
+	background-color: rgb(37,47,18);
+}
+
+dl {
+	margin: 20pt;
+}
+
+dt {
+	font-family: "Fira Mono", monospace;
+	background-color: rgb(183,209,137);
+	padding: 5px 10px 5px 10px;
+	border-top-left-radius: 10pt;
+	border-top-right-radius: 10pt;
+}
+
+dd {
+	font-family: "Fira Mono", monospace;
+	background-color: rgb(250,251,248);
+	padding: 5px 10px 5px 10px;
+	border-bottom-left-radius: 10pt;
+	border-bottom-right-radius: 10pt;
+	margin-bottom: 25px;
+}
+
+.row {
+	padding: 50px;
+	margin: 0;
+}
+
+.tight {
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+.cont-0 {
+	background-color: rgb(206,227,170);
+}
+
+.cont-1 {
+	background-color: rgb(173,224,192);
+}
+
+.cont-2 {
+	background-color: rgb(173,205,224);
+}
+
+.cont-3 {
+	background-color: rgb(192,173,224);
+}
+
+.cont-4 {
+	background-color: rgb(224,173,205);
+}
+
+.cont-5 {
+	background-color: rgb(224,192,173);
+}
+
+.footer {
+	padding: 50px;
+	background-color: rgb(238,220,210);
+}
+
+
+/* StyleTalk Output End **/

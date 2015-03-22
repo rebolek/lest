@@ -8,6 +8,22 @@ function test() {
  	setContent("reply", reply);
 }
 
+function debug(data) {
+	console.debug("DEBUG:" + data);
+}
+
+function getAttr(id, attr) {
+	console.debug('Get in:' + id + '/' + attr);
+	var elem = document.getElementById(id);
+	return (elem[attr]);
+}
+
+function setAttr(id, attr, data) {
+	var elem = document.getElementById(id);
+	elem[attr] = data;
+}
+
+
 function action(act,data,target) {
 	/* TODO: Add support for data */
 	var reply = sendAction(act);
@@ -16,8 +32,8 @@ function action(act,data,target) {
 
 function sendAction(act) {
  	var reg = new XMLHttpRequest();
- 	act = "index.r3?action=" + act
- 	reg.open("GET", act, false);
+ 	act = 'index.r3?action=' + act;
+ 	reg.open('GET', act, false);
 	reg.send();
 	res = reg.response; 
 	return res;
@@ -26,16 +42,6 @@ function sendAction(act) {
 function setContent(id, data) {
 	var elem = document.getElementById(id);
 	elem.innerHTML = data;
-}
-
-function getAttribute(id, attr) {
-	var elem = document.getElementById(id);
-	return elem[attr];
-}
-
-function setAttribute(id, attr, data) {
-	var elem = document.getElementById(id);
-	elem[attr] = data;
 }
 
 // watcher

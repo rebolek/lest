@@ -1,0 +1,148 @@
+c-main: 		#CEE3AA ; container
+c-button: 		darken c-main 10%
+c-border: 		darken c-main 50%
+c-text: 		darken c-main 65%
+c-hilite: 		saturate c-border 20%
+c-back: 		lighten c-main 10%
+c-back-light: 	lighten c-back 10%
+
+cb0:			c-main
+cb1:			hue cb0 60
+cb2:			hue cb0 120
+cb3:			hue cb0 180
+cb4:			hue cb0 240
+cb5:			hue cb0 300
+
+c-footer:		lighten cb5 10%
+
+mono: 			[font "Fira Mono" monospace]
+umono: 			[mono underline]
+down-shadow: 	[shadow 0x1 0]
+
+
+google fonts
+	"Inika" #400
+	"Fira Mono" #400
+
+<body>
+	c-text c-back
+	font pt 16 "Inika" serif down-shadow c-back-light
+
+<h1>
+	c-border
+	font pt 60 shadow 3x3 0 black
+
+<h2>
+	c-text
+	font pt 30
+
+;h3
+;	umono
+;	margin bottom em 1
+
+;h4 	
+;	umono
+;	padding left em 2 top em 1
+
+footer
+	center
+
+<a> and <a> with :hover
+	c-hilite
+
+<hr>
+	50%
+
+<pre>
+	c-text c-back
+	mono pt 12 down-shadow c-back-light
+	padding 2 4
+	no-wrap
+	border radius 4
+
+<code>
+	mono
+	c-hilite
+
+<p> in .panel
+	font pt 10
+	margin em 1
+
+<p>
+	margin top em 1
+	text indent em 1
+
+.container
+	canvas c-main
+	padding em .5
+
+.topcon
+	canvas c-back
+
+.panel-default
+	canvas c-back-light
+
+.panel-heading in .panel-default
+	canvas c-back
+
+<pre> in .panel-default
+	margin pt 10
+
+.btn-default
+    c-text c-back
+    border c-border
+
+.btn-default with :hover
+    canvas c-button
+
+<a> in <li> in <ul> with .list-inline
+	mono
+
+<a> in <li> with :active in ul with .list-inline
+	mono
+	canvas c-text
+
+<dl>
+	margin pt 20
+
+<dt>
+	mono
+	canvas c-button
+	padding 5 10 5 10
+	border radius top pt 10
+
+<dd>
+	mono
+	canvas c-back-light
+	padding 5 10 5 10
+	border radius bottom pt 10
+	margin bottom 25
+
+.row
+	padding 50
+	margin 0
+
+.tight
+	padding top 0 bottom 0
+
+.cont-0
+	canvas cb0
+
+.cont-1
+	canvas cb1
+
+.cont-2
+	canvas cb2	
+
+.cont-3
+	canvas cb3
+
+.cont-4
+	canvas cb4	
+
+.cont-5
+	canvas cb5	
+
+.footer
+	padding 50
+	canvas c-footer
