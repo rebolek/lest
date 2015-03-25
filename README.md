@@ -158,65 +158,65 @@ http://www.rebolsource.net or build a binary yourself from [source at GitHub](ht
 
 ### Example code
 
-	head
+head
 
-	enable bootstrap
-	enable smooth-scrolling
-	enable google-font
-	stylesheet css-path/lest.css
-	google-font "Exo 2"
-	title "Hello world!"
+enable bootstrap
+enable smooth-scrolling
+enable google-font
+stylesheet css-path/lest.css
+google-font "Exo 2"
+title "Hello world!"
 
-	body
+body
 
-	navbar inverse [
-		link active #basics "BASICS"
-		link #code "DYNAMIC CODE"
-		link #bootstrap "BOOTSTRAP SUPPORT"
-		link #plugins "PLUGINS"
-	]
+navbar inverse 
+    link active #basics "BASICS"
+    link #code "DYNAMIC CODE"
+    link #bootstrap "BOOTSTRAP SUPPORT"
+    link #plugins "PLUGINS"
 
-	h1 #basics "Basic style support"
-	span "This is span."
-	div .my-style .my-other-style [
-	    div "Div in div"
-	]
 
-	h2 "Why Lest?"
-	ul
-	li "fast"
-	li "small"
-	li "easy"
+h1 #basics "Basic style support"
+span "This is span."
+div .my-style .my-other-style [
+    div "Div in div"
+]
 
-	h1 #code "Dynamic page creation"
+h2 "Why Lest?"
+ul
+li "fast"
+li "small"
+li "easy"
 
-	either [now/time < 12:00] "Good morning!" "Good afternoon"
+h1 #code "Dynamic page creation"
 
-	my-custom-style: value string! [b [i value]]
-	my-custom-style "Hello world!"
+either (now/time < 12:00) "Good morning!" "Good afternoon"
 
-	h1 #bootstrap "Bootstrap support"
+my-custom-style: value string! [b [i value]]
+my-custom-style "Hello world!"
 
-	container [
-		row #bootstrap [
-			col offset 3 3 [ "Grid support" ]
-			col 3 [ "Glyphicons:" glyphicon heart ]
-			col 3 [ "Carousel, dropdown, modal..." ]
-		]
-	]
+h1 #bootstrap "Bootstrap support"
 
-	h1 #plugins "Plugins"
+container [
+    row #bootstrap [
+        col offset 3 3 [ "Grid support" ]
+        col 3 [ "Glyphicons:" glyphicon heart ]
+        col 3 [ "Carousel, dropdown, modal..." ]
+    ]
+]
 
-	p {Lest supports different plugins:}
+h1 #plugins "Plugins"
 
-	ul
-	li "Google fonts"
-	li "Google maps"
-	li "Google analytics"
-	li "Font Awesome glyphs"
-	li "Captcha, etc..."
+p {Lest supports different plugins:}
 
-	footer [ "more later" ]
+ul
+li "Google fonts"
+li "Google maps"
+li "Google analytics"
+li "Font Awesome glyphs"
+li "Captcha, etc..."
+
+footer [ "more later" ]
 
 ### Variables and user templates
 
