@@ -153,7 +153,7 @@ Lest come with plugins that add support for Bootstrap, different Google services
 
 ### Requirements
 
-**Lest** is written in [Rebol](http://www.rebol.com) language. You can get latest Rebol binaries from
+**Lest** is written in [Rebol](http://www.rebol.com) language. You need Rebol 3 version to run Lest. It's not possible to run itunder Rebol 2. You can get latest Rebol binaries from
 http://www.rebolsource.net or build a binary yourself from [source at GitHub](https://github.com/rebol/rebol).
 
 ### Example code
