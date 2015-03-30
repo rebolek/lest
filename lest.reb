@@ -22,6 +22,7 @@ Check if not problematic.
 }
 	]
 	To-do: 		[
+		"AS and JOIN AS should use same implementation"
 		"HTML entities"
 		"Cleanup variables in lest"
 		"Change header rules to emit to main data"
@@ -329,10 +330,12 @@ lest: use [
 ] [
 
 add-js: func [
+	"Add code do javascript code buffer"
 	target
 	data
+	/only "Do not end command with semicolon"
 ] [
-	head append target rejoin [data #";"]
+	head append target rejoin [data either only "" #";"]
 ]
 
 set-user-word: func [
@@ -345,7 +348,9 @@ set-user-word: func [
 ] [
 	name: to lit-word! name
 	debug-print ["SET-USER-WORD"]
+	debug-print ["uw:" mold user-words]
 	debug-print ["SET:" name mold value "(rebol:" type? value ")"]
+	debug-print ["word-type" mold word-type get-integer value]
 	word-type: case [
 		word-type						(to lit-word! word-type)
 		get-integer value 				(value: form value 'integer)
@@ -354,6 +359,7 @@ set-user-word: func [
 		word? value						('word)
 		block? value						('block)
 		issue? value						('id)
+		map? value 						('map)
 	]
 	debug-print ["SET:" name mold value "(lest:" word-type ")"]
 	obj: object reduce/no-set [
@@ -485,7 +491,7 @@ text-settings: rule [type] [
 	(text-style: type)
 ]
 
-eval: [any [commands | user-values | process-code | plugins]]
+eval: [any [commands | user-values | process-code | plugins |  comparators]]
 eval-strict: [any [user-values | process-code | commands ]]		; ignore plugins
 
 process-code: rule [ p value ] [
@@ -692,20 +698,28 @@ events: [
 
 ; ---------
 
+js-raw: rule [value] [
+	set value string!
+	(
+		debug-print ["!!action fc: RAW"]
+		add-js locals/code value
+	)	
+]
+
 js-debug: rule [value] [
 	'debug
 	set value any-type!
 	(debug-print ["!!action fc: DEBUG"]) 
 	(
 		unless word? value [value: rejoin [{'} form value {'}]]
-		append locals/code rejoin ["console.debug(" value ");"]
+		add-js locals/code rejoin ["console.debug(" value ")"]
 	)
 ]
 
 js-assign-value: rule [name] [
 	set name set-word!
 	(debug-print ["!!action fc: ASSIGN"]) 
-	(append locals/code rejoin ["var " to word! name " = "])
+	(add-js/only locals/code rejoin ["var " to word! name " = "])
 ]
 
 js-set: rule [name target data] [
@@ -713,31 +727,35 @@ js-set: rule [name target data] [
 	'set 
 	(debug-print ["!!action fc: SET"]) 
 	eval set name issue! eval set target word! eval set data any-string! (
-		append tag reduce [
-			to set-word! locals/action
-			rejoin [{document.getElementById('} next form name {').} target { = '} data {';}]
-		]
+		add-js rejoin [{document.getElementById('} next form name {').} target { = '} data {';}]
 	)
 ]
 
 js-action: rule [name data target] [
 	'action
-	(debug-print ["!!action fc: SET"]) 
+	(debug-print ["!!action fc: ACTION"]) 
 	set name word!
 	opt [set data block!]
 	eval set target issue!
 	(
-		append tag reduce [
-			to set-word! locals/action
-			rejoin [{action('} name {', '}  data {', '} form to word! target {')}]
-		]
+		add-js locals/code rejoin [{action('} name {', '}  data {', '} form to word! target {')}]
 	)	
+]
+
+js-send: rule [type] [
+	(type: 'post)
+	'send
+	opt set type ['get | 'post]
+	set data any-type!
+	(
+		debug-print ["!!action fc: SEND" type]
+	)
 ]
 
 get-dom: rule [path] [
 	set path get-path!
-	(debug-print ["!!action fc: GET DOM"]) 
 	(
+		debug-print ["!!action fc: GET DOM"]
 		add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
 	)
 ]
@@ -745,10 +763,10 @@ get-dom: rule [path] [
 set-dom: rule [path value] [
 	set path set-path!
 	set value any-type!
-	(debug-print ["!!action fc: SET DOM"]) 
 	(
+		debug-print ["!!action fc: SET DOM"]
 		unless word? value [value: rejoin [{'} form value {'}]]
-		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {)}]
+		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {);}]
 	)
 ]
 
@@ -760,7 +778,8 @@ call-dom: rule [] [
 js-code: rule [] [
 	(debug-print "^/JS: Match JS code^/---------------")
 	some [
-		js-debug
+		js-raw
+	|	js-debug
 	|	js-set
 	|	js-action
 	|	js-assign-value
@@ -776,7 +795,7 @@ actions: rule [action data] [
 	set action events
 	(
 		local code make string! 1000
-		local action replace/all to string! action #"-" ""
+		local action action ; replace/all to string! action #"-" ""
 		debug-print ["!!action:" action]
 	)
 	[
@@ -908,6 +927,7 @@ commands: [
 	|	switch-rule
 	|	for-rule
 	|	repeat-rule
+	|	as-map-rule
 	|	as-rule
 	|	join-rule
 	|	default-rule
@@ -986,9 +1006,10 @@ switch-rule: rule [value cases defval pos] [
 
 for-rule: rule [pos out var src content] [
 	'for
+	(debug-print "FOR command")
 	set var [word! | block!]
 	[
-			'in set src [word! | block! | file! | url!]
+			'in eval set src [word! | block! | file! | url!]
 		|	set src integer! 'times
 	]
 	pos: set content block! (
@@ -1014,7 +1035,10 @@ for-rule: rule [pos out var src content] [
 		]
 		change-code/only pos out
 	)
-	:pos main-rule
+	:pos
+	if (not locals/lazy?)
+	main-rule
+	(local lazy? true)
 ]
 
 repeat-rule: rule [offset element count value values data pos current][
@@ -1096,6 +1120,18 @@ default-rule: rule [value word default] [
 	)
 ]
 
+as-map-rule: rule [pos value] [
+	'as 'map
+	; TODO: move datatypes to separate rule for reusability
+	eval pos: set value any-type!
+	(
+		debug-print ["++AS MAP -" mold value ":" mold pos]
+		value: to map! value
+		change-code pos value
+	)
+	:pos
+]
+
 as-rule: rule [pos value type] [
 	'as
 	; TODO: move datatypes to separate rule for reusability
@@ -1109,6 +1145,7 @@ as-rule: rule [pos value type] [
 				string 		[form val]
 				date 		[attempt [to date! val]]
 				integer 	[attempt [to integer! val]]
+				file 		[to file! val]
 			]
 		]
 		debug-print ["++AS" type "=" mold value]
@@ -1129,7 +1166,7 @@ join-rule: rule [values type delimiter result] [
 	opt ['with set delimiter [char! | string!]]
 	pos:
 	(
-		debug-print "++JOIN"
+		debug-print ["++JOIN AS" type]
 		pos: back pos
 		result: make string! 100
 		forall values [
@@ -1148,6 +1185,7 @@ join-rule: rule [values type delimiter result] [
 			result: switch type [
 				class 	[to word! head insert result #"."]
 				id 		[to issue! result]
+				file 	[to file! result]
 			]
 		]
 ;		pos/1: result
@@ -2024,6 +2062,8 @@ load-plugin: func [
 	; TODO: parse both rules and user-words in one step
 	if equal? 'lest-plugin header/type [
 		plugin: bind plugin object compose [user-words: (user-words)]
+		plugin: bind plugin 'debug-print 	; TODO solve all binding inone pass
+		plugin: bind plugin 'user-words
 		plugin: object bind plugin rules
 		if in plugin 'main 		[add-rule rules/plugins bind plugin/main 'emit]
 		if in plugin 'startup 	[return plugin/startup]
@@ -2123,6 +2163,7 @@ func [
 		append locals reduce [to set-word! :word value]
 	]
 	local validator? none
+	local lazy? false
 ; ---
 
 	page: reduce/no-set [

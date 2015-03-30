@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 16-Mar-2015/10:31:11+1:00
-    Build: 603
+    Date: 30-Mar-2015/9:18:41+2:00
+    Build: 664
 ]
 debug-print: none
 comment "plugin cache"
@@ -612,13 +612,10 @@ jQuery(document).ready(function () {
             content-rule
             end-tag
         ]
-        link-list-group: [
-            'link-list
-            init-div
-            (append tag/class 'list-group)
-            emit-tag
+        link-list-content: [
             any [
                 'link
+                (print "==LINK-LIST LINK")
                 (tag-name: 'a)
                 init-tag
                 (append tag/class 'list-group-item)
@@ -632,6 +629,19 @@ jQuery(document).ready(function () {
                 opt list-badge
                 end-tag
             ]
+        ]
+        link-list-group: [
+            'link-list
+            (print "==LINK-LIST")
+            init-div
+            (append tag/class 'list-group)
+            emit-tag
+            pos: (print [">>" mold pos])
+            (print "BE LAZY" local lazy? true)
+            eval
+            pos: (print [">>" mold pos])
+            [into link-list-content | link-list-content]
+            (print "DONT BE LAZY" local lazy? false)
             end-tag
         ]
         old-link-list-group: [
@@ -740,6 +750,19 @@ jQuery(document).ready(function () {
                     'value value
                     'web web
                 ]
+            )
+        ]
+    ] paypal [
+        main: rule [id] [
+            'paypal
+            set id issue!
+            (
+                emit reword {<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="$ID">
+<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form>} ['ID next form id]
             )
         ]
     ] redis [
@@ -1126,7 +1149,7 @@ import module [
     end-para?: true
     md-buffer: make string! 1000
     debug?: false
-    debug-print: [value] [print "DBprint" if probe debug? [print value]]
+    debug-print: [value] [print "DBprint" if debug? [print value]]
     para?: false
     set [open-para close-para] either para? [[<p> </p>]] [["" ""]]
     value: copy ""
@@ -1464,7 +1487,7 @@ import module [
         start-para?: true
         end-para?: true
         para?: false
-        debug?: probe debug
+        debug?: debug
         clear head md-buffer
         debug-print "** Markdown started"
         parse data [some rules]
@@ -2045,10 +2068,12 @@ lest: use [
     load-plugin
 ] [
     add-js: func [
+        "Add code do javascript code buffer"
         target
         data
+        /only "Do not end command with semicolon"
     ] [
-        head append target rejoin [data #";"]
+        head append target rejoin [data either only "" #";"]
     ]
     set-user-word: func [
         name
@@ -2060,7 +2085,9 @@ lest: use [
     ] [
         name: to lit-word! name
         debug-print ["SET-USER-WORD"]
+        debug-print ["uw:" mold user-words]
         debug-print ["SET:" name mold value "(rebol:" type? value ")"]
+        debug-print ["word-type" mold word-type get-integer value]
         word-type: case [
             word-type (to lit-word! word-type)
             get-integer value (value: form value 'integer)
@@ -2069,6 +2096,7 @@ lest: use [
             word? value ('word)
             block? value ('block)
             issue? value ('id)
+            map? value ('map)
         ]
         debug-print ["SET:" name mold value "(lest:" word-type ")"]
         obj: object reduce/no-set [
@@ -2165,7 +2193,7 @@ lest: use [
             'text
             (text-style: type)
         ]
-        eval: [any [commands | user-values | process-code | plugins]]
+        eval: [any [commands | user-values | process-code | plugins | comparators]]
         eval-strict: [any [user-values | process-code | commands]]
         process-code: rule [p value] [
             p: set value paren!
@@ -2331,64 +2359,75 @@ lest: use [
         events: [
             window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
         ]
+        js-raw: rule [value] [
+            set value string!
+            (
+                debug-print ["!!action fc: RAW"]
+                add-js locals/code value
+            )
+        ]
         js-debug: rule [value] [
             'debug
             set value any-type!
             (debug-print ["!!action fc: DEBUG"])
             (
                 unless word? value [value: rejoin ["'" form value "'"]]
-                append locals/code rejoin ["console.debug(" value ");"]
+                add-js locals/code rejoin ["console.debug(" value ")"]
             )
         ]
         js-assign-value: rule [name] [
             set name set-word!
             (debug-print ["!!action fc: ASSIGN"])
-            (append locals/code rejoin ["var " to word! name " = "])
+            (add-js/only locals/code rejoin ["var " to word! name " = "])
         ]
         js-set: rule [name target data] [
             'set
             (debug-print ["!!action fc: SET"])
             eval set name issue! eval set target word! eval set data any-string! (
-                append tag reduce [
-                    to set-word! locals/action
-                    rejoin ["document.getElementById('" next form name "')." target " = '" data "';"]
-                ]
+                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "';"]
             )
         ]
         js-action: rule [name data target] [
             'action
-            (debug-print ["!!action fc: SET"])
+            (debug-print ["!!action fc: ACTION"])
             set name word!
             opt [set data block!]
             eval set target issue!
             (
-                append tag reduce [
-                    to set-word! locals/action
-                    rejoin ["action('" name "', '" data "', '" form to word! target "')"]
-                ]
+                add-js locals/code rejoin ["action('" name "', '" data "', '" form to word! target "')"]
+            )
+        ]
+        js-send: rule [type] [
+            (type: 'post)
+            'send
+            opt set type ['get | 'post]
+            set data any-type!
+            (
+                debug-print ["!!action fc: SEND" type]
             )
         ]
         get-dom: rule [path] [
             set path get-path!
-            (debug-print ["!!action fc: GET DOM"])
             (
+                debug-print ["!!action fc: GET DOM"]
                 add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
             )
         ]
         set-dom: rule [path value] [
             set path set-path!
             set value any-type!
-            (debug-print ["!!action fc: SET DOM"])
             (
+                debug-print ["!!action fc: SET DOM"]
                 unless word? value [value: rejoin ["'" form value "'"]]
-                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ")"]
+                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ");"]
             )
         ]
         call-dom: rule [] []
         js-code: rule [] [
             (debug-print "^/JS: Match JS code^/---------------")
             some [
-                js-debug
+                js-raw
+                | js-debug
                 | js-set
                 | js-action
                 | js-assign-value
@@ -2403,7 +2442,7 @@ lest: use [
             set action events
             (
                 local code make string! 1000
-                local action replace/all to string! action #"-" ""
+                local action action
                 debug-print ["!!action:" action]
             )
             [
@@ -2513,6 +2552,7 @@ lest: use [
                 | switch-rule
                 | for-rule
                 | repeat-rule
+                | as-map-rule
                 | as-rule
                 | join-rule
                 | default-rule
@@ -2579,9 +2619,10 @@ lest: use [
         ]
         for-rule: rule [pos out var src content] [
             'for
+            (debug-print "FOR command")
             set var [word! | block!]
             [
-                'in set src [word! | block! | file! | url!]
+                'in eval set src [word! | block! | file! | url!]
                 | set src integer! 'times
             ]
             pos: set content block! (
@@ -2607,7 +2648,10 @@ lest: use [
                 ]
                 change-code/only pos out
             )
-            :pos main-rule
+            :pos
+            if (not locals/lazy?)
+            main-rule
+            (local lazy? true)
         ]
         repeat-rule: rule [offset element count value values data pos current] [
             'repeat
@@ -2683,6 +2727,16 @@ lest: use [
                 unless value [set-user-word :word default]
             )
         ]
+        as-map-rule: rule [pos value] [
+            'as 'map
+            eval pos: set value any-type!
+            (
+                debug-print ["++AS MAP -" mold value ":" mold pos]
+                value: to map! value
+                change-code pos value
+            )
+            :pos
+        ]
         as-rule: rule [pos value type] [
             'as
             eval set type ['string | 'date | 'integer]
@@ -2695,6 +2749,7 @@ lest: use [
                         string [form val]
                         date [attempt [to date! val]]
                         integer [attempt [to integer! val]]
+                        file [to file! val]
                     ]
                 ]
                 debug-print ["++AS" type "=" mold value]
@@ -2710,7 +2765,7 @@ lest: use [
             opt ['with set delimiter [char! | string!]]
             pos:
             (
-                debug-print "++JOIN"
+                debug-print ["++JOIN AS" type]
                 pos: back pos
                 result: make string! 100
                 forall values [
@@ -2729,6 +2784,7 @@ lest: use [
                     result: switch type [
                         class [to word! head insert result #"."]
                         id [to issue! result]
+                        file [to file! result]
                     ]
                 ]
                 change-code pos result
@@ -3492,6 +3548,8 @@ lest: use [
         ]
         if equal? 'lest-plugin header/type [
             plugin: bind plugin object compose [user-words: (user-words)]
+            plugin: bind plugin 'debug-print
+            plugin: bind plugin 'user-words
             plugin: object bind plugin rules
             if in plugin 'main [add-rule rules/plugins bind plugin/main 'emit]
             if in plugin 'startup [return plugin/startup]
@@ -3568,6 +3626,7 @@ lest: use [
             append locals reduce [to set-word! :word value]
         ]
         local validator? none
+        local lazy? false
         page: reduce/no-set [
             title: "Page generated with Lest"
             meta: copy ""
