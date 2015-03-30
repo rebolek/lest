@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 30-Mar-2015/21:21:23+2:00
-    Build: 714
+    Date: 30-Mar-2015/21:54:46+2:00
+    Build: 731
 ]
 debug-print: none
 comment "plugin cache"
@@ -2741,15 +2741,20 @@ lest: use [
             ]
         ]
         pipe-loop-rule: rule [pos content data out] [
-            set content [word! | block!]
+            set data [word! | block!]
             '<<
+            (content: append copy [] data)
+            (debug-print ["pipe-loop-rule matched:" mold content])
+            eval
             pos:
             set data block!
             (
+                debug-print ["pipe-loop-rule data:" mold data]
                 out: make block! 100
                 foreach value data [
-                    repend out [content value]
+                    append out append copy content value
                 ]
+                debug-print ["pipe-loop-rule out:" mold out]
                 change-code pos out
             )
             :pos
