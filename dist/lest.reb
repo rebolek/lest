@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 30-Mar-2015/9:18:41+2:00
-    Build: 664
+    Date: 30-Mar-2015/11:20:08+2:00
+    Build: 672
 ]
 debug-print: none
 comment "plugin cache"
@@ -2419,10 +2419,29 @@ lest: use [
             (
                 debug-print ["!!action fc: SET DOM"]
                 unless word? value [value: rejoin ["'" form value "'"]]
-                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ");"]
+                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ")"]
             )
         ]
         call-dom: rule [] []
+        js-object: rule [key value object] [
+            'object
+            (object: make string! 200)
+            (append object #"{")
+            into [
+                some [
+                    set key set-word!
+                    [
+                        set value word!
+                        | set value any-type! (value: mold value)
+                    ]
+                    (append object rejoin [#"^"" to word! key {": } value #","])
+                ]
+            ]
+            (
+                change back tail object #"}"
+                add-js locals/code object
+            )
+        ]
         js-code: rule [] [
             (debug-print "^/JS: Match JS code^/---------------")
             some [
@@ -2431,6 +2450,7 @@ lest: use [
                 | js-set
                 | js-action
                 | js-assign-value
+                | js-object
                 | get-dom
                 | set-dom
             ]

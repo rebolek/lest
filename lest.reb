@@ -766,7 +766,7 @@ set-dom: rule [path value] [
 	(
 		debug-print ["!!action fc: SET DOM"]
 		unless word? value [value: rejoin [{'} form value {'}]]
-		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {);}]
+		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {)}]
 	)
 ]
 
@@ -774,6 +774,25 @@ call-dom: rule [] [
 
 ]
 
+js-object: rule [key value object] [
+	'object
+	(object: make string! 200)
+	(append object #"{")
+	into [
+		some [
+			set key set-word!
+			[
+				set value word! 
+			|	set value any-type! (value: mold value)
+			]
+			(append object rejoin [#"^"" to word! key {": } value #","])
+		]
+	]
+	(
+		change back tail object #"}"
+		add-js locals/code object
+	)
+]
 
 js-code: rule [] [
 	(debug-print "^/JS: Match JS code^/---------------")
@@ -783,6 +802,7 @@ js-code: rule [] [
 	|	js-set
 	|	js-action
 	|	js-assign-value
+	|	js-object
 	|	get-dom
 	|	set-dom
 	]
