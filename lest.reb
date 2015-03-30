@@ -727,18 +727,20 @@ js-set: rule [name target data] [
 	'set 
 	(debug-print ["!!action fc: SET"]) 
 	eval set name issue! eval set target word! eval set data any-string! (
-		add-js rejoin [{document.getElementById('} next form name {').} target { = '} data {';}]
+		add-js rejoin [{document.getElementById('} next form name {').} target { = '} data {'}]
 	)
 ]
 
 js-action: rule [name data target] [
 	'action
+	(data: "")
 	(debug-print ["!!action fc: ACTION"]) 
 	set name word!
-	opt [set data block!]
-	eval set target issue!
+	set data [word! | block! | none!]
 	(
-		add-js locals/code rejoin [{action('} name {', '}  data {', '} form to word! target {')}]
+		; TODO: process block!
+		if any ['none = data] [data: {''}]
+		add-js locals/code rejoin [{sendAction('} name {', } data {)}]
 	)	
 ]
 
@@ -783,6 +785,7 @@ js-object: rule [key value object] [
 			set key set-word!
 			[
 				set value word! 
+;			|	set value get-path! ()	
 			|	set value any-type! (value: mold value)
 			]
 			(append object rejoin [#"^"" to word! key {": } value #","])
@@ -1155,7 +1158,7 @@ as-map-rule: rule [pos value] [
 as-rule: rule [pos value type] [
 	'as
 	; TODO: move datatypes to separate rule for reusability
-	eval set type ['string | 'date | 'integer]
+	eval set type ['string | 'date | 'integer | 'class | 'file]
 	eval pos: set value any-type!
 	(
 		debug-print ["++AS" type "-" mold value ":" mold pos]
@@ -1166,10 +1169,15 @@ as-rule: rule [pos value type] [
 				date 		[attempt [to date! val]]
 				integer 	[attempt [to integer! val]]
 				file 		[to file! val]
+				class 		[to word! join #"." form val]
 			]
 		]
 		debug-print ["++AS" type "=" mold value]
-		change-code pos value
+		either 1 = length? value [
+			change-code pos value/1
+		] [
+			change-code pos value
+		]
 	)
 	:pos
 ]

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 30-Mar-2015/11:20:08+2:00
-    Build: 672
+    Date: 30-Mar-2015/17:39:48+2:00
+    Build: 695
 ]
 debug-print: none
 comment "plugin cache"
@@ -2384,17 +2384,18 @@ lest: use [
             'set
             (debug-print ["!!action fc: SET"])
             eval set name issue! eval set target word! eval set data any-string! (
-                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "';"]
+                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "'"]
             )
         ]
         js-action: rule [name data target] [
             'action
+            (data: "")
             (debug-print ["!!action fc: ACTION"])
             set name word!
-            opt [set data block!]
-            eval set target issue!
+            set data [word! | block! | none!]
             (
-                add-js locals/code rejoin ["action('" name "', '" data "', '" form to word! target "')"]
+                if any ['none = data] [data: "''"]
+                add-js locals/code rejoin ["sendAction('" name "', " data ")"]
             )
         ]
         js-send: rule [type] [
@@ -2759,7 +2760,7 @@ lest: use [
         ]
         as-rule: rule [pos value type] [
             'as
-            eval set type ['string | 'date | 'integer]
+            eval set type ['string | 'date | 'integer | 'class | 'file]
             eval pos: set value any-type!
             (
                 debug-print ["++AS" type "-" mold value ":" mold pos]
@@ -2770,10 +2771,15 @@ lest: use [
                         date [attempt [to date! val]]
                         integer [attempt [to integer! val]]
                         file [to file! val]
+                        class [to word! join #"." form val]
                     ]
                 ]
                 debug-print ["++AS" type "=" mold value]
-                change-code pos value
+                either 1 = length? value [
+                    change-code pos value/1
+                ] [
+                    change-code pos value
+                ]
             )
             :pos
         ]
