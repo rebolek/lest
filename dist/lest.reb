@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 30-Mar-2015/17:39:48+2:00
-    Build: 695
+    Date: 30-Mar-2015/21:21:23+2:00
+    Build: 714
 ]
 debug-print: none
 comment "plugin cache"
@@ -2573,6 +2573,7 @@ lest: use [
                 | switch-rule
                 | for-rule
                 | repeat-rule
+                | pipe-loop-rule
                 | as-map-rule
                 | as-rule
                 | join-rule
@@ -2674,7 +2675,7 @@ lest: use [
             main-rule
             (local lazy? true)
         ]
-        repeat-rule: rule [offset element count value values data pos current] [
+        repeat-rule: rule [offset element count value values data pos current out] [
             'repeat
             (
                 offset: none
@@ -2738,6 +2739,20 @@ lest: use [
                     :pos
                 ]
             ]
+        ]
+        pipe-loop-rule: rule [pos content data out] [
+            set content [word! | block!]
+            '<<
+            pos:
+            set data block!
+            (
+                out: make block! 100
+                foreach value data [
+                    repend out [content value]
+                ]
+                change-code pos out
+            )
+            :pos
         ]
         default-rule: rule [value word default] [
             'default

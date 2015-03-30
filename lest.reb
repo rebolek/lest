@@ -950,6 +950,7 @@ commands: [
 	|	switch-rule
 	|	for-rule
 	|	repeat-rule
+	|	pipe-loop-rule
 	|	as-map-rule
 	|	as-rule
 	|	join-rule
@@ -1064,7 +1065,7 @@ for-rule: rule [pos out var src content] [
 	(local lazy? true)
 ]
 
-repeat-rule: rule [offset element count value values data pos current][
+repeat-rule: rule [offset element count value values data pos current out] [
 	'repeat
 	( 
 		offset: none 
@@ -1131,6 +1132,21 @@ repeat-rule: rule [offset element count value values data pos current][
 			:pos
 		]
 	]
+]
+
+pipe-loop-rule: rule [pos content data out] [
+	set content [word! | block!]
+	'<<
+	pos:
+	set data block!
+	(
+		out: make block! 100
+		foreach value data [
+			repend out [content value]
+		]
+		change-code pos out
+	)
+	:pos
 ]
 
 default-rule: rule [value word default] [
