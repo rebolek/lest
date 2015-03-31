@@ -102,6 +102,8 @@
 		]
 	]
 ]
+[ equal? {<a href="html://www.lest.cz">lest</a>} tf [set target html://www.lest.cz set text "lest" link target text] ]
+[ equal? {<a href="html://www.lest.cz">2</a>} tf [set target html://www.lest.cz set text 1 + 1 link target text] ]
 
 ; IMG tag
 
@@ -323,6 +325,7 @@
 [ {<span>Brno</span>} = tf [ set name [span "Brno"] name] ]
 
 ; loops
+; -- repeat
 [ 	
 	equal?
 		"<div>1</div><div>2</div><div>3</div>"
@@ -338,6 +341,15 @@
 		 {<div>1</div><span>2</span><div>2</div><span>4</span><div>3</div><span>6</span>}
 		tf [repeat [div :x span :y] replace :x :y 3 times with (reduce [form index form 2 * index])]
 ]
+; -- for
+; .....
+; -- <<
+[equal? tf [span << ["a" "b"]]  "<span>a</span><span>b</span>" ]
+[equal? tf [set data ["a" "b"] span << data]  "<span>a</span><span>b</span>" ]
+[equal? tf [set inner ["a" "b"] div << ["x" [span << inner]]] {<div>x</div><div><span>a</span><span>b</span></div>} ]
+[equal? tf [set x ["a" "b"] tag: value string! [span .tag value] tag << x]  {<span class="tag">a</span><span class="tag">b</span>} ]
+
+
 
 ; inline code
 
