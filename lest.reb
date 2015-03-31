@@ -1527,10 +1527,10 @@ image: rule [value] [
 link: rule [value] [
 	['a | 'link] ( tag-name: 'a )
 	init-tag
-	any [user-values | process-code]
+	eval
 	set value [ file! | url! | issue! ]
 	(append tag compose [ href: (value) ])
-	any [user-values | process-code]
+	eval
 	opt style
 	emit-tag
 	match-content
