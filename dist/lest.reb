@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/17:46:42+2:00
-    Build: 757
+    Date: 31-Mar-2015/17:50:26+2:00
+    Build: 759
 ]
 debug-print: none
 comment "plugin cache"
@@ -3467,7 +3467,7 @@ lest: use [
         textarea: [
             set tag-name 'textarea
             (
-                size: 50x4
+                size: none
                 label: ""
             )
             init-tag
@@ -3487,9 +3487,13 @@ lest: use [
             (
                 unless empty? label [emit-label label name]
                 append tag compose [
-                    cols: (to integer! size/x)
-                    rows: (to integer! size/y)
                     name: (name)
+                ]
+                if size [
+                    append tag compose [
+                        cols: (to integer! size/x)
+                        rows: (to integer! size/y)
+                    ]
                 ]
                 emit entag/with value tag-name tag
             )
