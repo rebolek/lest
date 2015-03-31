@@ -523,8 +523,10 @@ set-at-rule: rule [word index value block] [
 ]
 
 set-rule: rule [labels values] [
-	'set
-	set labels [word! | block!]
+	[
+		'set set labels [word! | block!]
+	|	set labels set-word! (labels: to word! labels)
+	]
 	eval set values any-type!
 	(
 		unless block? labels [
@@ -635,6 +637,64 @@ user-rule: rule [name label type value urule args pos this-rule] [
 		]
 	)
 ]
+
+template-rule: rule [name label type value urule args pos this-rule] [
+	set name set-word!
+	'template
+	(
+		args: copy []
+		idx: none
+		if block? pos: attach user-rule-names name [
+			; rule already exists, remove it
+			idx: (index? pos) * 2 + 1
+		]
+
+		this-rule: reduce [
+			to set-word! 'pos
+			to lit-word! name
+			to paren! compose [debug-print (rejoin ["UU:user-rule: " name " <start> matched."])]
+		]
+	)
+	opt into [
+		set label word!
+		(
+			add-rule args rule [px] reduce [
+				to set-word! 'px to lit-word! label
+				to paren! reduce/no-set [ to set-path! 'px/1 label ]
+			]
+
+			repend this-rule ['eval to set-word! 'pos 'set label 'any-type! ]
+		)
+	]
+	set value block!
+	(
+		append this-rule reduce [
+			to paren! compose/only [
+				; TODO: move rule outside
+				urule: ( compose [
+					any-string!
+				|	into [ some urule ]
+				; FIXME: for rules without args it returns [into [...] | | skip ] so skip cannot be reached
+				|	(args)
+				|	skip
+				] )
+				debug-print ["parse in user-rule"]
+				parse temp: copy/deep (value) [ some urule ]
+;				change/only pos temp
+				change-code/only pos temp
+			]
+			to get-word! 'pos 'into main-rule
+		]
+		either idx [
+			; existing rule, modify
+			change/only at user-rules idx this-rule
+		] [
+			; new rule, add
+			add-rule user-rules this-rule
+		]
+	)
+]
+
 
 style-rule: rule [data] [
 	'style
@@ -2058,8 +2118,9 @@ elements: rule [] [
 	|	import
 	|	process-code main-rule
 	|	user-rules
+	|	template-rule
 	|	user-rule
-	|	set-at-rule	; TODO: move to commands
+	|	set-at-rule	; TODO: move to commands	
 	|	set-rule 		; TODO: move to commands
 	|	heading
 	|	label-rule

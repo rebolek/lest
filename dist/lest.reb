@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/9:56:55+2:00
-    Build: 742
+    Date: 31-Mar-2015/17:46:42+2:00
+    Build: 757
 ]
 debug-print: none
 comment "plugin cache"
@@ -2221,8 +2221,10 @@ lest: use [
             )
         ]
         set-rule: rule [labels values] [
-            'set
-            set labels [word! | block!]
+            [
+                'set set labels [word! | block!]
+                | set labels set-word! (labels: to word! labels)
+            ]
             eval set values any-type!
             (
                 unless block? labels [
@@ -2293,6 +2295,54 @@ lest: use [
                         to paren! reduce/no-set [to set-path! 'px/1 label]
                     ]
                     repend this-rule ['eval to set-word! 'pos 'set label type]
+                )
+            ]
+            set value block!
+            (
+                append this-rule reduce [
+                    to paren! compose/only [
+                        urule: (compose [
+                                any-string!
+                                | into [some urule]
+                                | (args)
+                                | skip
+                            ])
+                        debug-print ["parse in user-rule"]
+                        parse temp: copy/deep (value) [some urule]
+                        change-code/only pos temp
+                    ]
+                    to get-word! 'pos 'into main-rule
+                ]
+                either idx [
+                    change/only at user-rules idx this-rule
+                ] [
+                    add-rule user-rules this-rule
+                ]
+            )
+        ]
+        template-rule: rule [name label type value urule args pos this-rule] [
+            set name set-word!
+            'template
+            (
+                args: copy []
+                idx: none
+                if block? pos: attach user-rule-names name [
+                    idx: (index? pos) * 2 + 1
+                ]
+                this-rule: reduce [
+                    to set-word! 'pos
+                    to lit-word! name
+                    to paren! compose [debug-print (rejoin ["UU:user-rule: " name " <start> matched."])]
+                ]
+            )
+            opt into [
+                set label word!
+                (
+                    add-rule args rule [px] reduce [
+                        to set-word! 'px to lit-word! label
+                        to paren! reduce/no-set [to set-path! 'px/1 label]
+                    ]
+                    repend this-rule ['eval to set-word! 'pos 'set label 'any-type!]
                 )
             ]
             set value block!
@@ -3553,6 +3603,7 @@ lest: use [
                 | import
                 | process-code main-rule
                 | user-rules
+                | template-rule
                 | user-rule
                 | set-at-rule
                 | set-rule
