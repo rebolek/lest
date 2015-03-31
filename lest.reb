@@ -1385,6 +1385,7 @@ body-atts: rule [value] [
 ]
 
 run: rule [file] [
+	if (not safe?)
 	'run
 	eval
 	set file [file! | url!]

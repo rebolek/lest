@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/23:05:06+2:00
-    Build: 761
+    Date: 31-Mar-2015/23:16:55+2:00
+    Build: 762
 ]
 debug-print: none
 comment "plugin cache"
@@ -2958,6 +2958,7 @@ lest: use [
             )
         ]
         run: rule [file] [
+            if (not safe?)
             'run
             eval
             set file [file! | url!]
