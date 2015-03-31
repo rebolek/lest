@@ -508,17 +508,6 @@ process-code: rule [ p value ] [
 	:p
 	]
 
-do-code: rule [ p value ] [
-	; DO PAREN! AND EMIT LAST VALUE
-	p: set value paren!
-	( 
-		p/1: either safe? [""] [
-			append clear [] do bind to block! value user-words 
-		]
-	)
-	:p main-rule
-	]
-
 set-at-rule: rule [word index value block] [
 	'set
 	set word word!
@@ -2067,7 +2056,7 @@ elements: rule [] [
 	|	list-content
 	|	form-content
 	|	import
-	|	do-code
+	|	process-code main-rule
 	|	user-rules
 	|	user-rule
 	|	set-at-rule	; TODO: move to commands

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/7:09:06+2:00
-    Build: 740
+    Date: 31-Mar-2015/9:56:55+2:00
+    Build: 742
 ]
 debug-print: none
 comment "plugin cache"
@@ -2207,15 +2207,6 @@ lest: use [
             )
             :p
         ]
-        do-code: rule [p value] [
-            p: set value paren!
-            (
-                p/1: either safe? [""] [
-                    append clear [] do bind to block! value user-words
-                ]
-            )
-            :p main-rule
-        ]
         set-at-rule: rule [word index value block] [
             'set
             set word word!
@@ -3560,7 +3551,7 @@ lest: use [
                 | list-content
                 | form-content
                 | import
-                | do-code
+                | process-code main-rule
                 | user-rules
                 | user-rule
                 | set-at-rule
