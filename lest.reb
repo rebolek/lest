@@ -662,7 +662,6 @@ template-rule: rule [name label type value urule args pos this-rule] [
 				to set-word! 'px to lit-word! label
 				to paren! reduce/no-set [ to set-path! 'px/1 label ]
 			]
-
 			repend this-rule ['eval to set-word! 'pos 'set label 'any-type! ]
 		)
 	]
@@ -685,6 +684,7 @@ template-rule: rule [name label type value urule args pos this-rule] [
 			]
 			to get-word! 'pos 'into main-rule
 		]
+		set-user-word/type name value template
 		either idx [
 			; existing rule, modify
 			change/only at user-rules idx this-rule

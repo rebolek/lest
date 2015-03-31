@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/17:50:26+2:00
-    Build: 759
+    Date: 31-Mar-2015/23:05:06+2:00
+    Build: 761
 ]
 debug-print: none
 comment "plugin cache"
@@ -2361,6 +2361,7 @@ lest: use [
                     ]
                     to get-word! 'pos 'into main-rule
                 ]
+                set-user-word/type name value template
                 either idx [
                     change/only at user-rules idx this-rule
                 ] [
