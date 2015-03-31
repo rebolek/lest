@@ -302,6 +302,7 @@ lest: use [
 	includes	
 	rules
 	header?
+	safe?
 	pos
 	locals
 	local
@@ -498,7 +499,11 @@ process-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
 	( 
-		p/1: do bind to block! value user-words 
+		p/1: either safe? [
+			""
+		] [
+			do bind to block! value user-words
+		] 
 	)
 	:p
 	]
@@ -507,7 +512,9 @@ do-code: rule [ p value ] [
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
 	( 
-		p/1: append clear [] do bind to block! value user-words 
+		p/1: either safe? [""] [
+			append clear [] do bind to block! value user-words 
+		]
 	)
 	:p main-rule
 	]
@@ -965,7 +972,7 @@ commands: [
 if-rule: rule [cond true-val pos res] [
 	'if
 	opt comparators
-	set cond [logic! | word! | paren!] 
+	set cond [logic! | word!] ; | paren!] 
 	pos:
 	set true-val any-type! 
 	(
@@ -985,7 +992,7 @@ if-rule: rule [cond true-val pos res] [
 either-rule: rule [cond true-val false-val pos ret] [
 	'either
 	opt comparators
-	set cond [logic! | word! | paren!]
+	set cond [logic! | word!] ; | paren!]
 	set true-val any-type! 
 	pos:
 	set false-val any-type! 
@@ -1076,7 +1083,7 @@ repeat-rule: rule [offset element count value values data pos current out] [
 	'replace
 	some [set value get-word! (append values value)]
 	opt [
-		set count [integer! | paren!]
+		set count [integer!] ; | paren!]
 		'times
 	]
 	opt [
@@ -2140,6 +2147,9 @@ func [
 	/into
 		"Generate input into given series"
 		out
+	/safe
+		"Ignore some constructs"
+
 ] [
 	start-time: now/time/precise
 
@@ -2149,6 +2159,7 @@ func [
 	]
 
 ; init outside vars
+	safe?: safe
 	debug-print: func [value] [
 		if debug [print rejoin reduce [value]]
 	]

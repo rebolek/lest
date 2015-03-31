@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 30-Mar-2015/21:54:46+2:00
-    Build: 731
+    Date: 31-Mar-2015/7:09:06+2:00
+    Build: 740
 ]
 debug-print: none
 comment "plugin cache"
@@ -2048,6 +2048,7 @@ lest: use [
     includes
     rules
     header?
+    safe?
     pos
     locals
     local
@@ -2198,14 +2199,20 @@ lest: use [
         process-code: rule [p value] [
             p: set value paren!
             (
-                p/1: do bind to block! value user-words
+                p/1: either safe? [
+                    ""
+                ] [
+                    do bind to block! value user-words
+                ]
             )
             :p
         ]
         do-code: rule [p value] [
             p: set value paren!
             (
-                p/1: append clear [] do bind to block! value user-words
+                p/1: either safe? [""] [
+                    append clear [] do bind to block! value user-words
+                ]
             )
             :p main-rule
         ]
@@ -2587,7 +2594,7 @@ lest: use [
         if-rule: rule [cond true-val pos res] [
             'if
             opt comparators
-            set cond [logic! | word! | paren!]
+            set cond [logic! | word!]
             pos:
             set true-val any-type!
             (
@@ -2605,7 +2612,7 @@ lest: use [
         either-rule: rule [cond true-val false-val pos ret] [
             'either
             opt comparators
-            set cond [logic! | word! | paren!]
+            set cond [logic! | word!]
             set true-val any-type!
             pos:
             set false-val any-type!
@@ -2686,7 +2693,7 @@ lest: use [
             'replace
             some [set value get-word! (append values value)]
             opt [
-                set count [integer! | paren!]
+                set count [integer!]
                 'times
             ]
             opt [
@@ -3059,10 +3066,10 @@ lest: use [
         link: rule [value] [
             ['a | 'link] (tag-name: 'a)
             init-tag
-            any [user-values | process-code]
+            eval
             set value [file! | url! | issue!]
             (append tag compose [href: (value)])
-            any [user-values | process-code]
+            eval
             opt style
             emit-tag
             match-content
@@ -3613,12 +3620,15 @@ lest: use [
         /into
         "Generate input into given series"
         out
+        /safe
+        "Ignore some constructs"
     ] [
         start-time: now/time/precise
         if any [file? data url? data] [
             out-file: replace copy data suffix? data %.html
             data: load data
         ]
+        safe?: safe
         debug-print: func [value] [
             if debug [print rejoin reduce [value]]
         ]
