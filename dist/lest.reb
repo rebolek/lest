@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 31-Mar-2015/23:16:55+2:00
-    Build: 762
+    Date: 1-Apr-2015/12:02:22+2:00
+    Build: 768
 ]
 debug-print: none
 comment "plugin cache"
@@ -2636,7 +2636,8 @@ lest: use [
         if-rule: rule [cond true-val pos res] [
             'if
             opt comparators
-            set cond [logic! | word!]
+            set cond [logic! | word! | if (not safe?) paren!]
+            [if (safe?) not paren!]
             pos:
             set true-val any-type!
             (
@@ -2654,7 +2655,7 @@ lest: use [
         either-rule: rule [cond true-val false-val pos ret] [
             'either
             opt comparators
-            set cond [logic! | word!]
+            set cond [logic! | word! | if (not safe?) paren!]
             set true-val any-type!
             pos:
             set false-val any-type!
@@ -2735,7 +2736,7 @@ lest: use [
             'replace
             some [set value get-word! (append values value)]
             opt [
-                set count [integer!]
+                set count [integer! | if (not safe?) paren!]
                 'times
             ]
             opt [
@@ -2766,6 +2767,7 @@ lest: use [
                 ]
                 | [
                     'with
+                    if (not safe?)
                     pos: set data paren!
                     (
                         if paren? count [count: do bind to block! count user-words]

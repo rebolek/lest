@@ -1021,7 +1021,8 @@ commands: [
 if-rule: rule [cond true-val pos res] [
 	'if
 	opt comparators
-	set cond [logic! | word!] ; | paren!] 
+	set cond [logic! | word! | if (not safe?) paren!] 
+	[if (safe?) not paren!]
 	pos:
 	set true-val any-type! 
 	(
@@ -1041,7 +1042,7 @@ if-rule: rule [cond true-val pos res] [
 either-rule: rule [cond true-val false-val pos ret] [
 	'either
 	opt comparators
-	set cond [logic! | word!] ; | paren!]
+	set cond [logic! | word! | if (not safe?) paren!]
 	set true-val any-type! 
 	pos:
 	set false-val any-type! 
@@ -1132,7 +1133,7 @@ repeat-rule: rule [offset element count value values data pos current out] [
 	'replace
 	some [set value get-word! (append values value)]
 	opt [
-		set count [integer!] ; | paren!]
+		set count [integer! | if (not safe?) paren!]
 		'times
 	]
 	opt [
@@ -1165,6 +1166,7 @@ repeat-rule: rule [offset element count value values data pos current out] [
 		]
 	|	[
 			'with
+			if (not safe?)
 			pos: set data paren!
 			(
 				if paren? count [count: do bind to block! count user-words]
