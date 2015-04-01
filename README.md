@@ -32,7 +32,7 @@ Ok, the last example is getting bit out of hand, so let's rewrite this using
 custom tags:
 
 	>>
-		custom: value string! [div with [custom-tag: "custom value"] value]
+		custom: tempate [value] [div with [custom-tag: "custom value"] value]
 		custom "Hello World"
 
 	== 
@@ -42,7 +42,7 @@ Now we have this nonsense carried in custom tag, cleverly called CUSTOM,
 that accepts one parameter of STRING! datatype, called VALUE. So we can do this:
 
 	>>
-		custom: value string! [div with [custom-tag: "custom value"] value]
+		custom: template [value] [div with [custom-tag: "custom value"] value]
 		custom "Hello World" 
 		custom "Hello completely unrelated World"
 
@@ -53,7 +53,7 @@ that accepts one parameter of STRING! datatype, called VALUE. So we can do this:
 Let's be fancy:
 
 	>>
-		custom: what string! who string! [div [span .action what ", " span .name who "!"]]
+		custom: template [what who] [div [span .action what ", " span .name who "!"]]
 		custom "Hello" "world"
 		custom "Cheer up" "Brian"
 	
@@ -64,7 +64,7 @@ Let's be fancy:
 These user templates can be used to construct complex layouts:
 
 	>>
-		user-post: name string! avatar url! title string! content string! [
+		user-post: template [name avatar title content] [
 			div .user-post [
 				div .user-info [
 					div .user-name name
