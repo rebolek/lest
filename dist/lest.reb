@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/11:24:08+2:00
-    Build: 822
+    Date: 7-Apr-2015/12:12:24+2:00
+    Build: 828
 ]
 debug-print: none
 comment "plugin cache"
@@ -3060,8 +3060,10 @@ lest: use [
         eval: [any [commands | user-values | process-code | plugins | comparators]]
         eval-strict: [any [user-values | process-code | commands]]
         process-code: rule [p value] [
+            (debug-print "--process code")
             p: set value paren!
             (
+                debug-print ["==CODE:" mold value]
                 p/1: either safe? [
                     ""
                 ] [
@@ -3495,17 +3497,17 @@ lest: use [
                 | math-commands
                 | load-rule
                 | import-rule
-                | enable-plugin
                 | pass
                 | stop
                 | run
                 | comment
                 | debug-rule
-                | plugins
                 | template-rule
                 | user-rule
                 | set-at-rule
                 | set-rule
+                | enable-plugin
+                | plugins
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -3939,6 +3941,7 @@ lest: use [
         ]
         content-rule: [
             commands
+            | process-code main-rule
             | [
                 basic-string-match
                 basic-string-processing
@@ -4481,7 +4484,6 @@ lest: use [
                 | basic-elems
                 | list-content
                 | form-content
-                | process-code main-rule
                 | user-rules
                 | heading
                 | label-rule

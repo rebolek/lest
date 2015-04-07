@@ -496,9 +496,11 @@ eval: [any [commands | user-values | process-code | plugins |  comparators]]
 eval-strict: [any [user-values | process-code | commands ]]		; ignore plugins
 
 process-code: rule [ p value ] [
+	(debug-print "--process code")
 	; DO PAREN! AND EMIT LAST VALUE
 	p: set value paren!
 	( 
+		debug-print ["==CODE:" mold value]
 		p/1: either safe? [
 			""
 		] [
@@ -1016,17 +1018,17 @@ commands: [
 	|	math-commands
 	|	load-rule
 	|	import-rule
-	|	enable-plugin
 	|	pass
 	|	stop
 	|	run
 	|	comment
 	|	debug-rule
-	|	plugins
 	|	template-rule
 	|	user-rule
-	|	set-at-rule	; TODO: move to commands	
-	|	set-rule 		; TODO: move to commands	
+	|	set-at-rule	
+	|	set-rule
+	|	enable-plugin
+	|	plugins
 	]
 ]
 
@@ -1538,6 +1540,7 @@ main-rule: rule [] [
 
 content-rule: [
 	commands
+|	process-code main-rule	
 |	[
 		basic-string-match		; must match string! first, or INTO will eat it!
 		basic-string-processing
@@ -2132,7 +2135,6 @@ elements: rule [] [
 	|	basic-elems
 	|	list-content
 	|	form-content
-	|	process-code main-rule
 	|	user-rules
 	|	heading
 	|	label-rule
