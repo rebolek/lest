@@ -1016,6 +1016,8 @@ commands: [
 	|	math-commands
 	|	load-rule
 	|	enable-plugin
+	|	pass
+	|	stop
 	]
 ]
 
@@ -1677,8 +1679,6 @@ basic-elems: [
 |	comment
 |	debug-rule
 |	body-atts
-|	pass
-|	stop
 |	br
 |	hr
 |	table

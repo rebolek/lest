@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/10:38:13+2:00
-    Build: 810
+    Date: 7-Apr-2015/10:41:04+2:00
+    Build: 811
 ]
 debug-print: none
 comment "plugin cache"
@@ -3495,6 +3495,8 @@ lest: use [
                 | math-commands
                 | load-rule
                 | enable-plugin
+                | pass
+                | stop
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -4059,8 +4061,6 @@ lest: use [
             | comment
             | debug-rule
             | body-atts
-            | pass
-            | stop
             | br
             | hr
             | table
