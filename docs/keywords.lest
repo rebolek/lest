@@ -1,0 +1,59 @@
+p {*Lest* has lot of keywords that can be divided into two groups: **tags** and **commands**. The border is fuzzy and each
+keyword usually have traits of both sides. But this disnction helps to understand *Lest* better. The main difference between 
+**tags** and **commands** is that **tags** emit output, while **commands** do not.}
+
+h1 "Tags"
+
+p {*Lest* has predenifed all *HTML 5* tags and new tags can be defined with *plugins* and also directly in *Lest* as *templates*.}
+
+h2 "CONDITIONS"
+
+h3 "IF"
+
+
+h3 "EITHER"
+
+
+h3 "SWITCH"
+
+
+h2 "LOOPS"
+
+
+h3 "FOR"
+
+
+h3 "REPEAT"
+
+
+h2 "OPERATIONS"
+
+
+h3 "AS"
+
+
+h3 "JOIN"
+
+
+h3 "DEFAULT"
+
+
+h3 "LENGTH"
+
+
+h3 "INSERT"
+
+
+h3 "APPEND"
+
+
+h2 "IO"
+
+
+h3 "LOAD"
+
+
+h3 "IMPORT"
+
+
+h2 "MATH"

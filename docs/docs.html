@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<title>lest docs</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/lest.css" rel="stylesheet">
+<link rel="icon" type="image/png" href="http://lest.iluminat.cz/favicon.png"><script src="js/jquery-2.1.3.min.js"></script><script src="js/bootstrap.min.js"></script><script src="js/validator.min.js"></script><link href='http://fonts.googleapis.com/css?family=Inika:400,300&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'><link href='http://fonts.googleapis.com/css?family=Share+Tech+Mono:400,300&amp;subset=latin,latin-ext' rel='stylesheet' type='text/css'><script src="js/lest.js"></script>
+</head>
+<body><div class="container topcon"><div class="row"><h1>lest</h1><h2>low entropy system for templating</h2></div></div><div class="container cont-0"><div class="row"><h2>Introduction</h2><p><strong>Lest</strong> simplifies the tedious work of writing web pages by removing 
+unnecessary clutter. So instead of <code>&lt;span&gt;Hello World&lt;/span&gt;</code> you write 
+<code>span "Hello World"</code>.</p><p>Why not just <code>span Hello World</code>? Indentation is nice thing but 
+shouldn't be enforced. Marking strings as strings instead of relying on 
+newlines is better solution in long term.</p><p>Every tag may have unique ID and one or more classes:</p><ul><li><strong>HTML</strong> tag describes this with <code>&lt;tag id="tag-id" class="tag-class another-tag-class"&gt;</code></li><li><strong>CSS</strong> simplifies this with <code>#tag-id .tag-class .another-tag-class</code></li><li><strong>Lest</strong> uses same convention: <code>div #my-div .one-class .other-class .blink .ie6 "Hello World"</code></li></ul><p>Tags can contain text or other tags:</p><ul><li><code>div "Some div"</code></li><li><code>div [span "Span in div"]</code></li><li><code>div #hello-world [span .hello "Hello" " " span .world "World"]</code></li></ul><p>Some tags know what to expect.</p><dl><dt>a http://lest.iluminat.cz "Lest"</dt><dd>&lt;a href="http://lest.iluminat.cz"&gt;Lest&lt;/a&gt;</dd><dt>img http://iluminat.cz/pic/pyramid-eye.jpg 100x100</dt><dd>&lt;img source="http://iluminat.cz/pic/pyramid-eye.jpg" width="100px" height="100px"&gt;</dd></dl></div></div><div class="container cont-1"><div class="row"><h2>Strings</h2><p>The most basic value is <strong>string</strong>. String is enclosed in 
+<strong>"double qoutes"</strong> or <strong>{curly braces}</strong>. Every string can be preceded by 
+<em>string type</em>. Currently, three string types are implemented:</p><div class="col-md-6"><ul><li><b>Plain</b><span> : plain text is left as is</span></li><li><b>HTML</b><span> : html text is escaped (&gt; to &amp;gt; etc.) - this is the default mode</span></li><li><b>Markdown</b><span> : text processed by Markdown</span></li></ul></div><div class="col-md-6"><dl><dt>plain</dt><dd>&lt;link&gt;</dd><dt>HTML</dt><dd>&amp;lt;link&amp;gt;</dd><dt>markdown</dt><dd>&lt;a href="link"&gt;link&lt;/a&gt;</dd></dl></div><p>Text mode can be also switched globally using <code>plain text</code>, 
+<code>html text</code> or <code>markdown text</code>.</p></div></div><div class="container cont-2"><div class="row"><h2>User values and templates</h2><p><strong>Lest</strong> supports two types of user-defined data - <em>values</em> and <em>templates</em>:</p></div><div class="row tight"><h3>Values</h3><div class="col-md-6"><p><em>Values</em> can be data of different type, such as strings, numbers or other supported datatypes.
+<em>Values</em> are defined using <strong>SET</strong> keyword, followed by value name and value.</p></div><div class="col-md-6"><dl><dt>string</dt><dd>set x "hello world"</dd><dt>number</dt><dd>set x 23</dd><dt>pair</dt><dd>set x 50x20</dd></dl></div></div><div class="row tight"><h3>Templates</h3><div class="col-md-6"><p><em>Templates</em> are reusable pieces of <strong>Lest</strong> code that may accept variables of different type.
+Templates are defined using so called <em>set-word</em> syntax - template name, immidiately followed
+by colon, i.e.: <code>template:</code>. Template name can be followed by list of variables and
+by the definition block. The format of the list of variables is variable name,
+followed by variable type (string!, integer!, pair!, ...)</p></div><div class="col-md-6"><dl><dt>no variables</dt><dd>tpl: [<br>&nbsp;&nbsp;span "Hello world"<br>]</dd><dt>one variable</dt><dd>tpl: value string! [<br>&nbsp;&nbsp;span value<br>]</dd><dt>more variables</dt><dd>tpl:<br>
+&nbsp;&nbsp;value string!<br>
+&nbsp;&nbsp;style word! [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;span style value<br>
+&nbsp;&nbsp;]</dd></dl></div></div></div><div class="container cont-3"><div class="row"><h2>Dynamic code</h2></div><div class="row tight"><h3>Conditions</h3><h4>IF</h4><div class="col-md-6"><p><strong>IF</strong> is basic condition, code is emitted only when the condition is TRUE.</p></div><div class="col-md-6"><dl><dt>IF &lt;condition&gt; &lt;true-branch&gt;</dt><dd>IF logged? [<br>
+&nbsp;&nbsp;span .welcome "Welcome back!"<br>
+]</dd></dl></div></div><div class="row tight"><h4>EITHER</h4><div class="col-md-6"><p><strong>EITHER</strong> is condition with two possibilities, one is 
+emitted when the condition is TRUE, second is emitted when the condition is FALSE</p></div><div class="col-md-6"><dl><dt>EITHER &lt;condition&gt; &lt;true-branch&gt; &lt;false-branch&gt;</dt><dd>EITHER valid-password? [<br>
+&nbsp;&nbsp;span .welcome "Login succesful." ] [<br>
+&nbsp;&nbsp;span .warning "Invalid user or password."<br>
+]</dd></dl></div></div><div class="row tight"><h4>SWITCH</h4><div class="col-md-6"><p><strong>SWITCH</strong> condition can emit different code, based on the tested value.</p></div><div class="col-md-6"><dl><dt>SWITCH &lt;value&gt; &lt;cases&gt; opt [DEFAULT &lt;default-case&gt;]</dt><dd>...</dd></dl></div></div><div class="row tight"><h3>Loops</h3><h4>FOR</h4><div class="col-md-6"><p>info about FOR</p></div><h4>REPEAT</h4><div class="col-md-6"><p><strong>REPEAT</strong> takes template that is emitted number of times.
+It can read values from some data-source such as block value, file, or database.
+It can also execute REBOL code to process more complicated cases.
+
+<strong>REPEAT</strong> takes block of <strong>Lest</strong> code with values to-be-replaced marked using
+the <em>get-word</em> syntax - value name is prefixed with colon, i.e.: <code>:my-value</code>.
+This block is followed by name or list of names of values to be replaced.
+Here is an example:</p><pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name
+(...rest of code...)</code></pre><p>This definition is followed by mode of operation and source of data.
+There are currently two modes of operation, <code>FROM</code> and <code>WITH</code>:</p><ul><li><strong>FROM</strong>- data source is specified<pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name FROM [
+  "John" "Paul" "George" "Ringo"
+]</code></pre></li><li><strong>WITH</strong>- code to produce valuws is specified<pre><code>REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name WITH [
+  either index &lt;= 4 [
+    send-redis db [GET ['name index]]
+  ] [
+    none
+  ]
+]</code></pre></li></ul></div><div class="col-md-6"><dl><dt>REPEAT &lt;lest-code&gt; REPLACE &lt;value&gt; FROM &lt;data-source&gt;</dt><dd>REPEAT [<br>
+&nbsp;&nbsp;div :value<br>
+] REPLACE :value FROM [<br>
+&nbsp;&nbsp;"one" "two" "three"<br>
+]</dd><dt>REPEAT &lt;lest-code&gt; REPLACE &lt;value&gt; &lt;count&gt; TIMES WITH &lt;data-source&gt;</dt><dd>REPEAT [<br>
+&nbsp;&nbsp;span :name<br>
+] REPLACE :name 5 TIMES WITH [<br>
+&nbsp;&nbsp;send-redis db [GET ['name index]]<br>
+]</dd></dl></div></div></div><div class="container cont-4"><div class="row"><h2>Bootstrap examples</h2><h3>Panel</h3><div class="col-md-5 col-md-offset-1"><pre><code>panel [
+h4 "Simple panel"
+p "asdf"
+]</code></pre></div><div class="col-md-5"><div class="panel panel-default"><div class="panel-body"><h4>Simple panel</h4><pre><code>panel [
+h4 "Simple panel"
+precode panel-source
+]</code></pre></div></div></div></div></div><div class="container cont-5"><div class="row"><h2>Plugins</h2><div class="row"><div class="col-md-1"><span class="glyphicon glyphicon-magnet"></span></div><div class="col-md-11">ahoj</div></div></div></div><footer><span>© Boleslav Březovský</span></footer></body></html>

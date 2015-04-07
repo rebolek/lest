@@ -1,0 +1,212 @@
+set css-path %css/
+set js-path %js/
+
+head
+
+title "lest"
+favicon http://lest.iluminat.cz/favicon.png
+enable paypal
+enable bootstrap
+stylesheet css-path/lest.style
+enable google-font
+google-font "Inika"
+google-font "Fira Mono"
+google-font "Stint Ultra Condensed"
+
+body
+
+navigation: [
+	navbar .navbar-lest
+	brand
+	"lest"
+	link %index.html#	 		"Introduction"
+	link %index.html#	 		"Commands"
+	link %index.html#	 		"Templates"
+	link %index.html#	 		"Plugins"
+	link %try.html		 		"TRY LEST!"
+]
+
+navigation
+
+markdown text
+
+; TODO: move to separate file
+
+head-row: [
+	row .toprow [
+		h1 "lest"
+		h2 "low entropy system for templating"
+	]
+]
+
+box: style word! icon word! content block! [
+	div style [
+		div .icon-container [
+			div .info-icon [
+				glyphicon icon
+			]
+		]
+		div .panel-box content
+	]	
+]
+
+news-item: date date! title string! text string! [
+	span .news-date date
+	span .news-title title
+	div .news-content [
+		markdown text
+	]
+]
+
+news: [
+	box .cont-1 list [
+		h3 "news"
+		markdown text
+		news-item 31-3-2015 "Try Lest online!" {The promised surprise is here! Now you don't need to download Lest to try it. Just go to [Try Lest site](try.html) and check it online! Also there are some bugfixes and syntax improvements.}
+		news-item 25-3-2015 "New docs" {New docs are here! Right now improved look only, but there is command reference in works and lot of examples. Also one surprise. Stay tuned!}
+	]
+]
+
+intro: [
+	box .cont-2 question-sign [
+		h3 "introduction"
+		p "**Lest** is unique system for making web sites that is simple to use thanks to its low entropy foundation."
+		p "**Lest** uses rich, efficient and natural [REN](https://github.com/humanistic/REN) syntax to describe both document structure ([template engine](https://en.wikipedia.org/wiki/Web_template_system)) and look and layout ([stylesheet language](https://en.wikipedia.org/wiki/Stylesheet_language)). Using same syntax results in *faster development and deployment*, *less space for error* and *overall increase of hapiness*."
+	]
+]
+
+install: [
+	box .cont-3 download-alt [
+		h3 "installation"
+		ol
+		li [
+			a https://github.com/rebolek/lest .btn .btn-default .btn-lg [
+				glyphicon floppy-disk "Fork me on GitHub"
+			]
+			p "Download source from above or do it from command line with"
+			precode "git clone https://github.com/rebolek/lest.git"
+		]
+		li [
+			p "If you haven't got [Rebol](http://www.rebol.com) interpreter already, download it from [here](http://www.rebolsouce.net) (half a megabyte, no installation) or compile it yourself from [sources](https://github.com/rebol/rebol)."
+		]
+		li [
+			ul
+			li {Start **Rebol** in **Lest** directory.}
+			li {In the **Rebol** console, type `do %lest.reb` to run **Lest**.}
+			li {Type `lest [div "Hello world"]` to test it.}
+			li {If you see `"<div>Hello world</div>"`, congratulations! Everything works and you're ready to take over the world.}
+		]		
+	]
+]
+
+documentation: [
+	box .cont-4 book [
+		h3 "documentation"
+		ul
+		li [a %docs.html "introduction"]
+		li "simple templates"
+		li "complex templates"
+		li "bootstrap support"
+		li "plugins"
+	]
+]
+
+donations: [
+	box .cont-5 euro [
+		div .center-container [
+			p "If like Lest and you want it to survive in the harsh jungle of templating engines, frameworks and server-side solutions, please consider your support."
+			div .center-div [
+				paypal #Y4F3YFMXTBHUY
+			]
+		]
+	]
+]
+
+example: [
+	box .cont-0 pencil [
+		plain text
+		h3 "example"
+		div .example [
+			ul #tab-code-1 .list-inline
+			li .lang .active [a #code-1-src with [data-toggle: tab] "lest"]
+			li .lang [a #code-1-out with [data-toggle: tab] "html"]
+			div .tab-content [
+				div .tab-pane .active #code-1-src [
+					precode 
+{contact-button: [div .contact-button [button "Contact"]]
+user-info: name string! [
+  div .info [
+    h3 ["Name: " name]
+    contact-button
+  ]
+]
+set users ["Bobík" "Myšpulín" "Fifinka" "Piňda"]
+for user in users [
+  user-info user
+]}
+				]
+				div .tab-pane #code-1-out [
+					html text
+					precode 
+{<div class="info">
+  <h3>Name: Bobík</h3>
+  <div class="contact-button">
+    <button>Contact</button>
+  </div>
+</div>
+<div class="info">
+  <h3>Name: Myšpulín</h3>
+  <div class="contact-button">
+    <button>Contact</button>
+  </div>
+</div>
+<div class="info">
+  <h3>Name: Fifinka</h3>
+    <div class="contact-button">
+    <button>Contact</button>
+  </div>
+</div>
+<div class="info">
+  <h3>Name: Piňda</h3>
+  <div class="contact-button">
+    <button>Contact</button>
+  </div>
+</div>}
+				]
+			]
+		]
+	]
+]
+
+precode: value string! [pre code value]
+
+; TODO: needs to creat IDs on the fly. How?
+code-example: src-code string! out-code string! [
+	ul #tab-code-1 .list-inline
+	li .active [a #code-1-src with [data-toggle: tab] "lest"]
+	li [a #code-1-out with [data-toggle: tab] "html"]
+	div .tab-content [
+		div .tab-pane .active #code-1-src [precode src-code]
+		div .tab-pane #code-1-out [precode out-code]
+	]
+]
+
+container fluid [
+	head-row
+	row .main-row [
+		col 6 .tight-col [
+			intro
+			install
+	;		documentation
+		]
+		col 6 .tight-col [
+			news
+			example
+			donations 
+		]
+	]
+]
+
+footer [
+	p "© 2014 - 2015 Boleslav Březovský"
+]

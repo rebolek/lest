@@ -1,0 +1,294 @@
+head
+
+title "lest docs"
+favicon http://lest.iluminat.cz/favicon.png
+enable bootstrap
+stylesheet css-path/lest.style
+enable google-font
+google-font "Inika"
+google-font "Fira Mono"
+
+body
+
+; TODO: move to separate file
+
+head-row: [
+	container .topcon [
+		row [
+			h1 "lest"
+			h2 "low entropy system for templating"
+		]
+	]
+]
+
+precode: value string! [pre [code value]]
+
+introduction: [
+	markdown text
+	h2 "Introduction"
+	p {**Lest** is low entropy system for templating that makes your templates 
+easy on eyes and very powerful.}
+	p {The basic data types of Lest are **string**, **tag** and **command**. 
+String is enclosed in "double qoutes" or {curly braces}. Every string can be 
+preceded by *string type*. Currently, three string types are implemented: 
+**plain**, **html** and **markdown**. Following code shows use for various 
+string types.}
+]
+
+head-row
+container .cont-0 [
+	row [
+		markdown text
+		h2 "Introduction"
+		p {**Lest** simplifies the tedious work of writing web pages by removing 
+unnecessary clutter. So instead of `<span>Hello World</span>` you write 
+`span "Hello World"`.}
+		p {Why not just `span Hello World`? Indentation is nice thing but 
+shouldn't be enforced. Marking strings as strings instead of relying on 
+newlines is better solution in long term.}
+		p {Every tag may have unique ID and one or more classes:}
+		ul 
+			li {**HTML** tag describes this with `<tag id="tag-id" class="tag-class another-tag-class">`}
+			li {**CSS** simplifies this with `#tag-id .tag-class .another-tag-class`}
+			li {**Lest** uses same convention: `div #my-div .one-class .other-class .blink .ie6 "Hello World"`}
+		p {Tags can contain text or other tags:}
+		ul
+			li {`div "Some div"`}
+			li {`div [span "Span in div"]`}
+			li {`div #hello-world [span .hello "Hello" " " span .world "World"]`}
+		p {Some tags know what to expect.}
+		dl
+			{a http://lest.iluminat.cz "Lest"} 
+				html {<a href="http://lest.iluminat.cz">Lest</a>}
+			{img http://iluminat.cz/pic/pyramid-eye.jpg 100x100} 
+				html {<img source="http://iluminat.cz/pic/pyramid-eye.jpg" width="100px" height="100px">}
+	]
+]
+
+container .cont-1 [
+	row [
+		h2 {Strings}
+		p {The most basic value is **string**. String is enclosed in 
+**"double qoutes"** or **{curly braces}**. Every string can be preceded by 
+*string type*. Currently, three string types are implemented:}
+		col 6 [
+			plain text
+			ul 
+			li [b "Plain" span { : plain text is left as is}]
+			li [b "HTML" span { : html text is escaped (&gt; to &amp;gt; etc.) - this is the default mode}]
+			li [b "Markdown" span { : text processed by Markdown}]
+		]
+		col 6 [
+			html text
+			dl
+				"plain" "<link>"
+				"HTML" "&lt;link&gt;"
+				"markdown" {<a href="link">link</a>}
+		]
+		p markdown {Text mode can be also switched globally using `plain text`, 
+`html text` or `markdown text`.}
+	]
+]
+
+container .cont-2 [
+	row [
+		h2 "User values and templates"
+		p markdown {**Lest** supports two types of user-defined data - *values* and *templates*:}
+	]
+	row .tight [
+		h3 {Values}
+		col 6 [
+			p markdown 
+{*Values* can be data of different type, such as strings, numbers or other supported datatypes.
+*Values* are defined using **SET** keyword, followed by value name and value.}
+		]
+		col 6 [
+			dl
+				"string" {set x "hello world"}
+				"number" {set x 23}
+				"pair"   {set x 50x20}
+		]
+	]
+	row .tight [
+		h3 {Templates}
+		col 6 [
+			p markdown 
+{*Templates* are reusable pieces of **Lest** code that may accept variables of different type.
+Templates are defined using so called *set-word* syntax - template name, immidiately followed
+by colon, i.e.: `template:`. Template name can be followed by list of variables and
+by the definition block. The format of the list of variables is variable name,
+followed by variable type (string!, integer!, pair!, ...)}
+		]
+		col 6 [
+			dl 
+				"no variables" 		plain {tpl: [<br>&nbsp;&nbsp;span "Hello world"<br>]}
+				"one variable" 		plain {tpl: value string! [<br>&nbsp;&nbsp;span value<br>]}
+				"more variables" 	plain {tpl:<br>
+&nbsp;&nbsp;value string!<br>
+&nbsp;&nbsp;style word! [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;span style value<br>
+&nbsp;&nbsp;]}
+		]
+	]
+]
+
+container .cont-3 [
+	row [
+		h2 "Dynamic code"
+	]
+	row .tight [
+		h3 "Conditions"
+		h4 "IF"
+		col 6 [
+			p markdown {**IF** is basic condition, code is emitted only when the condition is TRUE.}
+		]
+		col 6 [
+			dl 
+				html "IF <condition> <true-branch>" 
+				plain {IF logged? [<br>
+&nbsp;&nbsp;span .welcome "Welcome back!"<br>
+]}
+		]
+	]
+	row .tight [
+		h4 "EITHER"
+		col 6 [
+			p markdown {**EITHER** is condition with two possibilities, one is 
+emitted when the condition is TRUE, second is emitted when the condition is FALSE}
+		]
+		col 6 [
+			dl
+				html "EITHER <condition> <true-branch> <false-branch>"
+				plain {EITHER valid-password? [<br>
+&nbsp;&nbsp;span .welcome "Login succesful." ] [<br>
+&nbsp;&nbsp;span .warning "Invalid user or password."<br>
+]}
+		]
+	]
+	row .tight [
+		h4 "SWITCH"
+		col 6 [
+			p markdown {**SWITCH** condition can emit different code, based on the tested value.}
+		]
+		col 6 [
+			dl
+				html "SWITCH <value> <cases> opt [DEFAULT <default-case>]"
+				plain {...}
+		]
+	]
+	row .tight [
+		h3 "Loops"
+		h4 "FOR"
+		col 6 [
+			p markdown {info about FOR}
+		]
+		h4 "REPEAT"
+		col 6 [
+			p markdown {**REPEAT** takes template that is emitted number of times.
+It can read values from some data-source such as block value, file, or database.
+It can also execute REBOL code to process more complicated cases.
+
+**REPEAT** takes block of **Lest** code with values to-be-replaced marked using
+the *get-word* syntax - value name is prefixed with colon, i.e.: `:my-value`.
+This block is followed by name or list of names of values to be replaced.
+Here is an example:} 
+			precode 
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name
+(...rest of code...)}
+
+			p markdown {This definition is followed by mode of operation and source of data.
+There are currently two modes of operation, `FROM` and `WITH`:}
+			ul
+			li [
+				strong "FROM" "- data source is specified"
+				precode
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name FROM [
+  "John" "Paul" "George" "Ringo"
+]}
+			]
+			li [
+				strong "WITH" "- code to produce valuws is specified"
+				precode
+{REPEAT [
+  li .my-item [
+    strong "Name: " :name
+  ]
+] REPLACE :name WITH [
+  either index <= 4 [
+    send-redis db [GET ['name index]]
+  ] [
+    none
+  ]
+]}				
+		]
+
+	]
+	col 6 [
+		dl
+			html {REPEAT <lest-code> REPLACE <value> FROM <data-source>}
+			plain {REPEAT [<br>
+&nbsp;&nbsp;div :value<br>
+] REPLACE :value FROM [<br>
+&nbsp;&nbsp;"one" "two" "three"<br>
+]}
+				html {REPEAT <lest-code> REPLACE <value> <count> TIMES WITH <data-source>}
+				plain {REPEAT [<br>
+&nbsp;&nbsp;span :name<br>
+] REPLACE :name 5 TIMES WITH [<br>
+&nbsp;&nbsp;send-redis db [GET ['name index]]<br>
+]}
+		]
+	]
+]
+
+container .cont-4 [
+	row [
+		h2 "Bootstrap examples"
+		h3 "Panel"
+		
+		col 5 offset 1 [
+			precode 
+{panel [
+h4 "Simple panel"
+p "asdf"
+]}
+		]
+		col 5 [
+			panel [
+				h4 "Simple panel" 
+				precode 
+{panel [
+h4 "Simple panel"
+precode panel-source
+]}
+			]
+		]
+	]
+;		carousel caruso [
+;			item active ["hello"]
+;			item ["world"]
+;		]
+]
+
+container .cont-5 [
+	row [
+		h2 "Plugins"
+		row [
+			col 1 [glyphicon magnet]
+			col 11 ["ahoj"]
+		]
+	]
+]
+
+
+footer [
+	span "© Boleslav Březovský"
+]

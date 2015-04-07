@@ -1,0 +1,122 @@
+set css-path %css/
+set js-path %js/
+
+head
+
+title "try lest"
+favicon http://lest.iluminat.cz/favicon.png
+enable paypal
+enable bootstrap
+
+stylesheet css-path/lest.style
+script js-path/beautify-html.js
+script js-path/encoder.js
+
+enable google-font
+google-font "Inika"
+google-font "Fira Mono"
+google-font "Stint Ultra Condensed"
+
+body
+
+panel: heading string! body block! [
+	div .panel .panel-default [
+		div .panel-heading [h3 .panel-title heading]
+		div .panel-body body
+	]
+]
+
+navigation: [
+	navbar .navbar-lest
+	brand
+	"lest"
+	link %index.html#	 		"Introduction"
+	link %index.html#	 		"Commands"
+	link %index.html#	 		"Templates"
+	link %index.html#	 		"Plugins"
+]
+
+navigation
+
+markdown text
+
+; TODO: move to separate file
+
+head-row: [
+	row .toprow [
+		h1 "lest"
+		h2 "low entropy system for templating"
+	]
+]
+
+box: style word! icon word! content block! [
+	div style [
+		div .icon-container [
+			div .info-icon [
+				glyphicon icon
+			]
+		]
+		div .panel-box content
+	]	
+]
+
+
+try-input: [
+	box .cont-2 pencil [
+		h3 "Enter lest code here:"
+		textarea lest-code #lest-code 25x8 value {item: template [value] [
+  li div as class value span value
+]
+ul
+item << ["hello" "world"]
+i {1 + "1" = } b 1 + "1" br
+button onclick {alert('Thank you.')} "Click me!"}
+		br
+		button onclick [
+;			html-output/class: "fadeout fadedOut"
+			{$("#html-output").toggleClass("fadedOut")}
+			{$("#html-rendered").toggleClass("fadedOut")}
+			code: :lest-code/value
+			obj: object [code: code]
+			ret: action make-lest obj
+			{var src = style_html(ret)}
+			{src = Encoder.htmlEncode(src)}
+			html-rendered/innerHTML: ret
+			html-output/innerHTML: src
+			{$("#html-output").toggleClass("fadedOut")}
+			{$("#html-rendered").toggleClass("fadedOut")}
+	;		html-output/class: "fadein"
+		] "Convert to HTML"
+	]
+]
+
+try-output: [
+	box .cont-3 file [
+		pre code #html-output .fadeout ""
+	]
+]
+
+show-output: [
+	box .cont-4 eye-open [
+		div #html-rendered .fadeout ""
+	]
+]
+
+container fluid [
+	head-row
+	row .main-row [
+		col 4 .tight-col [
+			try-input
+		]
+		col 4 .tight-col [
+			show-output
+		]
+		col 4 .tight-col [
+			try-output 
+		]
+	]
+]
+
+footer [
+	p "© 2014 - 2015 Boleslav Březovský"
+]
