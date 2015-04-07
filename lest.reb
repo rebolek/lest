@@ -1023,6 +1023,10 @@ commands: [
 	|	comment
 	|	debug-rule
 	|	plugins
+	|	template-rule
+	|	user-rule
+	|	set-at-rule	; TODO: move to commands	
+	|	set-rule 		; TODO: move to commands	
 	]
 ]
 
@@ -2130,10 +2134,6 @@ elements: rule [] [
 	|	form-content
 	|	process-code main-rule
 	|	user-rules
-	|	template-rule
-	|	user-rule
-	|	set-at-rule	; TODO: move to commands	
-	|	set-rule 		; TODO: move to commands
 	|	heading
 	|	label-rule
 	|	form-rule

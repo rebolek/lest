@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/11:22:45+2:00
-    Build: 821
+    Date: 7-Apr-2015/11:24:08+2:00
+    Build: 822
 ]
 debug-print: none
 comment "plugin cache"
@@ -3501,6 +3501,11 @@ lest: use [
                 | run
                 | comment
                 | debug-rule
+                | plugins
+                | template-rule
+                | user-rule
+                | set-at-rule
+                | set-rule
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -4478,10 +4483,6 @@ lest: use [
                 | form-content
                 | process-code main-rule
                 | user-rules
-                | template-rule
-                | user-rule
-                | set-at-rule
-                | set-rule
                 | heading
                 | label-rule
                 | form-rule
