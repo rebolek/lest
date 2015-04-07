@@ -1,12 +1,12 @@
 /* StyleTalk Output */
 
-@import url ('http://fonts.googleapis.com/css?family=Inika:400|Fira+Mono:400');
+@import url ('http://fonts.googleapis.com/css?family=Inika:400|Fira+Mono:400|Stint+Ultra+Condensed:400');
 
 /** StyleTalk Output Begin */
 
 
 body {
-	font-size: 16pt;
+	font-size: 15pt;
 	font-family: "Inika", serif;
 	text-shadow: 0 1.0px 0 rgb(250,251,248);
 	color: rgb(37,47,18);
@@ -15,18 +15,22 @@ body {
 
 h1 {
 	font-size: 60pt;
-	text-shadow: 3.0px 3.0px 0 black;
-	color: rgb(79,102,40);
+	text-shadow: 3.0px 3.0px 0 rgb(79,102,40);
+	color: rgb(228,238,210);
 }
 
 h2 {
 	font-size: 30pt;
+	color: rgb(228,238,210);
+}
+
+footer {
 	text-align: center;
-	color: rgb(37,47,18);
 }
 
 a,
 a:hover {
+	text-decoration: none;
 	color: rgb(83,116,26);
 }
 
@@ -39,7 +43,12 @@ pre {
 	font-size: 12pt;
 	text-shadow: 0 1.0px 0 rgb(250,251,248);
 	padding: 2px 4px;
-	border-radius: 4px;
+	border-top-style: solid;
+	border-top-width: 2px;
+	border-bottom-width: 0;
+	border-left-width: 0;
+	border-right-width: 0;
+	border-radius: 0;
 	color: rgb(37,47,18);
 	background-color: rgb(228,238,210);
 }
@@ -61,7 +70,10 @@ p {
 
 .container {
 	background-color: rgb(206,227,170);
-	padding: 0.5em;
+}
+
+.container-fluid {
+	padding: 0;
 }
 
 .topcon {
@@ -90,6 +102,18 @@ p {
 	background-color: rgb(183,209,137);
 }
 
+.example {
+	border-style: solid;
+	border-width: 2px;
+	border-radius: 0.6em;
+	color: rgb(37,47,18);
+	background-color: rgb(228,238,210);
+}
+
+.example ul {
+	padding-left: 20px;
+}
+
 ul.list-inline li a {
 	font-family: "Fira Mono", monospace;
 }
@@ -99,7 +123,21 @@ li:active a {
 
 .list-inline {
 	font-family: "Fira Mono", monospace;
-	background-color: rgb(37,47,18);
+	color: rgb(83,116,26);
+}
+
+.lang:hover {
+	border-bottom-style: solid;
+	border-bottom-width: 4px;
+	border-bottom-color: rgb(79,102,40);
+}
+
+.lang.active {
+	border-bottom-style: solid;
+	border-bottom-width: 4px;
+	border-bottom-color: rgb(79,102,40);
+	color: rgb(83,116,26);
+	background-color: rgb(206,227,170);
 }
 
 dl {
@@ -124,8 +162,19 @@ dd {
 }
 
 .row {
-	padding: 50px;
+	padding-top: 50px;
 	margin: 0;
+}
+
+.tight-col {
+	margin: 0;
+	padding: 0;
+}
+
+.panel-box {
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-bottom: 50px;
 }
 
 .tight {
@@ -160,6 +209,70 @@ dd {
 .footer {
 	padding: 50px;
 	background-color: rgb(238,220,210);
+}
+
+.icon-container {
+	text-align: center;
+	padding: 0.5em;
+	width: 100%;
+}
+
+.info-icon {
+	font-size: 2em;
+	border-radius: 1.1em;
+	height: 2.2em;
+	width: 2.2em;
+	padding-top: 0.5em;
+	margin: 0 auto;
+	margin-top: -50px;
+	color: rgb(79,102,40);
+	background-color: rgb(228,238,210);
+}
+
+.toprow {
+	padding-top: 40px;
+	padding-left: 20px;
+	padding-bottom: 50px;
+	background-repeat: no-repeat;
+	background-position: center top;
+	background-size: 100% auto;
+	background-image: url('../img/top-back.jpg');
+}
+
+.main-row {
+	padding-top: 0;
+}
+
+.center-container {
+	width: 100%;
+}
+
+.center-div {
+	width: 25%;
+	margin: 0 auto;
+}
+
+.navbar-lest {
+	box-shadow: 0 4.0px 3px rgb(37,47,18);
+	padding-left: 10px;
+}
+
+.news-date {
+	font-family: "Stint Ultra Condensed";
+	font-size: 18pt;
+}
+
+.news-title {
+	font-family: "Stint Ultra Condensed";
+	font-size: 24pt;
+	padding-left: 10px;
+}
+
+.news-content {
+	font-size: 13pt;
+	border-top-style: solid;
+	border-top-color: rgb(183,209,137);
+	border-top-width: 2px;
 }
 
 

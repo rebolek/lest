@@ -18,22 +18,24 @@ c-footer:		lighten cb5 10%
 mono: 			[font "Fira Mono" monospace]
 umono: 			[mono underline]
 down-shadow: 	[shadow 0x1 0]
+tight-font:		[font "Stint Ultra Condensed"]
 
 
 google fonts
 	"Inika" #400
 	"Fira Mono" #400
+	"Stint Ultra Condensed" #400
 
 <body>
 	c-text c-back
-	font pt 16 "Inika" serif down-shadow c-back-light
+	font pt 15 "Inika" serif down-shadow c-back-light
 
 <h1>
-	c-border
-	font pt 60 shadow 3x3 0 black
+	c-back
+	font pt 60 shadow 3x3 0 c-border
 
 <h2>
-	c-text
+	c-back
 	font pt 30
 
 ;h3
@@ -44,11 +46,12 @@ google fonts
 ;	umono
 ;	padding left em 2 top em 1
 
-footer
+<footer>
 	center
 
 <a> and <a> with :hover
 	c-hilite
+	no underline
 
 <hr>
 	50%
@@ -58,7 +61,12 @@ footer
 	mono pt 12 down-shadow c-back-light
 	padding 2 4
 	no-wrap
-	border radius 4
+	border top solid 2
+		bottom 0
+		left 0
+		right 0
+		radius 0
+
 
 <code>
 	mono
@@ -74,7 +82,9 @@ footer
 
 .container
 	canvas c-main
-	padding em .5
+
+.container-fluid
+	padding 0
 
 .topcon
 	canvas c-back
@@ -95,12 +105,26 @@ footer
 .btn-default with :hover
     canvas c-button
 
+.example
+	border solid 2 rounded
+	c-text c-back
+
+<ul> in .example
+	padding left 20
+
 <a> in <li> in <ul> with .list-inline
 	mono
 
 <a> in <li> with :active in ul with .list-inline
 	mono
-	canvas c-text
+	c-hilite
+
+.lang with :hover
+	border bottom solid 4 c-border
+
+.lang with .active
+	c-hilite c-main
+	border bottom solid 4 c-border
 
 <dl>
 	margin pt 20
@@ -119,8 +143,15 @@ footer
 	margin bottom 25
 
 .row
-	padding 50
+	padding top 50
 	margin 0
+
+.tight-col
+	margin 0
+	padding 0
+
+.panel-box
+	padding left 20 right 20 bottom 50
 
 .tight
 	padding top 0 bottom 0
@@ -146,3 +177,48 @@ footer
 .footer
 	padding 50
 	canvas c-footer
+
+.icon-container
+	center
+	padding em 0,5
+	width 100%
+
+.info-icon
+	c-border c-back
+	font em 2
+	border rounded  em 1,1
+	height em 2,2
+	width em 2,2
+	padding top em 0,5
+	margin 0 auto
+	margin top -50
+
+.toprow
+	padding top 40 left 20 bottom 50
+	background no-repeat center top 100% auto
+	background-image %../img/top-back.jpg
+
+.main-row
+	padding top 0
+
+.center-container
+	width 100%
+
+.center-div
+	width 25%
+	margin 0 auto
+
+.navbar-lest
+	shadow 0x4 3 c-text
+	padding left 10
+
+.news-date
+	tight-font pt 18
+
+.news-title
+	tight-font pt 24
+	padding left 10
+
+.news-content
+	font pt 13
+	border top solid c-button 2
