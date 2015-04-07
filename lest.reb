@@ -1018,6 +1018,7 @@ commands: [
 	|	enable-plugin
 	|	pass
 	|	stop
+	|	run
 	]
 ]
 
@@ -1391,8 +1392,9 @@ body-atts: rule [value] [
 ]
 
 run: rule [file] [
-	if (not safe?)
 	'run
+	if (not safe?)
+	(debug-print "== RUN")
 	eval
 	set file [file! | url!]
 	(do file)
@@ -2136,7 +2138,6 @@ elements: rule [] [
 	|	form-rule
 	|	script
 	|	meta-rule 	; FIXME: header only
-	|	run
 	|	stylesheet
 	|	plugins
 	]

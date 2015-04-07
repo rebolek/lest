@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/10:41:04+2:00
-    Build: 811
+    Date: 7-Apr-2015/11:02:19+2:00
+    Build: 818
 ]
 debug-print: none
 comment "plugin cache"
@@ -3497,6 +3497,7 @@ lest: use [
                 | enable-plugin
                 | pass
                 | stop
+                | run
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -3827,8 +3828,9 @@ lest: use [
             )
         ]
         run: rule [file] [
-            if (not safe?)
             'run
+            if (not safe?)
+            (debug-print "== RUN")
             eval
             set file [file! | url!]
             (do file)
@@ -4485,7 +4487,6 @@ lest: use [
                 | form-rule
                 | script
                 | meta-rule
-                | run
                 | stylesheet
                 | plugins
             ]
