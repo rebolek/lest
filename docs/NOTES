@@ -1,0 +1,66 @@
+plugins
+Each plugin as two parts: STARTUP and MAIN (plus CLEANUP later).
+Both are optional.
+STARTUP is code added to header.
+MAIN is main pligin rule. It can use subrules defined in plugin.
+
+Example:
+
+startup: [
+	stylesheet %my.css
+]
+
+main: [
+	my-rylue1
+|	my-rue2	
+]
+
+my-rule1: [
+	'kickass
+	(emit "kikas")
+]
+
+my-rule2: [
+	'kmotr
+	(emit "csdsa")
+]
+
+Direct emiting is strongly discouraged. There are predefined rules tha shoud be used instead.
+
+(set tag-name: 'some-tag)
+init-tag
+emit-tag
+end-tag
+
+This is basic mode of operation. This can be extended for recursive matching
+
+(set tag-name: 'some-tag)
+init-tag
+emit-tag
+match-content
+end-tag
+
+
+
+
+*** MATH
+
+Lest numbers can be both of number! or string! type. This means that you can write number in three ways:
+1, "1" and {1}, they are the same number.This approach makes it much easier to deal with CGI input and some
+plugins, such as Redis, that return numbers as string!.  Currently, only integer numbers can be used. Float numbers
+will be added later.
+
++++ math operators
+
+Currently, +, - and * infix operators are implemented. More will be added later. Math operators require number 
+or variable as argument on both sides. Commands as arguments are not supported.
+
+
+	1 + 1								== "2"
+	1 + "1"							== "2"
+	set x 1 1 + x						== "2"
+	set x join [1 0] x + 1			== "11"
+
+	but - 
+
+	1 + join [1 0]						== error!
