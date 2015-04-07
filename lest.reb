@@ -1049,13 +1049,13 @@ pipe-loop-rule: rule [pos content data out] [
 	:pos
 ]
 
-default-rule: rule [value word default] [
+default-rule: rule [value word defval] [
 	'default
 	set word word!
-	set default any-type!
+	set defval any-type!
 	(
 		value: get-user-word :word
-		unless value [set-user-word :word default]
+		unless value [set-user-word :word defval]
 	)
 ]
 
@@ -1851,7 +1851,7 @@ init-input: rule [value] [
 	init-tag
 ]
 emit-input: [
-	(append tag compose [name: (name) placeholder: (default) value: (value)])
+	(append tag compose [name: (name) placeholder: (defval) value: (value)])
 	emit-tag
 	close-tag
 ]
@@ -1864,7 +1864,7 @@ old-emit-input: [
 				]
 				emit <div class="col-sm-10">
 				set [tag-name tag] take/part tag-stack 2
-				append tag compose [ name: (name) placeholder: (default) value: (value) ]
+				append tag compose [ name: (name) placeholder: (defval) value: (value) ]
 				emit build-tag tag-name tag
 				emit </div>
 			]
@@ -1873,7 +1873,7 @@ old-emit-input: [
 				emit-label label name
 			]
 			set [tag-name tag] take/part tag-stack 2
-			append tag compose [ name: (name) placeholder: (default) value: (value) ]
+			append tag compose [ name: (name) placeholder: (defval) value: (value) ]
 			emit build-tag tag-name tag
 		]
 	)
@@ -1887,7 +1887,7 @@ input-parameters: rule [list data] [
 	any [
 		eval-strict any [
 			set label string! (debug-print ["INPUT:" name " label:" label])
-		|	'default eval set default string! (debug-print ["INPUT:" name " default:" default])
+		|	'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
 		|	'checked	(debug-print ["INPUT:" name " checked"])					(append tag [checked: true])
 		|	'required	 (debug-print ["INPUT:" name " required"])					(append tag [required: true])
@@ -1902,7 +1902,7 @@ input-parameters: rule [list data] [
 ]
 
 input: rule [type simple continue] [
-	(simple: default: value: label: def-error: none)
+	(simple: defval: value: label: def-error: none)
 	opt ['simple (simple: true)]
 	set type [
 		'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
@@ -1934,7 +1934,7 @@ input: rule [type simple continue] [
 			local datalist-id tag/list
 		]
 		debug-print "</input-parameters>"
-		append tag compose [name: (name) placeholder: (default) value: (value)]
+		append tag compose [name: (name) placeholder: (defval) value: (value)]
 		emit-label label name
 	)
 	emit-tag
@@ -2013,13 +2013,13 @@ textarea: [
 	set name word!
 	(
 		value: ""
-		default: ""
+		defval: ""
 	)
 	some [
 		set size pair!
 ;	|	set label string!
 	|	basic-string-match (label: value value: "")
-	|	'default get-user-value set default string!
+	|	'default get-user-value set defval string!
 	|	'value get-user-value set value string!
 	|	style
 	]
