@@ -1021,11 +1021,11 @@ commands: [
 if-rule: rule [cond true-val pos res] [
 	'if
 	opt comparators
-	set cond [logic! | word! | if (not safe?) paren!] 
-	[if (safe?) not paren!]
+	set cond [logic! | word! | paren!]
 	pos:
 	set true-val any-type! 
 	(
+		if all [safe? paren? cond] [cond: false]
 		debug-print ["??COMPARE/if: " cond " +" mold true-val]
 		res: if/only do bind to block! cond user-words true-val
 		debug-print ["??COMPARE/if: " res]
@@ -1042,11 +1042,12 @@ if-rule: rule [cond true-val pos res] [
 either-rule: rule [cond true-val false-val pos ret] [
 	'either
 	opt comparators
-	set cond [logic! | word! | if (not safe?) paren!]
+	set cond [logic! | word! | paren!]
 	set true-val any-type! 
 	pos:
 	set false-val any-type! 
 	(
+		if all [safe? paren? cond] [cond: false]
 		debug-print ["??COMPARE/either: " cond " +" mold true-val " -" mold false-val]
 ;		change/part 
 ;			pos 

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 1-Apr-2015/12:02:22+2:00
-    Build: 768
+    Date: 7-Apr-2015/9:24:40+2:00
+    Build: 798
 ]
 debug-print: none
 comment "plugin cache"
@@ -121,6 +121,72 @@ plugin-cache: [font-awesome [
             emit-tag
             end-tag
         ]
+    ] skeleton [
+        startup: [
+            stylesheet css-path/skeleton.css
+        ]
+        main: [
+            container
+            | row
+            | col
+        ]
+        grid-elems: rule [type] [
+            set type ['container | 'row]
+            init-div
+            opt style
+            (insert tag/class type)
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        abs-col: rule [width] [
+            set width ['one | 'two | 'three | 'four | 'five | 'six | 'seven | 'eight | 'nine | 'ten | 'eleven | 'twelve]
+            ['column | 'columns]
+            init-div
+            opt style
+            (insert tag/class reduce [width 'column])
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        rel-col: rule [width] [
+            set width ['one-third | 'two-thirds | 'one-half]
+            init-div
+            opt style
+            (insert tag/class reduce [width 'column])
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        col: use [grid-size width offset] [
+            [
+                'col
+                (
+                    grid-size: 'md
+                    width: 2
+                    offset: none
+                )
+                init-div
+                some [
+                    'offset set offset integer!
+                    | set grid-size ['xs | 'sm | 'md | 'lg]
+                    | set width integer!
+                ]
+                opt style
+                (
+                    append tag/class rejoin ["col-" grid-size "-" width]
+                    if offset [
+                        append tag/class rejoin ["col-" grid-size "-offset-" offset]
+                    ]
+                )
+                emit-tag
+                eval match-content
+                end-tag
+            ]
+        ]
     ] test [
         startup: [
             stylesheet css-path/bootstrap.min.css
@@ -132,7 +198,8 @@ plugin-cache: [font-awesome [
             c
             opt style
             emit-tag
-            close-div
+            eval
+            end-tag
         ]
         c: [init-div]
     ] password-strength [
@@ -245,7 +312,7 @@ jQuery(document).ready(function () {
                 )
                 emit-tag
                 eval match-content
-                close-div
+                end-tag
             ]
         ]
         bar: ['bar]
@@ -526,7 +593,7 @@ jQuery(document).ready(function () {
             ]
             (value-to-emit: close-tag 'ul)
             emit-value
-            close-div
+            end-tag
         ]
         menu-item: [
             set label string!
@@ -854,6 +921,802 @@ jQuery(document).ready(function () {
 </noscript>
 } reduce ['public-key value]
             )
+        ]
+    ] html [
+        main: rule [] [
+            pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 64 "..."])
+            [
+                text-settings
+                | page-header
+                | basic-elems
+                | heading
+                | list-content
+                | form-content
+                | import
+                | process-code main-rule
+                | user-rules
+                | template-rule
+                | user-rule
+                | set-at-rule
+                | set-rule
+                | label-rule
+                | form-rule
+                | script
+                | meta-rule
+                | run
+                | stylesheet
+            ]
+            (
+                value: none
+            )
+        ]
+        window-events: [
+            'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage
+            | 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
+        ]
+        form-events: [
+            'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
+        ]
+        keyboard-events: [
+            'onkeydown | 'onkeypress | 'onkeyup
+        ]
+        mouse-events: [
+            'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop
+            | 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
+        ]
+        clipboard-events: [
+            'oncopy | 'oncut | 'onpaste
+        ]
+        media-events: [
+            'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata
+            | 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking
+            | 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
+        ]
+        misc-events: [
+            'onerror | 'onshow | 'ontoggle
+        ]
+        events: [
+            window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
+        ]
+        js-raw: rule [value] [
+            set value string!
+            (
+                debug-print ["!!action fc: RAW"]
+                add-js locals/code value
+            )
+        ]
+        js-debug: rule [value] [
+            'debug
+            set value any-type!
+            (debug-print ["!!action fc: DEBUG"])
+            (
+                unless word? value [value: rejoin ["'" form value "'"]]
+                add-js locals/code rejoin ["console.debug(" value ")"]
+            )
+        ]
+        js-assign-value: rule [name] [
+            set name set-word!
+            (debug-print ["!!action fc: ASSIGN"])
+            (add-js/only locals/code rejoin ["var " to word! name " = "])
+        ]
+        js-set: rule [name target data] [
+            'set
+            (debug-print ["!!action fc: SET"])
+            eval set name issue! eval set target word! eval set data any-string! (
+                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "'"]
+            )
+        ]
+        js-action: rule [name data target] [
+            'action
+            (data: "")
+            (debug-print ["!!action fc: ACTION"])
+            set name word!
+            set data [word! | block! | none!]
+            (
+                if any ['none = data] [data: "''"]
+                add-js locals/code rejoin ["sendAction('" name "', " data ")"]
+            )
+        ]
+        js-send: rule [type] [
+            (type: 'post)
+            'send
+            opt set type ['get | 'post]
+            set data any-type!
+            (
+                debug-print ["!!action fc: SEND" type]
+            )
+        ]
+        get-dom: rule [path] [
+            set path get-path!
+            (
+                debug-print ["!!action fc: GET DOM"]
+                add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
+            )
+        ]
+        set-dom: rule [path value] [
+            set path set-path!
+            set value any-type!
+            (
+                debug-print ["!!action fc: SET DOM"]
+                unless word? value [value: rejoin ["'" form value "'"]]
+                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ")"]
+            )
+        ]
+        call-dom: rule [] []
+        js-object: rule [key value object] [
+            'object
+            (object: make string! 200)
+            (append object #"{")
+            into [
+                some [
+                    set key set-word!
+                    [
+                        set value word!
+                        | set value any-type! (value: mold value)
+                    ]
+                    (append object rejoin [#"^"" to word! key {": } value #","])
+                ]
+            ]
+            (
+                change back tail object #"}"
+                add-js locals/code object
+            )
+        ]
+        js-code: rule [] [
+            (debug-print "^/JS: Match JS code^/---------------")
+            some [
+                js-raw
+                | js-debug
+                | js-set
+                | js-action
+                | js-assign-value
+                | js-object
+                | get-dom
+                | set-dom
+            ]
+            (debug-print "^/JS: End JS code^/---------------")
+            (replace/all locals/code #"^"" #"'")
+            (debug-print mold locals/code)
+        ]
+        actions: rule [action data] [
+            set action events
+            (
+                local code make string! 1000
+                local action action
+                debug-print ["!!action:" action]
+            )
+            [
+                set data string!
+                (append tag reduce [to set-word! locals/action data])
+                | into js-code
+                (append tag reduce [to set-word! locals/action locals/code])
+            ]
+        ]
+        get-style: rule [data type] [
+            set type ['id | 'class]
+            pos:
+            set data [word! | block!] (
+                data: either word? data [get bind data user-words] [rejoin bind data user-words]
+                data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
+                change-code pos data
+            )
+            :pos
+        ]
+        style-rule: rule [data] [
+            'style
+            set data [block! | string!]
+            (
+                either string? data [
+                    append includes/stylesheet entag data 'style
+                ] [
+                    append includes/style data
+                ]
+            )
+        ]
+        style: rule [word continue] [
+            any [
+                get-style
+                | set word issue! (tag/id: next form word debug-print ["** " tag-name "/id: " tag/id])
+                | [
+                    pos: set word word!
+                    (
+                        continue: either #"." = take form word [
+                            append used-styles word
+                            append tag/class next form word
+                            debug-print ["** " tag-name "/class: " tag/class]
+                            []
+                        ] [
+                            debug-print ["** " tag-name " not a style: " word]
+                            [end skip]
+                        ]
+                    )
+                    continue
+                ]
+                | 'with set word block! (append tag word)
+            ]
+        ]
+        body-atts: rule [value] [
+            'append
+            'body
+            set value block!
+            (
+                append includes/body-tag value
+            )
+        ]
+        script: rule [type value] [
+            (type: none)
+            opt [set type ['insert | 'append]]
+            'script
+            (debug-print ["$$ SCRIPT:" type])
+            set value [string! | file! | url! | path!]
+            (
+                if path? value [
+                    value: get first bind reduce [value] user-words
+                ]
+                value: ajoin either string? value [
+                    [<script type="text/javascript"> value]
+                ] [
+                    [{<script src="} value {">}]
+                ]
+                append value close-tag 'script
+                (debug-print ["$$SCRIPT emit: " value])
+                switch/default type [
+                    insert [emit-script/insert value]
+                    append [emit-script/append value]
+                ] [emit-script value]
+            )
+        ]
+        stylesheet: rule [value] [
+            pos:
+            'stylesheet some [
+                set value [file! | url! | path!] (
+                    if path? value [
+                        value: get first bind reduce [value] user-words
+                    ]
+                    emit-stylesheet value
+                    debug-print ["==STYLESHEET:" value]
+                )
+            ]
+        ]
+        page-header: [
+            'head (debug-print "==HEAD")
+            (header?: true)
+            header-rule
+            pos:
+            'body (
+                debug-print "==BODY"
+                repend includes/header [{<script src="} js-path {lest.js">} </script> newline]
+            )
+        ]
+        header-title: rule [value] [
+            'title eval set value string! (page/title: value debug-print "==TITLE")
+        ]
+        header-language: rule [value] [
+            ['lang | 'language] set value word! (page/lang: value debug-print "==LANG")
+        ]
+        meta-rule: rule [type name value] [
+            'meta [
+                set name word! set value string! (
+                    repend page/meta [{<meta name="} name {" content="} value {">}]
+                )
+                | set type set-word! set name word! set value string! (
+                    repend page/meta ["<meta " to word! type {="} name {" content="} value {">}]
+                )
+            ]
+        ]
+        favicon-rule: rule [value] [
+            'favicon set value [file! | url!] (
+                repend includes/header [
+                    {<link rel="icon" type="image/png" href="} value {">}
+                ]
+            )
+        ]
+        header-rule: [
+            any [
+                eval
+                pos:
+                [header-content | into header-content]
+            ]
+            :pos
+        ]
+        header-content: [
+            header-title
+            | header-language
+            | stylesheet
+            | style-rule
+            | script
+            | meta-rule
+            | favicon-rule
+            | import
+            | debug-rule
+        ]
+        br: ['br (emit <br>)]
+        hr: ['hr (emit <hr>)]
+        paired-tags: ['i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button]
+        paired-tag: rule [] [
+            set tag-name paired-tags
+            init-tag
+            eval
+            opt style
+            opt actions
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        image: rule [value] [
+            ['img | 'image]
+            (
+                debug-print "==IMAGE"
+                tag-name: 'img
+            )
+            init-tag
+            some [
+                set value [file! | url!] (
+                    append tag compose [src: (value) alt: "Image"]
+                )
+                | set value pair! (
+                    append tag compose [
+                        width: (to integer! value/x)
+                        height: (to integer! value/y)
+                    ]
+                )
+                | style
+            ]
+            take-tag
+            emit-tag
+        ]
+        link: rule [value] [
+            ['a | 'link] (tag-name: 'a)
+            init-tag
+            eval
+            set value [file! | url! | issue!]
+            (append tag compose [href: (value)])
+            eval
+            opt style
+            emit-tag
+            match-content
+            end-tag
+        ]
+        li: [
+            set tag-name 'li
+            init-tag
+            opt style
+            emit-tag
+            match-content
+            end-tag
+        ]
+        ul: [
+            set tag-name 'ul
+            (debug-print "--UL--")
+            init-tag
+            opt style
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        ol: rule [value] [
+            set tag-name 'ol
+            init-tag
+            any [
+                set value integer! (append tag compose [start: (value)])
+                | style
+            ]
+            emit-tag
+            some li
+            end-tag
+        ]
+        dl: [
+            set tag-name 'dl
+            init-tag
+            opt [
+                'horizontal (append tag/class 'dl-horizontal)
+                | style
+            ]
+            emit-tag
+            some [
+                basic-string-match
+                (tag-name: 'dt)
+                init-tag
+                basic-string-processing
+                style
+                emit-tag
+                (emit value)
+                end-tag
+                basic-string-match
+                (tag-name: 'dd)
+                init-tag
+                basic-string-processing
+                style
+                emit-tag
+                (emit value)
+                end-tag
+            ]
+            end-tag
+        ]
+        list-elems: [
+            ul
+            | ol
+            | dl
+        ]
+        list-content: [
+            some li
+        ]
+        basic-elems: [
+            [
+                basic-string-match
+                basic-string-processing
+                (emit value)
+            ]
+            | body-atts
+            | br
+            | hr
+            | table
+            | paired-tag
+            | image
+            | link
+            | list-elems
+        ]
+        heading: rule [] [
+            set tag-name ['h1 | 'h2 | 'h3 | 'h4 | 'h5 | 'h6]
+            (debug-print ["==HEADING:" tag-name])
+            init-tag
+            eval
+            opt style
+            opt actions
+            (debug-print "emit H1")
+            emit-tag
+            eval
+            match-content
+            end-tag
+        ]
+        table: rule [value] [
+            set tag-name 'table
+            init-tag
+            (append tag/class 'table)
+            style
+            emit-tag
+            opt [
+                'header
+                (tag-name: 'tr)
+                init-tag
+                emit-tag
+                into [
+                    some [
+                        set value string!
+                        (tag-name: 'th)
+                        init-tag
+                        emit-tag
+                        (emit value)
+                        end-tag
+                    ]
+                ]
+                end-tag
+            ]
+            any [
+                into [
+                    (tag-name: 'tr)
+                    init-tag
+                    emit-tag
+                    some [
+                        pos: block! :pos
+                        (tag-name: 'td)
+                        init-tag
+                        emit-tag
+                        into main-rule
+                        end-tag
+                    ]
+                    end-tag
+                ]
+            ]
+            end-tag
+        ]
+        label-rule: rule [value elem] [
+            set tag-name 'label
+            (elem: none)
+            opt [set elem issue!]
+            set value string!
+            init-tag
+            (
+                all [
+                    elem
+                    append tag compose [for: (next form elem)]
+                ]
+                value-to-emit: value
+            )
+            emit-tag
+            emit-value
+            end-tag
+        ]
+        init-input: rule [value] [
+            (
+                tag-name: 'input
+                default: none
+            )
+            init-tag
+        ]
+        emit-input: [
+            (append tag compose [name: (name) placeholder: (default) value: (value)])
+            emit-tag
+            close-tag
+        ]
+        old-emit-input: [
+            (
+                switch/default form-type [
+                    horizontal [
+                        unless empty? label [
+                            emit-label/class label name [col-sm-2 control-label]
+                        ]
+                        emit <div class="col-sm-10">
+                        set [tag-name tag] take/part tag-stack 2
+                        append tag compose [name: (name) placeholder: (default) value: (value)]
+                        emit build-tag tag-name tag
+                        emit </div>
+                    ]
+                ] [
+                    unless empty? label [
+                        emit-label label name
+                    ]
+                    set [tag-name tag] take/part tag-stack 2
+                    append tag compose [name: (name) placeholder: (default) value: (value)]
+                    emit build-tag tag-name tag
+                ]
+            )
+        ]
+        input-parameters: rule [list data] [
+            set name word!
+            (
+                debug-print ["INPUT:name=" name]
+                local datalist none
+            )
+            any [
+                eval-strict any [
+                    set label string! (debug-print ["INPUT:" name " label:" label])
+                    | 'default eval set default string! (debug-print ["INPUT:" name " default:" default])
+                    | 'value eval set value string! (debug-print ["INPUT:" name " value:" value])
+                    | 'checked (debug-print ["INPUT:" name " checked"]) (append tag [checked: true])
+                    | 'required (debug-print ["INPUT:" name " required"]) (append tag [required: true])
+                    | 'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
+                    | 'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
+                    | 'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
+                    | 'datalist (list: none debug-print ["INPUT:" name " minlength"]) eval opt [set list word!] eval set data block! (local datalist data local datalist-id list)
+                    | actions (debug-print ["INPUT:" name " after actions"])
+                    | style (debug-print ["INPUT:" name " after style"])
+                ]
+            ]
+        ]
+        input: rule [type simple continue] [
+            (simple: default: value: label: def-error: none)
+            opt ['simple (simple: true)]
+            set type [
+                'text | 'password | 'datetime | 'datetime-local | 'date | 'month | 'time | 'week
+                | 'number | 'email | 'url | 'search | 'tel | 'color | 'file
+            ]
+            if (not simple) [
+                init-div
+                (append tag/class 'form-group)
+                emit-tag
+            ]
+            (tag-name: 'input)
+            init-tag
+            (append tag/class 'form-control)
+            (append tag reduce/no-set [type: type])
+            (debug-print "<input-parameters>")
+            input-parameters
+            (
+                if locals/datalist [
+                    append tag compose [
+                        list: (
+                            either locals/datalist-id [
+                                locals/datalist-id
+                            ] [
+                                rejoin [type '- get-id]
+                            ]
+                        )
+                    ]
+                    local datalist-id tag/list
+                ]
+                debug-print "</input-parameters>"
+                append tag compose [name: (name) placeholder: (default) value: (value)]
+                emit-label label name
+            )
+            emit-tag
+            take-tag
+            if (locals/validator?) [
+                init-div
+                (append tag/class [help-block with-errors])
+                emit-tag
+                (if def-error [emit def-error])
+                end-tag
+            ]
+            if (not simple) [end-tag]
+            if (locals/datalist) [
+                (tag-name: 'datalist)
+                init-tag
+                (tag/id: locals/datalist-id)
+                emit-tag
+                (
+                    foreach value locals/datalist [
+                        emit build-tag 'option compose [value: (value)]
+                    ]
+                )
+                end-tag
+            ]
+        ]
+        checkbox: rule [] [
+            'checkbox
+            init-div
+            (append tag/class 'checkbox)
+            emit-tag
+            (tag-name: 'label)
+            init-tag
+            emit-tag
+            init-input
+            input-parameters
+            (append tag compose [type: 'checkbox name: (name)])
+            emit-tag
+            take-tag
+            (emit label)
+            end-tag
+            end-tag
+        ]
+        radio: rule [] [
+            'radio
+            init-div
+            (append tag/class 'radio)
+            emit-tag
+            init-input
+            set name word!
+            set value [word! | string! | number!]
+            some [
+                eval [
+                    set label string!
+                    | 'checked (append tag [checked: true])
+                    | 'disabled (append tag [disabled: true])
+                    | style
+                ]
+            ]
+            (
+                unless tag/id [tag/id: ajoin ["radio_" name #"_" value]]
+                append tag compose [type: 'radio name: (name) value: (value)]
+            )
+            emit-tag
+            take-tag
+            (emit-label label tag/id)
+            end-tag
+        ]
+        textarea: [
+            set tag-name 'textarea
+            (
+                size: none
+                label: ""
+            )
+            init-tag
+            set name word!
+            (
+                value: ""
+                default: ""
+            )
+            some [
+                set size pair!
+                | basic-string-match (label: value value: "")
+                | 'default get-user-value set default string!
+                | 'value get-user-value set value string!
+                | style
+            ]
+            take-tag
+            (
+                unless empty? label [emit-label label name]
+                append tag compose [
+                    name: (name)
+                ]
+                if size [
+                    append tag compose [
+                        cols: (to integer! size/x)
+                        rows: (to integer! size/y)
+                    ]
+                ]
+                emit entag/with value tag-name tag
+            )
+        ]
+        hidden: rule [name value] [
+            'hidden
+            init-input
+            set name word!
+            some [
+                get-user-value set value string!
+                | style
+            ]
+            take-tag
+            (
+                append tag compose [type: 'hidden name: (name) value: (value)]
+            )
+            emit-tag
+        ]
+        submit: rule [label name value] [
+            'submit
+            (tag-name: 'button name: value: none)
+            init-tag
+            opt ['with set name word! set value string!]
+            (
+                append tag [type: submit]
+                append tag/class [btn btn-default]
+                if all [name value] [
+                    append tag compose [
+                        name: (name)
+                        value: (value)
+                    ]
+                ]
+            )
+            opt style
+            emit-tag
+            [main-rule | into main-rule]
+            end-tag
+        ]
+        select-input: rule [label name value] [
+            set tag-name 'select
+            init-tag
+            set name word! (append tag compose [name: (name)])
+            emit-tag
+            some [
+                set value word!
+                set label string!
+                (tag-name: 'option)
+                init-tag
+                (append tag compose [value: (value)])
+                opt [
+                    'selected
+                    (append tag [selected: "selected"])
+                ]
+                emit-tag
+                (emit label)
+                end-tag
+            ]
+            end-tag
+        ]
+        form-content: [
+            [
+                input
+                | textarea
+                | checkbox
+                | radio
+                | submit
+                | hidden
+                | select-input
+            ]
+        ]
+        form-type: none
+        form-rule: rule [value form-type enctype] [
+            set tag-name 'form
+            (
+                form-type: enctype: none
+                local validator? none
+            )
+            init-tag
+            any [
+                'multipart (enctype: "multipart/form-data")
+                | 'horizontal (form-type: 'horizontal)
+                | 'validator (append tag [data-toggle: 'validator] local validator? true)
+            ]
+            (
+                append tag compose [
+                    action: (value)
+                    method: 'post
+                    role: 'form
+                    enctype: (enctype)
+                ]
+                if form-type [append tag/class join "form-" form-type]
+            )
+            some [
+                set value [file! | url!] (
+                    append tag compose [action: (value)]
+                )
+                | style
+            ]
+            emit-tag
+            match-content
+            end-tag
         ]
     ] pretty-photo [
         startup: [
@@ -2636,11 +3499,11 @@ lest: use [
         if-rule: rule [cond true-val pos res] [
             'if
             opt comparators
-            set cond [logic! | word! | if (not safe?) paren!]
-            [if (safe?) not paren!]
+            set cond [logic! | word! | paren!]
             pos:
             set true-val any-type!
             (
+                if all [safe? paren? cond] [cond: false]
                 debug-print ["??COMPARE/if: " cond " +" mold true-val]
                 res: if/only do bind to block! cond user-words true-val
                 debug-print ["??COMPARE/if: " res]
@@ -2655,11 +3518,12 @@ lest: use [
         either-rule: rule [cond true-val false-val pos ret] [
             'either
             opt comparators
-            set cond [logic! | word! | if (not safe?) paren!]
+            set cond [logic! | word! | paren!]
             set true-val any-type!
             pos:
             set false-val any-type!
             (
+                if all [safe? paren? cond] [cond: false]
                 debug-print ["??COMPARE/either: " cond " +" mold true-val " -" mold false-val]
                 change-code/only pos either/only do bind to block! cond user-words true-val false-val
                 debug-print ["??COMPARE/either[out]: " pos/1]
