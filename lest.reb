@@ -1015,6 +1015,7 @@ commands: [
 	|	insert-append-rule
 	|	math-commands
 	|	load-rule
+	|	enable-plugin
 	]
 ]
 
@@ -2145,7 +2146,7 @@ elements: rule [] [
 	)
 ]
 
-plugins: rule [name t] [
+enable-plugin: rule [name t] [
 	; WARNING: very fragile, touch in antistatic handgloves only!
 	'enable pos: set name word! (
 		; NOTE: [change/part pos t 1] is absolute neccessity,
@@ -2157,6 +2158,8 @@ plugins: rule [name t] [
 	)
 	:pos [main-rule | into main-rule]
 ]
+
+plugins: []
 
 ] ; -- end rules context
 
@@ -2235,6 +2238,7 @@ func [
 			words 	[print mold user-words print mold user-words-meta]
 			rules 		[print mold user-rule-names print mold user-rules]
 			values 	[print mold user-values]
+			plugins 	[print mold rules/plugins]
 			stack 		[
 				out: make block! 20
 				forskip stack 2 [append out stack/1]
@@ -2261,6 +2265,7 @@ func [
 	user-words: object []
 	user-words-meta: object []
 	user-values: copy/deep [ pos: [fail] :pos ]
+	rules/plugins: copy/deep [ pos: [fail] :pos ]
 
 	includes: object [
 		style:			make block! 1000

@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/9:24:40+2:00
-    Build: 798
+    Date: 7-Apr-2015/9:33:42+2:00
+    Build: 803
 ]
 debug-print: none
 comment "plugin cache"
@@ -3494,6 +3494,7 @@ lest: use [
                 | insert-append-rule
                 | math-commands
                 | load-rule
+                | enable-plugin
             ]
         ]
         if-rule: rule [cond true-val pos res] [
@@ -4492,7 +4493,7 @@ lest: use [
                 value: none
             )
         ]
-        plugins: rule [name t] [
+        enable-plugin: rule [name t] [
             'enable pos: set name word! (
                 either t: load-plugin name [
                     change-code pos t
@@ -4500,6 +4501,7 @@ lest: use [
             )
             :pos [main-rule | into main-rule]
         ]
+        plugins: []
     ]
     load-plugin: func [
         name
@@ -4559,6 +4561,7 @@ lest: use [
                 words [print mold user-words print mold user-words-meta]
                 rules [print mold user-rule-names print mold user-rules]
                 values [print mold user-values]
+                plugins [print mold rules/plugins]
                 stack [
                     out: make block! 20
                     forskip stack 2 [append out stack/1]
@@ -4579,6 +4582,7 @@ lest: use [
         user-words: object []
         user-words-meta: object []
         user-values: copy/deep [pos: [fail] :pos]
+        rules/plugins: copy/deep [pos: [fail] :pos]
         includes: object [
             style: make block! 1000
             stylesheets: copy ""
