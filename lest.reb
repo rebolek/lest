@@ -1015,12 +1015,14 @@ commands: [
 	|	insert-append-rule
 	|	math-commands
 	|	load-rule
+	|	import-rule
 	|	enable-plugin
 	|	pass
 	|	stop
 	|	run
 	|	comment
 	|	debug-rule
+	|	plugins
 	]
 ]
 
@@ -2126,7 +2128,6 @@ elements: rule [] [
 	|	basic-elems
 	|	list-content
 	|	form-content
-	|	import-rule
 	|	process-code main-rule
 	|	user-rules
 	|	template-rule
@@ -2139,7 +2140,6 @@ elements: rule [] [
 	|	script
 	|	meta-rule 	; FIXME: header only
 	|	stylesheet
-	|	plugins
 	]
 	(
 		; cleanup buffer

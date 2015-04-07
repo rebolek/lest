@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/11:10:03+2:00
-    Build: 819
+    Date: 7-Apr-2015/11:22:45+2:00
+    Build: 821
 ]
 debug-print: none
 comment "plugin cache"
@@ -3494,6 +3494,7 @@ lest: use [
                 | insert-append-rule
                 | math-commands
                 | load-rule
+                | import-rule
                 | enable-plugin
                 | pass
                 | stop
@@ -4475,7 +4476,6 @@ lest: use [
                 | basic-elems
                 | list-content
                 | form-content
-                | import-rule
                 | process-code main-rule
                 | user-rules
                 | template-rule
@@ -4488,7 +4488,6 @@ lest: use [
                 | script
                 | meta-rule
                 | stylesheet
-                | plugins
             ]
             (
                 value: none
