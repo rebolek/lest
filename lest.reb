@@ -476,7 +476,7 @@ load-rule: rule [pos value] [
 	:pos
 ]
 
-import: rule [pos value] [
+import-rule: rule [pos value] [
 	; LOAD AND EMIT FILE
 	'import pos: set value [ file! | url! ]
 	(
@@ -1502,7 +1502,7 @@ header-content: [
 |	script
 |	meta-rule
 |	favicon-rule
-|	import
+|	import-rule
 |	debug-rule
 |	plugins
 ]
@@ -2124,7 +2124,7 @@ elements: rule [] [
 	|	basic-elems
 	|	list-content
 	|	form-content
-	|	import
+	|	import-rule
 	|	process-code main-rule
 	|	user-rules
 	|	template-rule

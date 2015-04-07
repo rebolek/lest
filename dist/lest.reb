@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/9:33:42+2:00
-    Build: 803
+    Date: 7-Apr-2015/10:34:08+2:00
+    Build: 806
 ]
 debug-print: none
 comment "plugin cache"
@@ -3044,7 +3044,7 @@ lest: use [
             )
             :pos
         ]
-        import: rule [pos value] [
+        import-rule: rule [pos value] [
             'import pos: set value [file! | url!]
             (
                 debug-print ["##IMPORT" value]
@@ -3915,7 +3915,7 @@ lest: use [
             | script
             | meta-rule
             | favicon-rule
-            | import
+            | import-rule
             | debug-rule
             | plugins
         ]
@@ -4473,7 +4473,7 @@ lest: use [
                 | basic-elems
                 | list-content
                 | form-content
-                | import
+                | import-rule
                 | process-code main-rule
                 | user-rules
                 | template-rule
