@@ -1019,6 +1019,8 @@ commands: [
 	|	pass
 	|	stop
 	|	run
+	|	comment
+	|	debug-rule
 	]
 ]
 
@@ -1678,8 +1680,6 @@ basic-elems: [
 		basic-string-processing
 		(emit value)
 	]
-|	comment
-|	debug-rule
 |	body-atts
 |	br
 |	hr
