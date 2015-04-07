@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/12:12:24+2:00
-    Build: 828
+    Date: 7-Apr-2015/13:01:35+2:00
+    Build: 839
 ]
 debug-print: none
 comment "plugin cache"
@@ -1760,234 +1760,6 @@ $(function () {
         ]
     ]]
 comment "/plugin cache"
-comment "Import file prestyle.reb for lest.reb"
-import module [
-    title: "Styletalk preprocessor"
-    name: prestyle
-    type: module
-    version: 0.0.2
-    date: 31-Mar-2014
-    file: %prestyle.reb
-    author: "Boleslav Březovský"
-    needs: [colorspaces styletalk]
-    options: [isolate]
-    checksum: none
-    Created: 31-Mar-2014
-    Exports: [prestyle load-web-color]
-    Codename: "KSČ"
-    Email: rebolek@gmail.com
-    Purpose: {StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS.}
-    To-do: [
-        #5 {color arithmetics: LESS [@light-blue: @nice-blue + #111;]}
-        #7 "fadein, fadeout, fade - operations on opacity"
-    ]
-    Done: [
-        #0 "Basic passing of arguments"
-        #1 {Assignment - my-color: 10.20.30 ; usable everywhere, where color is accepted}
-        #2 {Assignment - bw: [black white] <b> bw == b black white}
-        #3 "Hash colors - #000000 - 0.0.0"
-        #4 "Functions - for example: saturate color 50%"
-        #6 "HSL - is in %colorspaces.reb"
-    ]
-] [
-    load-web-color: func [
-        "Convert hex RGB issue! value to tuple!"
-        color [issue!]
-        /local pos
-    ] [
-        to tuple! debase/base next form color 16
-    ]
-    to-hsl: func [
-        color [tuple!]
-        /local min max delta alpha total
-    ] [
-        if color/4 [alpha: color/4 / 255]
-        color: reduce [color/1 color/2 color/3]
-        bind/new [r g b] local: object []
-        set words-of local map-each c color [c / 255]
-        color: local
-        min: first minimum-of values-of color
-        max: first maximum-of values-of color
-        delta: max - min
-        total: max + min
-        local: object [h: s: l: to percent! total / 2]
-        do in local bind [
-            either zero? delta [h: s: 0] [
-                s: to percent! either l > 0.5 [2 - max - min] [delta / total]
-                h: 60 * switch max reduce [
-                    r [g - b / delta + either g < b 6 0]
-                    g [b - r / delta + 2]
-                    b [r - g / delta + 4]
-                ]
-            ]
-        ] color
-        local: values-of local
-        if alpha [append local alpha]
-        local
-    ]
-    to-hsv: func [
-        color [tuple!]
-        /local min max delta alpha
-    ] [
-        if color/4 [alpha: color/4 / 255]
-        color: reduce [color/1 color/2 color/3]
-        bind/new [r g b] local: object []
-        set words-of local map-each c color [c / 255]
-        color: local
-        min: first minimum-of values-of color
-        max: first maximum-of values-of color
-        delta: max - min
-        local: object [h: s: v: to percent! max]
-        do in local bind [
-            either zero? delta [h: s: 0] [
-                s: to percent! either delta = 0 [0] [delta / max]
-                h: 60 * switch max reduce [
-                    r [g - b / delta + either g < b 6 0]
-                    g [b - r / delta + 2]
-                    b [r - g / delta + 4]
-                ]
-            ]
-        ] color
-        local: values-of local
-        if alpha [append local alpha]
-        local
-    ]
-    load-hsl: func [
-        color [block!]
-        /local alpha c x m i
-    ] [
-        if color/4 [alpha: color/4]
-        bind/new [h s l] local: object []
-        set words-of local color
-        bind/new [r g b] color: object []
-        do in local [
-            i: h / 60
-            c: 1 - (abs 2 * l - 1) * s
-            x: 1 - (abs -1 + mod i 2) * c
-            m: l - (c / 2)
-        ]
-        do in color [
-            set [r g b] reduce switch to integer! i [
-                0 [[c x 0]]
-                1 [[x c 0]]
-                2 [[0 c x]]
-                3 [[0 x c]]
-                4 [[x 0 c]]
-                5 [[c 0 x]]
-            ]
-        ]
-        color: to tuple! map-each value values-of color [to integer! round m + value * 255]
-        if alpha [color/4: alpha * 255]
-        color
-    ]
-    load-hsv: func [
-        color [block!]
-        /local alpha c x m i
-    ] [
-        if color/4 [alpha: color/4]
-        bind/new [h s v] local: object []
-        set words-of local color
-        bind/new [r g b] color: object []
-        do in local [
-            i: h / 60
-            c: v * s
-            x: 1 - (abs -1 + mod i 2) * c
-            m: v - c
-        ]
-        do in color [
-            set [r g b] reduce switch to integer! i [
-                0 [[c x 0]]
-                1 [[x c 0]]
-                2 [[0 c x]]
-                3 [[0 x c]]
-                4 [[x 0 c]]
-                5 [[c 0 x]]
-            ]
-        ]
-        color: to tuple! map-each value values-of color [to integer! round m + value * 255]
-        if alpha [color/4: alpha * 255]
-        color
-    ]
-    color!: object [
-        rgb: 0.0.0.0
-        web: #000000
-        hsl: make block! 4
-        hsv: make block! 4
-    ]
-    new-color: does [make color! []]
-    set-color: func [
-        color [object!] "Color object"
-        value [block! tuple! issue!]
-        type [word!]
-    ] [
-        switch type [
-            rgb [
-                do in color [
-                    rgb: value
-                    web: to-hex value
-                    hsl: to-hsl value
-                    hsv: to-hsv value
-                ]
-            ]
-            web [
-                do in color [
-                    rgb: load-web-color value
-                    web: value
-                    hsl: to-hsl rgb
-                    hsv: to-hsv rgb
-                ]
-            ]
-            hsl [
-                do in color [
-                    rgb: load-hsl value
-                    web: to-hex rgb
-                    hsl: value
-                    hsv: to-hsv load-hsv value
-                ]
-            ]
-            hsv [
-                do in color [
-                    rgb: load-hsv value
-                    web: to-hex rgb
-                    hsl: to-hsl load-hsv value
-                    hsv: value
-                ]
-            ]
-        ]
-        color
-    ]
-    apply-color: func [
-        "Apply color effect on color"
-        color [object!] "Color! object"
-        effect [word!] "Effect to apply"
-        amount [number!] "Effect amount"
-    ] [
-        effect: do bind select effects effect 'amount
-        set-color color color/:effect effect
-    ]
-    effects: [
-        darken [
-            color/hsl/3: max 000% color/hsl/3 - amount
-            'hsl
-        ]
-        lighten [
-            color/hsl/3: min 100% color/hsl/3 + amount
-            'hsl
-        ]
-        saturate [
-            color/hsl/2: min 100% max 000% color/hsl/2 + amount
-            'hsl
-        ]
-        desaturate [
-            color/hsl/2: min 100% max 000% color/hsl/2 - amount
-            'hsl
-        ]
-        hue [
-            color/hsl/1: color/hsl/1 + amount // 360
-            'hsl
-        ]
-    ]
-]
 comment "Import file md.reb for lest.reb"
 import module [
     title: "Rebol Markdown Parser"
@@ -2355,6 +2127,693 @@ import module [
         debug-print "** Markdown started"
         parse data [some rules]
         md-buffer
+    ]
+]
+comment "Import file prestyle.reb for lest.reb"
+import module [
+    title: "Styletalk preprocessor"
+    name: prestyle
+    type: module
+    version: 0.0.2
+    date: 31-Mar-2014
+    file: %prestyle.reb
+    author: "Boleslav Březovský"
+    needs: [colorspaces styletalk]
+    options: [isolate]
+    checksum: none
+    Created: 31-Mar-2014
+    Exports: [prestyle load-web-color]
+    Codename: "KSČ"
+    Email: rebolek@gmail.com
+    Purpose: {StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS.}
+    To-do: [
+        #5 {color arithmetics: LESS [@light-blue: @nice-blue + #111;]}
+        #7 "fadein, fadeout, fade - operations on opacity"
+    ]
+    Done: [
+        #0 "Basic passing of arguments"
+        #1 {Assignment - my-color: 10.20.30 ; usable everywhere, where color is accepted}
+        #2 {Assignment - bw: [black white] <b> bw == b black white}
+        #3 "Hash colors - #000000 - 0.0.0"
+        #4 "Functions - for example: saturate color 50%"
+        #6 "HSL - is in %colorspaces.reb"
+    ]
+] [
+    to-css: use [ruleset parser ??] [
+        ruleset: context [
+            values: copy []
+            unset: func [key [word!]] [remove-each [k value] values [k = key]]
+            set: func [key [word!] value [any-type!]] [
+                unset key repend values [key value]
+            ]
+            colors: copy []
+            lengths: copy []
+            transitions: copy []
+            transformations: copy []
+            enspace: func [value] [join " " value]
+            form-color: func [value [tuple! word!]] [
+                enspace either value/4 [
+                    ["rgba(" value/1 "," value/2 "," value/3 "," either integer? value: value/4 / 255 [value] [round/to value 0.01] ")"]
+                ] [
+                    ["rgb(" value/1 "," value/2 "," value/3 ")"]
+                ]
+            ]
+            form-number: func [value [number!] unit [word! string! none!]] [
+                enspace case [
+                    value = 0 ["0"]
+                    unit [join value unit]
+                    value [form value]
+                ]
+            ]
+            form-value: func [values /local value choices] [
+                any [
+                    switch value: take values [
+                        em pt px deg vw vh [form-number take values value]
+                        pct [form-number take values "%"]
+                        * [form-number take values none]
+                        | [","]
+                        radial [enspace ["radial-gradient(" remove form-values values ")"]]
+                        linear [enspace ["linear-gradient(" remove form-values values ")"]]
+                    ]
+                    switch type?/word value [
+                        integer! decimal! [form-number value 'px]
+                        pair! [rejoin [form-number value/x 'px form-number value/y 'px]]
+                        time! [form-number value/second 's]
+                        tuple! [form-color value]
+                        string! [enspace mold value]
+                        url! file! [enspace ["url('" value "')"]]
+                        path! [enspace [{url("data:} form value ";base64," enbase/base take values 64 {")}]]
+                    ]
+                    enspace value
+                ]
+            ]
+            form-transform: func [transform [block!] /local name direction] [
+                switch/default take transform [
+                    translate [
+                        enspace [
+                            "translate" uppercase form take transform
+                            "(" next form-value transform ")"
+                        ]
+                    ]
+                    rotate [
+                        enspace ["rotate(" next form-value transform ")"]
+                    ]
+                    scale [
+                        enspace [
+                            "scale" either word? transform/1 [uppercase form take transform] [""]
+                            "(" next form-number take transform none either tail? transform [""] [
+                                "," form-number take transform none
+                            ] ")"
+                        ]
+                    ]
+                ] [keep mold head insert transform name]
+            ]
+            form-values: func [values [block!]] [
+                rejoin collect [
+                    while [not tail? values] [keep form-value values]
+                ]
+            ]
+            form-property: func [property [word!] values [string! block!] /vendors /inline prefix] [
+                if block? values [values: form-values values]
+                rejoin collect [
+                    if any [vendors found? find [transition box-sizing transform-style transition-delay] property] [
+                        foreach prefix [-webkit- -moz- -ms- -o-] [
+                            keep form-property to word! join prefix form property values
+                        ]
+                    ]
+                    if prefix [insert next values prefix]
+                    keep ["^/^-" property ":" values ";"]
+                ]
+            ]
+            render: has [value] [
+                while [value: take lengths] [
+                    value: compose [(value)]
+                    case [
+                        not find values 'width [set 'width value]
+                        not find values 'height [set 'height value]
+                    ]
+                ]
+                while [value: take colors] [
+                    value: compose [(value)]
+                    case [
+                        not find values 'color [set 'color value]
+                        not find values 'background-color [set 'background-color value]
+                    ]
+                ]
+                rejoin collect [
+                    keep "{"
+                    foreach [property values] values [
+                        case [
+                            find [opacity] property [
+                                if tail? next values [insert values '*]
+                            ]
+                            all [
+                                property = 'background-image
+                                find [radial linear] values/1
+                            ] [
+                                foreach prefix [-webkit- -moz- -ms- -o-] [
+                                    keep form-property/inline property copy values prefix
+                                ]
+                            ]
+                        ]
+                        switch/default property [] [
+                            keep form-property property values
+                        ]
+                    ]
+                    foreach transform transformations [
+                        transform: form-transform transform
+                        keep form-property/vendors 'transform transform
+                    ]
+                    unless empty? transitions [
+                        keep form-property/vendors 'transition rejoin next collect [
+                            foreach transition transitions [
+                                keep ","
+                                keep form-values transition
+                            ]
+                        ]
+                    ]
+                    keep "^/}"
+                ]
+            ]
+            new: does [
+                make self [
+                    values: copy []
+                    colors: copy []
+                    lengths: copy []
+                    transitions: copy []
+                    transformations: copy []
+                    spacing: copy []
+                ]
+            ]
+        ]
+        parser: context [
+            google-fonts-base-url: http://fonts.googleapis.com/css?family=
+            reset?: false
+            rules: []
+            google-fonts: []
+            zero: use [zero] [
+                [set zero integer! (zero: either zero? zero [[]] [[end skip]]) zero]
+            ]
+            em: ['em number! | zero]
+            pt: ['pt number!]
+            px: [opt 'px number!]
+            deg: ['deg number! | zero]
+            scalar: ['* number! | zero]
+            percent: ['pct number! | zero]
+            vh: ['vh number! | zero]
+            vw: ['vw number! | zero]
+            color: [tuple! | named-color | 'transparent]
+            time: [time!]
+            pair: [pair!]
+            binary: [end skip]
+            image: [binary | file! | url!]
+            named-color: [
+                'aqua | 'black | 'blue | 'fuchsia | 'gray | 'green |
+                'lime | 'maroon | 'navy | 'olive | 'orange | 'purple |
+                'red | 'silver | 'teal | 'white | 'yellow
+            ]
+            text-style: ['bold | 'italic | 'underline]
+            overflow-style: [
+                'visible | 'hidden | 'scroll | 'auto | 'initial | 'inherit
+            ]
+            border-style: [
+                'none | 'hidden | 'dotted | 'dashed | 'solid | 'double |
+                'groove | 'ridge | 'inset | 'outset | 'initial
+            ]
+            transition-attribute: [
+                'width | 'height | 'top | 'bottom | 'right | 'left | 'z-index
+                | 'background | 'color | 'border | 'opacity | 'margin
+                | 'transform | 'font | 'indent | 'spacing
+            ]
+            list-styles: [
+                'disc | 'circle | 'square | 'decimal | 'decimal-leading-zero
+                | 'lower-roman | 'upper-roman | 'lower-greek | 'lower-latin
+                | 'upper-latin | 'armenian | 'georgian | 'lower-alpha | 'upper-alpha
+            ]
+            direction: ['x | 'y | 'z]
+            position-x: ['right | 'left | 'center]
+            position-y: ['top | 'bottom | 'middle | 'center]
+            position: [position-y | position-x]
+            positions: [position-x position-y | position-y position-x | position-y | position-x]
+            repeats: ['repeat-x | 'repeat-y | 'repeat ['x | 'y] | 'no-repeat | 'no 'repeat]
+            font-name: [string! | 'sans-serif | 'serif | 'monospace]
+            length: [em | pt | px | percent | vh | vw]
+            angle: [deg]
+            number: [scalar | number!]
+            box-model: ['block | 'inline 'block | 'inline-block]
+            mark: capture: captured: none
+            use [start extent] [
+                mark: [start:]
+                capture: [extent: (new-line/all captured: copy/part start extent false)]
+            ]
+            emit: func [name [word!] value [any-type!]] [
+                value: compose [(value)]
+                foreach [from to] [
+                    [no repeat] 'no-repeat
+                    [no bold] 'normal
+                    [no italic] 'normal
+                    [no underline] 'none
+                    [inline block] 'inline-block
+                    [line height] 'line-height
+                ] [
+                    replace value from to
+                ]
+                current/set name value
+            ]
+            emits: func [name [word!]] [
+                emit name captured
+            ]
+            selector: use [
+                dot-word primary qualifier
+                form-element form-selectors
+                out selectors selector
+            ] [
+                dot-word: use [word continue] [
+                    [
+                        set word word!
+                        (continue: either #"." = take form word [[]] [[end skip]])
+                        continue
+                    ]
+                ]
+                primary: [tag! | issue! | dot-word]
+                qualifier: [primary | get-word!]
+                form-element: func [element [tag! issue! word! get-word!]] [
+                    either tag? element [to string! element] [mold element]
+                ]
+                form-selectors: func [selectors [block!]] [
+                    selectors: collect [
+                        parse selectors [
+                            some [mark some qualifier capture (keep/only captured)
+                                | word! capture (keep captured)
+                            ]
+                        ]
+                    ]
+                    selectors: collect [
+                        while [find selectors 'and] [
+                            keep/only copy/part selectors selectors: find selectors 'and
+                            selectors: next selectors
+                        ] keep/only copy selectors
+                    ]
+                    selectors: map-each selector selectors [
+                        collect [
+                            foreach selector reverse collect [
+                                while [find selector 'in] [
+                                    keep/only copy/part selector selector: find selector 'in
+                                    keep 'has
+                                    selector: next selector
+                                ] keep/only copy selector
+                            ] [keep selector]
+                        ]
+                    ]
+                    selectors: collect [
+                        foreach selector selectors [
+                            parse selector [
+                                set selector block! (selector: map-each element selector [form-element element])
+                                any [
+                                    'with mark block! capture (
+                                        selector: collect [
+                                            foreach selector selector [
+                                                foreach element captured/1 [
+                                                    keep join selector form-element element
+                                                ]
+                                            ]
+                                        ]
+                                    ) |
+                                    'has mark block! capture (
+                                        selector: collect [
+                                            foreach selector selector [
+                                                foreach element captured/1 [
+                                                    keep rejoin [selector " " form-element element]
+                                                ]
+                                            ]
+                                        ]
+                                    )
+                                ]
+                            ]
+                            keep/only selector
+                        ]
+                    ]
+                    rejoin remove collect [
+                        foreach selector selectors [
+                            foreach rule selector [
+                                keep "," keep "^/"
+                                keep rule
+                            ]
+                        ]
+                    ]
+                ]
+                selector: [
+                    some primary any [
+                        'with some qualifier
+                        | 'in some primary
+                        | 'and selector
+                    ]
+                ]
+                [
+                    mark
+                    some primary any [
+                        'with some qualifier
+                        | 'in some primary
+                        | 'and selector
+                    ] capture
+                    (repend rules [form-selectors captured current: ruleset/new])
+                ]
+            ]
+            property: [
+                mark box-model capture (emits 'display)
+                | 'z-index mark number capture (emits 'z-index)
+                | 'content mark string! capture (emits 'content)
+                | mark 'border-box capture (emits 'box-sizing)
+                | 'min some [
+                    'width mark length capture (emits 'min-width)
+                    | 'height mark length capture (emits 'min-height)
+                ]
+                | 'max some [
+                    'width mark length capture (emits 'max-width)
+                    | 'height mark length capture (emits 'max-height)
+                ]
+                | mark ['min-width | 'min-height | 'max-width | 'max-height] length capture (emits take captured)
+                | 'height mark [length | 'auto] capture (emits 'height)
+                | 'width mark [length | 'auto] capture (emits 'width)
+                | 'margin [
+                    mark [
+                        1 2 [length opt [length | 'auto]]
+                        | pair opt [length | pair]
+                    ] capture (emits 'margin)
+                    |
+                ] any [
+                    'top mark length capture (emits 'margin-top)
+                    | 'bottom mark length capture (emits 'margin-bottom)
+                    | 'right mark [length | 'auto] capture (emits 'margin-right)
+                    | 'left mark [length | 'auto] capture (emits 'margin-left)
+                ]
+                | 'padding [
+                    mark [
+                        1 4 length
+                        | pair opt [length | pair]
+                    ] capture (emits 'padding)
+                    |
+                ] any [
+                    'top mark length capture (emits 'padding-top)
+                    | 'bottom mark length capture (emits 'padding-bottom)
+                    | 'right mark [length | 'auto] capture (emits 'padding-right)
+                    | 'left mark [length | 'auto] capture (emits 'padding-left)
+                ]
+                | 'border any [
+                    mark 1 4 border-style capture (emits 'border-style)
+                    | mark 1 4 color capture (emits 'border-color)
+                    | 'top any [
+                        mark length capture (emits 'border-top-width)
+                        | mark border-style capture (emits 'border-top-style)
+                        | mark color capture (emits 'border-top-color)
+                    ]
+                    | 'bottom any [
+                        mark length capture (emits 'border-bottom-width)
+                        | mark border-style capture (emits 'border-bottom-style)
+                        | mark color capture (emits 'border-bottom-color)
+                    ]
+                    | 'right any [
+                        mark length capture (emits 'border-right-width)
+                        | mark border-style capture (emits 'border-right-style)
+                        | mark color capture (emits 'border-right-color)
+                    ]
+                    | 'left any [
+                        mark length capture (emits 'border-left-width)
+                        | mark border-style capture (emits 'border-left-style)
+                        | mark color capture (emits 'border-left-color)
+                    ]
+                    | 'radius [
+                        some [
+                            'top mark 1 2 length capture (
+                                emits 'border-top-left-radius
+                                emits 'border-top-right-radius
+                            )
+                            | 'bottom mark 1 2 length capture (
+                                emits 'border-bottom-left-radius
+                                emits 'border-bottom-right-radius
+                            )
+                            | 'right mark 1 2 length capture (
+                                emits 'border-top-right-radius
+                                emits 'border-bottom-right-radius
+                            )
+                            | 'left mark 1 2 length capture (
+                                emits 'border-top-left-radius
+                                emits 'border-bottom-left-radius
+                            )
+                            | 'top 'right mark 1 2 length capture (emits 'border-top-right-radius)
+                            | 'top 'left mark 1 2 length capture (emits 'border-top-left-radius)
+                            | 'bottom 'right mark 1 2 length capture (emits 'border-bottom-right-radius)
+                            | 'bottom 'left mark 1 2 length capture (emits 'border-bottom-left-radius)
+                        ]
+                        | mark 1 2 length capture (emits 'border-radius)
+                    ]
+                    | mark 1 4 length capture (emits 'border-width)
+                ]
+                | ['radius | 'rounded] mark length capture (emits 'border-radius)
+                | 'rounded (emit 'border-radius [em 0.6])
+                | 'outline any [
+                    mark 1 4 border-style capture (emits 'outline-style)
+                    | mark 1 4 color capture (emits 'outline-color)
+                    | mark 1 4 length capture (emits 'outline-width)
+                ]
+                | 'overflow mark overflow-style capture (emits 'overflow)
+                | 'font any [
+                    mark length capture (emits 'font-size)
+                    | mark some font-name capture (
+                        captured
+                        remove head forskip captured 2 [insert captured '|]
+                        emits 'font-family
+                    )
+                    | mark color capture (emits 'color)
+                    | 'line 'height mark number capture (emits 'line-height)
+                    | 'spacing mark number capture (emits 'letter-spacing)
+                    | 'shadow mark pair length color capture (emits 'text-shadow)
+                    | mark ['lighter | 'bolder] capture (emits 'font-weight)
+                    | mark opt 'no 'bold capture (emits 'font-weight)
+                    | mark opt 'no 'italic capture (emits 'font-style)
+                    | mark opt 'no 'underline capture (emits 'text-decoration)
+                    | ['line-through | 'strike 'through] (emit 'text-decoration 'line-through)
+                ]
+                | 'text 'indent mark length capture (emits 'text-indent)
+                | 'line 'height mark [length | scalar] capture (emits 'line-height)
+                | 'spacing mark number capture (emits 'letter-spacing)
+                | mark opt 'no 'bold capture (emits 'font-weight)
+                | 'weight mark number capture (emits 'font-weight)
+                | mark opt 'no 'italic capture (emits 'font-style)
+                | mark opt 'no 'underline capture (emits 'text-decoration)
+                | ['line-through | 'strike 'through] (emit 'text-decoration 'line-through)
+                | 'shadow mark pair length color capture (emits 'box-shadow)
+                | 'color mark [color | 'inherit] capture (emits 'color)
+                | mark ['relative | 'absolute | 'fixed] capture (emits 'position) any [
+                    'top mark length capture (emits 'top)
+                    | 'bottom mark length capture (emits 'bottom)
+                    | 'right mark length capture (emits 'right)
+                    | 'left mark length capture (emits 'left)
+                ]
+                | 'opacity mark number capture (emits 'opacity)
+                | mark 'nowrap capture (emits 'white-space)
+                | mark 'center capture (emits 'text-align)
+                | 'transition any [
+                    mark transition-attribute time opt time capture (
+                        append/only current/transitions captured
+                    )
+                ]
+                | [
+                    'delay mark time capture (emits 'transition-delay)
+                    | mark time opt time transition-attribute capture (
+                        append/only current/transitions head reverse next reverse captured
+                    )
+                    | mark time capture (emits 'transition)
+                ]
+                | some [
+                    mark [
+                        'translate direction length
+                        | 'rotate angle opt ['origin percent percent]
+                        | 'scale [['x | 'y] number | 1 2 number]
+                    ] capture (append/only current/transformations captured)
+                ]
+                | mark 'preserve-3d capture (emits 'transform-style)
+                | 'hide (emit 'display none)
+                | 'float mark ['none | position-x] capture (emits 'float)
+                | 'opaque (emit 'opacity 1)
+                | mark 'pointer capture (emits 'cursor)
+                | ['canvas | 'background] any [
+                    mark color capture (emits 'background-color)
+                    | mark [file! | url!] (emits 'background-image)
+                    | mark positions capture (emits 'background-position)
+                    | mark repeats capture (emits 'background-repeat)
+                    | mark ['contain | 'cover | 1 2 [length | 'auto]] capture (emits 'background-size)
+                    | mark ['scroll | 'fixed | 'local] capture (emits 'background-attachment)
+                    | mark pair capture (
+                        captured: first captured
+                        emit 'background-position reduce [
+                            'pct to integer! captured/x
+                            'pct to integer! captured/y
+                        ]
+                    )
+                ]
+                | mark [
+                    'radial color color capture (
+                        insert at captured 3 '|
+                    )
+                    | 'linear angle color color capture (
+                        insert at tail captured -2 '|
+                        insert at tail captured -1 '|
+                    )
+                    | 'linear opt 'to positions color color capture (
+                        unless 'to = captured/2 [insert next captured 'to]
+                        insert at tail captured -2 '|
+                        insert at tail captured -1 '|
+                    )
+                ] (emits 'background-image)
+                | mark image capture (emits 'background-image) any [
+                    mark positions capture (emits 'background-position)
+                    | mark pair capture (
+                        captured: first captured
+                        emit 'background-position reduce [
+                            'pct to integer! captured/x
+                            'pct to integer! captured/y
+                        ]
+                    )
+                    | mark repeats capture (emits 'background-repeat)
+                    | mark ['contain | 'cover] capture (emits 'background-size)
+                ]
+                | 'no ['list opt 'style | 'bullet] (emit 'list-style-type 'none)
+                | opt ['list opt 'style | 'bullet] mark list-styles capture (emits 'list-style-type)
+                | mark ['inside | 'outside] capture (emits 'list-style-position)
+                | mark [
+                    length capture (append/only current/lengths captured)
+                    | some color capture (append current/colors captured)
+                    | time capture (emits 'transition)
+                    | pair capture (
+                        emit 'width captured/1/x
+                        emit 'height captured/1/y
+                    )
+                ]
+            ]
+            current: value: none
+            errors: copy []
+            dialect: [()
+                opt ['css/reset (reset?: true)]
+                opt [
+                    'google 'fonts [
+                        some [
+                            copy value [string! any issue!]
+                            (append/only google-fonts value)
+                            |
+                            set value url! (
+                                all [
+                                    value: find/match value google-fonts-base-url
+                                    append google-fonts value
+                                ]
+                            )
+                        ]
+                    ]
+                ]
+                [selector | (repend rules [["body"] current: ruleset/new])]
+                any [
+                    selector | property
+                    | set value skip (append errors rejoin ["MISPLACED TOKEN: " mold value])
+                ]
+            ]
+            reset: to string! decompress #{
+789C8D53B16EDB30109DC3AF200C14690D2992DD26838C76EE906EDD8A0CA478
+925853A44C520E9C34FFDE47C936DCA2450288E2917CBC7BF7EE582C7917E350
+15454F07F28F246F6AD717E4755D44E74C28EA100A4F8162C119E77CBFBE29F9
+2FBE2E57AB72B5BE4B5BF7BA261BA8E2D659E2EF87511A5D73E57AA1ED07B62C
+18EB626F322E9D3A645CE97DC6C3206CC6C530188A1977F227D59875E3454F19
+EB5619EFD6181F313E61DC62DC657C800FE3EAED6E7491B0F4C00AB891D2E35F
+7B670F3D0CA5C03700ABDB8CD73A416BA780550416AA4164024EF738D616C0AD
+5419DF81153ED10F190BBD308086E8F596A6D95980C328D30F3422D8EE85CF18
+3646784104B291B0A152089C2AB874B0470CA333D6388F9846C8C4418E313AD0
+28968D26A34212C1504B5665902B0A69126731449D5071162E36CE01173B12F0
+1D7D32311434F051D7E98A085A4D37ED5E20194551681352BA92708735BA1D21
+1AC77CF69EBC82384F6EA7B9F52EA5C87AB248CD0A94CB8D711811DB8F124402
+8A355D0D63DF0B7FC858D4281B87BD058751690775C0C4F1677685DD56DB8A97
+1B7635A036DAB6F3423A8F80B3DD381BF3A09FD044ABB27C77DCA9509E0EAD18
+B1DE534A52985C18DDC29D14818CB6B4612FAC58F2AFDFBFDDDFA2B7C260C421
+F7CE109F9A16E979D40181B8F4EE31900F1C12FFADD859A93F9439AAC5FE27D1
+8542474D52C24712D5DCAB895FAA5F3A497CF38E74DB21B5553A993B643E0B50
+201ECCF11D4DF72E9A7D9740931DFE05A8242153BA7C209568A68EDC9DCF76F3
+56F254435E4A0A5F5F6F2E5627C7530B26DC5CA4BC76C68821BDF193752E608E
+B75C9F8AFAC2D8DCDB5595F7EE296F5C3D865C5B9B88688B26FA110F037D5E4C
+C5593CBC069B9DBD8EC3CBECF51BFC35DAD0E2817FE16F0BC29F8F4D5A6E4EAD
+5B6E8E0D5D6E90EC6F2B11BC2A3F050000
+}
+            render: does [
+                rejoin collect [
+                    keep "/* StyleTalk Output */^/"
+                    if all [
+                        block? google-fonts
+                        not empty? google-fonts
+                    ] [
+                        keep "^/@import url ('"
+                        keep mold join google-fonts-base-url collect [
+                            repeat font length? google-fonts [
+                                unless font = 1 [keep "|"]
+                                case [
+                                    url? google-fonts/:font [
+                                        keep google-fonts/:font
+                                    ]
+                                    block? google-fonts/:font [
+                                        keep replace/all mold to url! take google-fonts/:font "%20" "+"
+                                        repeat variant length? google-fonts/:font [
+                                            keep back change to url! mold google-fonts/:font/:variant either variant = 1 [":"] [","]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                        keep "');^/"
+                    ]
+                    if reset? [
+                        keep {
+/** CSS Reset Begin */
+
+}
+                        keep reset
+                        keep "/* CSS Reset End **/^/"
+                    ]
+                    keep {
+/** StyleTalk Output Begin */
+
+}
+                    foreach [selector rule] rules [
+                        keep selector
+                        keep " "
+                        keep rule/render
+                        keep "^/"
+                    ]
+                    keep {
+
+/* StyleTalk Output End **/
+}
+                ]
+            ]
+            new: does [
+                make parser [
+                    reset?: false
+                    google-fonts: copy []
+                    rules: copy []
+                    errors: copy []
+                    current: ruleset/new
+                    value: none
+                ]
+            ]
+        ]
+        ??: use [mark] [[mark: (probe new-line/all copy/part mark 8 false)]]
+        to-css: func [dialect [file! url! string! block!] /local out] [
+            case/all [
+                file? dialect [dialect: load dialect]
+                url? dialect [dialect: load dialect]
+                string? dialect [dialect: load dialect]
+                not block? dialect [make error! "No Dialect!"]
+            ]
+            out: parser/new
+            if parse dialect out/dialect [
+                out/render
+            ]
+        ]
     ]
 ]
 css-path: %css/
@@ -3234,158 +3693,13 @@ lest: use [
                 ]
             )
         ]
-        style-rule: rule [data] [
-            'style
-            set data [block! | string!]
-            (
-                either string? data [
-                    append includes/stylesheet entag data 'style
-                ] [
-                    append includes/style data
-                ]
+        enable-plugin: rule [name t] [
+            'enable pos: set name word! (
+                either t: load-plugin name [
+                    change-code pos t
+                ] [pos: next pos]
             )
-        ]
-        window-events: [
-            'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage
-            | 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
-        ]
-        form-events: [
-            'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
-        ]
-        keyboard-events: [
-            'onkeydown | 'onkeypress | 'onkeyup
-        ]
-        mouse-events: [
-            'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop
-            | 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
-        ]
-        clipboard-events: [
-            'oncopy | 'oncut | 'onpaste
-        ]
-        media-events: [
-            'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata
-            | 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking
-            | 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
-        ]
-        misc-events: [
-            'onerror | 'onshow | 'ontoggle
-        ]
-        events: [
-            window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
-        ]
-        js-raw: rule [value] [
-            set value string!
-            (
-                debug-print ["!!action fc: RAW"]
-                add-js locals/code value
-            )
-        ]
-        js-debug: rule [value] [
-            'debug
-            set value any-type!
-            (debug-print ["!!action fc: DEBUG"])
-            (
-                unless word? value [value: rejoin ["'" form value "'"]]
-                add-js locals/code rejoin ["console.debug(" value ")"]
-            )
-        ]
-        js-assign-value: rule [name] [
-            set name set-word!
-            (debug-print ["!!action fc: ASSIGN"])
-            (add-js/only locals/code rejoin ["var " to word! name " = "])
-        ]
-        js-set: rule [name target data] [
-            'set
-            (debug-print ["!!action fc: SET"])
-            eval set name issue! eval set target word! eval set data any-string! (
-                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "'"]
-            )
-        ]
-        js-action: rule [name data target] [
-            'action
-            (data: "")
-            (debug-print ["!!action fc: ACTION"])
-            set name word!
-            set data [word! | block! | none!]
-            (
-                if any ['none = data] [data: "''"]
-                add-js locals/code rejoin ["sendAction('" name "', " data ")"]
-            )
-        ]
-        js-send: rule [type] [
-            (type: 'post)
-            'send
-            opt set type ['get | 'post]
-            set data any-type!
-            (
-                debug-print ["!!action fc: SEND" type]
-            )
-        ]
-        get-dom: rule [path] [
-            set path get-path!
-            (
-                debug-print ["!!action fc: GET DOM"]
-                add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
-            )
-        ]
-        set-dom: rule [path value] [
-            set path set-path!
-            set value any-type!
-            (
-                debug-print ["!!action fc: SET DOM"]
-                unless word? value [value: rejoin ["'" form value "'"]]
-                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ")"]
-            )
-        ]
-        call-dom: rule [] []
-        js-object: rule [key value object] [
-            'object
-            (object: make string! 200)
-            (append object #"{")
-            into [
-                some [
-                    set key set-word!
-                    [
-                        set value word!
-                        | set value any-type! (value: mold value)
-                    ]
-                    (append object rejoin [#"^"" to word! key {": } value #","])
-                ]
-            ]
-            (
-                change back tail object #"}"
-                add-js locals/code object
-            )
-        ]
-        js-code: rule [] [
-            (debug-print "^/JS: Match JS code^/---------------")
-            some [
-                js-raw
-                | js-debug
-                | js-set
-                | js-action
-                | js-assign-value
-                | js-object
-                | get-dom
-                | set-dom
-            ]
-            (debug-print "^/JS: End JS code^/---------------")
-            (replace/all locals/code #"^"" #"'")
-            (debug-print mold locals/code)
-        ]
-        actions: rule [action data] [
-            set action events
-            (
-                local code make string! 1000
-                local action action
-                debug-print ["!!action:" action]
-            )
-            [
-                set data string!
-                (append tag reduce [to set-word! locals/action data])
-                | into js-code
-                (append tag reduce [to set-word! locals/action locals/code])
-            ]
+            :pos [main-rule | into main-rule]
         ]
         init-tag: [
             (
@@ -3781,6 +4095,164 @@ lest: use [
             set value any-type!
             (do reduce [command series 'value])
         ]
+        comment: [
+            'comment [block! | string!]
+        ]
+        debug-rule: rule [value] [
+            'debug [
+                set value string!
+                (debug-print ["debug:" value])
+                | pos: 'words
+                (
+                    value: rejoin ["user-words:" mold user-words]
+                    pos/1: value
+                    debug-print value
+                )
+                :pos
+            ]
+        ]
+        window-events: [
+            'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage
+            | 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
+        ]
+        form-events: [
+            'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
+        ]
+        keyboard-events: [
+            'onkeydown | 'onkeypress | 'onkeyup
+        ]
+        mouse-events: [
+            'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop
+            | 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
+        ]
+        clipboard-events: [
+            'oncopy | 'oncut | 'onpaste
+        ]
+        media-events: [
+            'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata
+            | 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking
+            | 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
+        ]
+        misc-events: [
+            'onerror | 'onshow | 'ontoggle
+        ]
+        events: [
+            window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
+        ]
+        js-raw: rule [value] [
+            set value string!
+            (
+                debug-print ["!!action fc: RAW"]
+                add-js locals/code value
+            )
+        ]
+        js-debug: rule [value] [
+            'debug
+            set value any-type!
+            (debug-print ["!!action fc: DEBUG"])
+            (
+                unless word? value [value: rejoin ["'" form value "'"]]
+                add-js locals/code rejoin ["console.debug(" value ")"]
+            )
+        ]
+        js-assign-value: rule [name] [
+            set name set-word!
+            (debug-print ["!!action fc: ASSIGN"])
+            (add-js/only locals/code rejoin ["var " to word! name " = "])
+        ]
+        js-set: rule [name target data] [
+            'set
+            (debug-print ["!!action fc: SET"])
+            eval set name issue! eval set target word! eval set data any-string! (
+                add-js rejoin ["document.getElementById('" next form name "')." target " = '" data "'"]
+            )
+        ]
+        js-action: rule [name data target] [
+            'action
+            (data: "")
+            (debug-print ["!!action fc: ACTION"])
+            set name word!
+            set data [word! | block! | none!]
+            (
+                if any ['none = data] [data: "''"]
+                add-js locals/code rejoin ["sendAction('" name "', " data ")"]
+            )
+        ]
+        js-send: rule [type] [
+            (type: 'post)
+            'send
+            opt set type ['get | 'post]
+            set data any-type!
+            (
+                debug-print ["!!action fc: SEND" type]
+            )
+        ]
+        get-dom: rule [path] [
+            set path get-path!
+            (
+                debug-print ["!!action fc: GET DOM"]
+                add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
+            )
+        ]
+        set-dom: rule [path value] [
+            set path set-path!
+            set value any-type!
+            (
+                debug-print ["!!action fc: SET DOM"]
+                unless word? value [value: rejoin ["'" form value "'"]]
+                add-js locals/code rejoin ["setAttr('" path/1 "','" path/2 "'," value ")"]
+            )
+        ]
+        call-dom: rule [] []
+        js-object: rule [key value object] [
+            'object
+            (object: make string! 200)
+            (append object #"{")
+            into [
+                some [
+                    set key set-word!
+                    [
+                        set value word!
+                        | set value any-type! (value: mold value)
+                    ]
+                    (append object rejoin [#"^"" to word! key {": } value #","])
+                ]
+            ]
+            (
+                change back tail object #"}"
+                add-js locals/code object
+            )
+        ]
+        js-code: rule [] [
+            (debug-print "^/JS: Match JS code^/---------------")
+            some [
+                js-raw
+                | js-debug
+                | js-set
+                | js-action
+                | js-assign-value
+                | js-object
+                | get-dom
+                | set-dom
+            ]
+            (debug-print "^/JS: End JS code^/---------------")
+            (replace/all locals/code #"^"" #"'")
+            (debug-print mold locals/code)
+        ]
+        actions: rule [action data] [
+            set action events
+            (
+                local code make string! 1000
+                local action action
+                debug-print ["!!action:" action]
+            )
+            [
+                set data string!
+                (append tag reduce [to set-word! locals/action data])
+                | into js-code
+                (append tag reduce [to set-word! locals/action locals/code])
+            ]
+        ]
         get-style: rule [pos data type] [
             set type ['id | 'class]
             pos:
@@ -3790,6 +4262,17 @@ lest: use [
                 change-code pos data
             )
             :pos
+        ]
+        style-rule: rule [data] [
+            'style
+            set data [block! | string!]
+            (
+                either string? data [
+                    append includes/stylesheet entag data 'style
+                ] [
+                    append includes/style data
+                ]
+            )
         ]
         style: rule [pos word continue] [
             any [
@@ -3811,22 +4294,6 @@ lest: use [
                     continue
                 ]
                 | 'with set word block! (append tag word)
-            ]
-        ]
-        comment: [
-            'comment [block! | string!]
-        ]
-        debug-rule: rule [value] [
-            'debug [
-                set value string!
-                (debug-print ["debug:" value])
-                | pos: 'words
-                (
-                    value: rejoin ["user-words:" mold user-words]
-                    pos/1: value
-                    debug-print value
-                )
-                :pos
             ]
         ]
         body-atts: rule [value] [
@@ -4496,15 +4963,7 @@ lest: use [
                 value: none
             )
         ]
-        enable-plugin: rule [name t] [
-            'enable pos: set name word! (
-                either t: load-plugin name [
-                    change-code pos t
-                ] [pos: next pos]
-            )
-            :pos [main-rule | into main-rule]
-        ]
-        plugins: []
+        plugins: [pos: [fail] :pos]
     ]
     load-plugin: func [
         name

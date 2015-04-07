@@ -697,197 +697,19 @@ template-rule: rule [name label type value urule args pos this-rule] [
 	)
 ]
 
-
-style-rule: rule [data] [
-	'style
-	set data [block! | string!]
-	(
-		either string? data [
-			append includes/stylesheet entag data 'style
-		] [
-			append includes/style data
-		]
+enable-plugin: rule [name t] [
+	; WARNING: very fragile, touch in antistatic handgloves only!
+	'enable pos: set name word! (
+		; NOTE: [change/part pos t 1] is absolute neccessity,
+		; 		because [pos/1: t] crashes Rebol!!!
+		either t: load-plugin name [
+;			change/part pos t 1
+			change-code pos t
+		] [pos: next pos]
 	)
+	:pos [main-rule | into main-rule]
 ]
 
-; dynamic actions
-
-; currently defined: 
-;
-;	SET - SET id data
-;		- set content of ID element to DATA 
-;		- document.getElementById(id).innerHTML = data;
-
-window-events: [
-	'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage 
-	| 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
-]
-
-form-events: [
-	'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
-]
-
-keyboard-events: [
-	'onkeydown | 'onkeypress 	| 'onkeyup
-]
-
-mouse-events: [
-	'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop 
-	| 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
-]
-
-clipboard-events: [
-	'oncopy | 'oncut | 'onpaste
-]
-
-media-events: [
-	'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata 
-	| 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking 
-	| 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
-]
-
-misc-events: [
-	'onerror | 'onshow | 'ontoggle
-]
-
-events: [
-	window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
-]
-
-; ---------
-
-js-raw: rule [value] [
-	set value string!
-	(
-		debug-print ["!!action fc: RAW"]
-		add-js locals/code value
-	)	
-]
-
-js-debug: rule [value] [
-	'debug
-	set value any-type!
-	(debug-print ["!!action fc: DEBUG"]) 
-	(
-		unless word? value [value: rejoin [{'} form value {'}]]
-		add-js locals/code rejoin ["console.debug(" value ")"]
-	)
-]
-
-js-assign-value: rule [name] [
-	set name set-word!
-	(debug-print ["!!action fc: ASSIGN"]) 
-	(add-js/only locals/code rejoin ["var " to word! name " = "])
-]
-
-js-set: rule [name target data] [
-	; name - ID of element, target - field in element (color, innerHTML, etc...), data - new data to set
-	'set 
-	(debug-print ["!!action fc: SET"]) 
-	eval set name issue! eval set target word! eval set data any-string! (
-		add-js rejoin [{document.getElementById('} next form name {').} target { = '} data {'}]
-	)
-]
-
-js-action: rule [name data target] [
-	'action
-	(data: "")
-	(debug-print ["!!action fc: ACTION"]) 
-	set name word!
-	set data [word! | block! | none!]
-	(
-		; TODO: process block!
-		if any ['none = data] [data: {''}]
-		add-js locals/code rejoin [{sendAction('} name {', } data {)}]
-	)	
-]
-
-js-send: rule [type] [
-	(type: 'post)
-	'send
-	opt set type ['get | 'post]
-	set data any-type!
-	(
-		debug-print ["!!action fc: SEND" type]
-	)
-]
-
-get-dom: rule [path] [
-	set path get-path!
-	(
-		debug-print ["!!action fc: GET DOM"]
-		add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
-	)
-]
-
-set-dom: rule [path value] [
-	set path set-path!
-	set value any-type!
-	(
-		debug-print ["!!action fc: SET DOM"]
-		unless word? value [value: rejoin [{'} form value {'}]]
-		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {)}]
-	)
-]
-
-call-dom: rule [] [	
-
-]
-
-js-object: rule [key value object] [
-	'object
-	(object: make string! 200)
-	(append object #"{")
-	into [
-		some [
-			set key set-word!
-			[
-				set value word! 
-;			|	set value get-path! ()	
-			|	set value any-type! (value: mold value)
-			]
-			(append object rejoin [#"^"" to word! key {": } value #","])
-		]
-	]
-	(
-		change back tail object #"}"
-		add-js locals/code object
-	)
-]
-
-js-code: rule [] [
-	(debug-print "^/JS: Match JS code^/---------------")
-	some [
-		js-raw
-	|	js-debug
-	|	js-set
-	|	js-action
-	|	js-assign-value
-	|	js-object
-	|	get-dom
-	|	set-dom
-	]
-	(debug-print "^/JS: End JS code^/---------------")
-	(replace/all locals/code #"^"" #"'") ; change all quotation marks to apostrohes 
-	(debug-print mold locals/code)
-]
-
-actions: rule [action data] [
-	set action events
-	(
-		local code make string! 1000
-		local action action ; replace/all to string! action #"-" ""
-		debug-print ["!!action:" action]
-	)
-	[
-		set data string!
-		(append tag reduce [to set-word! locals/action data])
-	|	into js-code
-		(append tag reduce [to set-word! locals/action locals/code])
-	]
-]
-
-; ----
 
 init-tag: [
 	(
@@ -1335,7 +1157,207 @@ insert-append-rule: rule [command series value] [
 	(do reduce [command series 'value]) ; <- temporary fix for above problem until final solution is found
 ]
 
+comment: [
+	'comment [ block! | string! ]
+]
+
+debug-rule: rule [ value ] [
+	'debug [
+		set value string!
+		(debug-print ["debug:" value])
+	|	pos: 'words
+		(
+			value: rejoin ["user-words:" mold user-words]
+			pos/1: value
+			debug-print value
+		)
+		:pos
+	]
+]
+
 ;---/commands
+
+
+; ----------------------------------------------- END OF COMMANDS
+
+; dynamic actions
+
+; currently defined: 
+;
+;	SET - SET id data
+;		- set content of ID element to DATA 
+;		- document.getElementById(id).innerHTML = data;
+
+window-events: [
+	'onafterprint | 'onbeforeprint | 'onbeforeunload | 'onerror | 'onhashchange | 'onload | 'onmessage 
+	| 'onoffline | 'ononline | 'onpagehide | 'onpageshow | 'onpopstate | 'onresize | 'onstorage | 'onunload
+]
+
+form-events: [
+	'onblur | 'onchange | 'oncontextmenu | 'onfocus | 'oninput | 'oninvalid | 'onreset | 'onsearch | 'onselect | 'onsubmit
+]
+
+keyboard-events: [
+	'onkeydown | 'onkeypress 	| 'onkeyup
+]
+
+mouse-events: [
+	'onclick | 'ondblclick | 'ondrag | 'ondragend | 'ondragenter | 'ondragleave | 'ondragover | 'ondragstart | 'ondrop 
+	| 'onmousedown | 'onmousemove | 'onmouseout | 'onmouseover | 'onmouseup | 'onmousewheel | 'onscroll | 'onwheel
+]
+
+clipboard-events: [
+	'oncopy | 'oncut | 'onpaste
+]
+
+media-events: [
+	'onabort | 'oncanplay | 'oncanplaythrough | 'oncuechange | 'ondurationchange | 'onemptied | 'onended | 'onerror | 'onloadeddata 
+	| 'onloadedmetadata | 'onloadstart | 'onpause | 'onplay | 'onplaying | 'onprogress | 'onratechange | 'onseeked | 'onseeking 
+	| 'onstalled | 'onsuspend | 'ontimeupdate | 'onvolumechange | 'onwaiting
+]
+
+misc-events: [
+	'onerror | 'onshow | 'ontoggle
+]
+
+events: [
+	window-events | form-events | keyboard-events | mouse-events | clipboard-events | media-events | misc-events
+]
+
+; ---------
+
+js-raw: rule [value] [
+	set value string!
+	(
+		debug-print ["!!action fc: RAW"]
+		add-js locals/code value
+	)	
+]
+
+js-debug: rule [value] [
+	'debug
+	set value any-type!
+	(debug-print ["!!action fc: DEBUG"]) 
+	(
+		unless word? value [value: rejoin [{'} form value {'}]]
+		add-js locals/code rejoin ["console.debug(" value ")"]
+	)
+]
+
+js-assign-value: rule [name] [
+	set name set-word!
+	(debug-print ["!!action fc: ASSIGN"]) 
+	(add-js/only locals/code rejoin ["var " to word! name " = "])
+]
+
+js-set: rule [name target data] [
+	; name - ID of element, target - field in element (color, innerHTML, etc...), data - new data to set
+	'set 
+	(debug-print ["!!action fc: SET"]) 
+	eval set name issue! eval set target word! eval set data any-string! (
+		add-js rejoin [{document.getElementById('} next form name {').} target { = '} data {'}]
+	)
+]
+
+js-action: rule [name data target] [
+	'action
+	(data: "")
+	(debug-print ["!!action fc: ACTION"]) 
+	set name word!
+	set data [word! | block! | none!]
+	(
+		; TODO: process block!
+		if any ['none = data] [data: {''}]
+		add-js locals/code rejoin [{sendAction('} name {', } data {)}]
+	)	
+]
+
+js-send: rule [type] [
+	(type: 'post)
+	'send
+	opt set type ['get | 'post]
+	set data any-type!
+	(
+		debug-print ["!!action fc: SEND" type]
+	)
+]
+
+get-dom: rule [path] [
+	set path get-path!
+	(
+		debug-print ["!!action fc: GET DOM"]
+		add-js locals/code rejoin [{getAttr("} path/1 {","} path/2 {")}]
+	)
+]
+
+set-dom: rule [path value] [
+	set path set-path!
+	set value any-type!
+	(
+		debug-print ["!!action fc: SET DOM"]
+		unless word? value [value: rejoin [{'} form value {'}]]
+		add-js locals/code rejoin [{setAttr('} path/1 {','} path/2 {',} value {)}]
+	)
+]
+
+call-dom: rule [] [	
+
+]
+
+js-object: rule [key value object] [
+	'object
+	(object: make string! 200)
+	(append object #"{")
+	into [
+		some [
+			set key set-word!
+			[
+				set value word! 
+;			|	set value get-path! ()	
+			|	set value any-type! (value: mold value)
+			]
+			(append object rejoin [#"^"" to word! key {": } value #","])
+		]
+	]
+	(
+		change back tail object #"}"
+		add-js locals/code object
+	)
+]
+
+js-code: rule [] [
+	(debug-print "^/JS: Match JS code^/---------------")
+	some [
+		js-raw
+	|	js-debug
+	|	js-set
+	|	js-action
+	|	js-assign-value
+	|	js-object
+	|	get-dom
+	|	set-dom
+	]
+	(debug-print "^/JS: End JS code^/---------------")
+	(replace/all locals/code #"^"" #"'") ; change all quotation marks to apostrohes 
+	(debug-print mold locals/code)
+]
+
+actions: rule [action data] [
+	set action events
+	(
+		local code make string! 1000
+		local action action ; replace/all to string! action #"-" ""
+		debug-print ["!!action:" action]
+	)
+	[
+		set data string!
+		(append tag reduce [to set-word! locals/action data])
+	|	into js-code
+		(append tag reduce [to set-word! locals/action locals/code])
+	]
+]
+
+; ----
 
 get-style: rule [pos data type] [
 	set type ['id | 'class]
@@ -1349,6 +1371,18 @@ get-style: rule [pos data type] [
 		change-code pos data
 	)
 	:pos
+]
+
+style-rule: rule [data] [
+	'style
+	set data [block! | string!]
+	(
+		either string? data [
+			append includes/stylesheet entag data 'style
+		] [
+			append includes/style data
+		]
+	)
 ]
 
 style: rule [pos word continue] [
@@ -1371,24 +1405,6 @@ style: rule [pos word continue] [
 			continue
 		]
 	|	'with set word block! ( append tag word )
-	]
-]
-
-comment: [
-	'comment [ block! | string! ]
-]
-
-debug-rule: rule [ value ] [
-	'debug [
-		set value string!
-		(debug-print ["debug:" value])
-	|	pos: 'words
-		(
-			value: rejoin ["user-words:" mold user-words]
-			pos/1: value
-			debug-print value
-		)
-		:pos
 	]
 ]
 
@@ -2149,20 +2165,7 @@ elements: rule [] [
 	)
 ]
 
-enable-plugin: rule [name t] [
-	; WARNING: very fragile, touch in antistatic handgloves only!
-	'enable pos: set name word! (
-		; NOTE: [change/part pos t 1] is absolute neccessity,
-		; 		because [pos/1: t] crashes Rebol!!!
-		either t: load-plugin name [
-;			change/part pos t 1
-			change-code pos t
-		] [pos: next pos]
-	)
-	:pos [main-rule | into main-rule]
-]
-
-plugins: []
+plugins: [pos: [fail] :pos]
 
 ] ; -- end rules context
 
