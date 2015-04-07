@@ -42,7 +42,6 @@ grid-elems: [
 ;	into [ some elements ]
 	eval
 	match-content
-;	close-div
 	end-tag
 ]
 
@@ -69,7 +68,7 @@ col: use [ grid-size width offset ] [
 		)
 		emit-tag
 		eval  match-content
-		close-div
+		end-tag
 	]
 ]
 
@@ -383,7 +382,7 @@ dropdown: [
 	]
 	( value-to-emit: close-tag 'ul )
 	emit-value
-	close-div
+	end-tag
 ]
 menu-item: [
 	set label string!
@@ -472,13 +471,10 @@ list-badge: [
 	end-tag
 ]
 
-link-list-group: [
-	'link-list
-	init-div
-	(append tag/class 'list-group)
-	emit-tag
+link-list-content: [
 	any [
 		'link
+		(print "==LINK-LIST LINK")
 		(tag-name: 'a)
 		init-tag
 		(append tag/class 'list-group-item)
@@ -492,6 +488,20 @@ link-list-group: [
 		opt list-badge
 		end-tag
 	]
+]
+
+link-list-group: [
+	'link-list
+	(print "==LINK-LIST")
+	init-div
+	(append tag/class 'list-group)
+	emit-tag
+	pos: (print [">>" mold pos])
+	(print "BE LAZY" local lazy? true)
+	eval
+	pos: (print [">>" mold pos])
+	[into link-list-content | link-list-content]
+	(print "DONT BE LAZY" local lazy? false)
 	end-tag	
 ]
 
@@ -514,9 +524,8 @@ old-link-list-group: [
 		]
 		pos:
 		(
-			probe pos
 			insert next pos '.list-group-item
-			pos: probe back pos
+			pos: back pos
 		)
 		:pos
 		link 	; run basic LINK rule

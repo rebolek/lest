@@ -1,7 +1,7 @@
 REBOL [
     Title: "Lest (processed)"
-    Date: 7-Apr-2015/13:14:40+2:00
-    Build: 840
+    Date: 7-Apr-2015/16:15:09+2:00
+    Build: 841
 ]
 debug-print: none
 comment "plugin cache"
@@ -3723,12 +3723,6 @@ lest: use [
         init-div: [
             (tag-name: 'div)
             init-tag
-        ]
-        close-div: [
-            (
-                tag: take/part tag-stack 2
-                emit </div>
-            )
         ]
         comparators: [
             comparison-rule

@@ -739,13 +739,6 @@ init-div: [
 	init-tag
 ]
 
-close-div: [
-	(
-		tag: take/part tag-stack 2
-		emit </div>
-	)
-]
-
 comparators: [
 	comparison-rule
 ]
