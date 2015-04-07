@@ -2,9 +2,15 @@ REBOL[
 	Tile: "Lest builder"
 ]
 
+docs: does [
+	lest/save %index.lest
+]
+
+module-cache: make block! 10000
+
 preprocess-script: func [
 	script-name 	[file!]
-	/local cmd file files header script
+	/local cmd file files header script module-file mod-header
 ] [
 	print ["Processing file:" script-name]
 	script: load/header/type script-name 'unbound
@@ -13,13 +19,13 @@ preprocess-script: func [
 	; preprocess files from header
 	needs: header/needs
 	if needs [
-		foreach file reverse needs [
+		foreach file needs [
 			file: to file! join file %.reb
 			print [header/name " == needs == " file]	
 			module-file: load/header/type file 'unbound
 			mod-header: take module-file
-			insert head script compose/deep [
-				comment (rejoin ["Import file " file " for " script-name]) 
+			append module-cache compose/deep [
+				comment (rejoin ["Import file " file " for " script-name ":" checksum/method to binary! mold module-file 'SHA1]) 
 				import module [(body-of mod-header)] [(preprocess-script file module-file)]
 			]
 		]
@@ -42,10 +48,10 @@ preprocess-script: func [
 	script
 ]
 
-ps: :preprocess-script
-
-script: ps %lest.reb
-
+script: preprocess-script %lest.reb
+print "=============="
+forskip module-cache 6 [print ["Inserting..." module-cache/2]]
+insert head script module-cache
 ; process plugins
 
 plugins: read %plugins/
