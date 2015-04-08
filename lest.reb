@@ -1530,17 +1530,12 @@ header-content: [
 |	plugins
 ]
 
-
-;  ____                _____   _____    _____     ______   _        ______   __  __    _____
-; |  _ \      /\      / ____| |_   _|  / ____|   |  ____| | |      |  ____| |  \/  |  / ____|
-; | |_) |    /  \    | (___     | |   | |        | |__    | |      | |__    | \  / | | (___
-; |  _ <    / /\ \    \___ \    | |   | |        |  __|   | |      |  __|   | |\/| |  \___ \
-; | |_) |  / ____ \   ____) |  _| |_  | |____    | |____  | |____  | |____  | |  | |  ____) |
-; |____/  /_/    \_\ |_____/  |_____|  \_____|   |______| |______| |______| |_|  |_| |_____/
+;------------------------------------------------------------
 ;
+;  TOP LEVEL RULES (needs to be simplified)
+;
+;------------------------------------------------------------
 
-br: [ 'br ( emit <br> ) ]
-hr: [ 'hr ( emit <hr> ) ]
 
 main-rule: rule [] [
 	throw "Unknown tag, command or user template"
@@ -1556,14 +1551,47 @@ content-rule: [
 		(emit value)
 	]
 |	elements
+|	plugins
 |	into main-rule
 ]
-
 
 match-content: rule [] [
 	throw "Expected string, tag or block of tags"
 	content-rule
 ]
+
+elements: rule [] [
+	pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 64 "..."] )
+	[
+		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
+	|	page-header	
+	|	basic-elems
+	|	list-content
+	|	form-content
+	|	user-rules
+	|	heading
+	|	label-rule
+	|	form-rule
+	|	script
+	|	meta-rule 	; FIXME: header only
+	|	stylesheet
+	]
+	(
+		; cleanup buffer
+		value: none
+	)
+]
+
+;  ____                _____   _____    _____     ______   _        ______   __  __    _____
+; |  _ \      /\      / ____| |_   _|  / ____|   |  ____| | |      |  ____| |  \/  |  / ____|
+; | |_) |    /  \    | (___     | |   | |        | |__    | |      | |__    | \  / | | (___
+; |  _ <    / /\ \    \___ \    | |   | |        |  __|   | |      |  __|   | |\/| |  \___ \
+; | |_) |  / ____ \   ____) |  _| |_  | |____    | |____  | |____  | |____  | |  | |  ____) |
+; |____/  /_/    \_\ |_____/  |_____|  \_____|   |______| |______| |______| |_|  |_| |_____/
+;
+
+br: [ 'br ( emit <br> ) ]
+hr: [ 'hr ( emit <hr> ) ]
 
 paired-tags: [ 'i | 'b | 'p | 'pre | 'code | 'div | 'span | 'small | 'em | 'strong | 'header | 'footer | 'nav | 'section | 'button ]
 paired-tag: rule [] [
@@ -2098,7 +2126,6 @@ form-content: [
 	|	submit
 	|	hidden
 	|	select-input
-;	|	plugins ; to enable captcha, password-strength, etc.
 	]
 ]
 form-type: none
@@ -2135,28 +2162,6 @@ form-rule: rule [value form-type enctype] [
 ]
 
 ; --- put it all together
-
-elements: rule [] [
-	pos: (debug-print ["parse at: " index? pos "::" trim/lines copy/part mold pos 64 "..."] )
-	[
-		text-settings	; FIXME: must be before header so (markdown text) is matched before markdown as plugin
-	|	page-header	
-	|	basic-elems
-	|	list-content
-	|	form-content
-	|	user-rules
-	|	heading
-	|	label-rule
-	|	form-rule
-	|	script
-	|	meta-rule 	; FIXME: header only
-	|	stylesheet
-	]
-	(
-		; cleanup buffer
-		value: none
-	)
-]
 
 plugins: [pos: [fail] :pos]
 
