@@ -1,7 +1,7 @@
 REBOL [
 Title: "Lest (processed)"
-Date: 8-Apr-2015/11:10:41+2:00
-Build: 862
+Date: 10-Apr-2015/7:47:19+2:00
+Build: 877
 ]
 debug-print: none
 comment "plugin cache"
@@ -3233,6 +3233,7 @@ template-rule: rule [name label type value urule args pos this-rule] [
 set name set-word!
 'template
 (
+debug-print ["==TEMPLATE:" name]
 args: copy []
 idx: none
 if block? pos: attach user-rule-names name [
@@ -3245,14 +3246,17 @@ to paren! compose [debug-print (rejoin ["UU:user-rule: " name " <start> matched.
 ]
 )
 opt into [
+some [
 set label word!
 (
+debug-print ["==TEMPLATE arg:" label]
 add-rule args rule [px] reduce [
 to set-word! 'px to lit-word! label
 to paren! reduce/no-set [to set-path! 'px/1 label]
 ]
 repend this-rule ['eval to set-word! 'pos 'set label 'any-type!]
 )
+]
 ]
 set value block!
 (
@@ -3832,16 +3836,6 @@ set data string!
 (append tag reduce [to set-word! locals/action locals/code])
 ]
 ]
-get-style: rule [pos data type] [
-set type ['id | 'class]
-pos:
-set data [word! | block!] (
-data: either word? data [get bind data user-words] [rejoin bind data user-words]
-data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
-change-code pos data
-)
-:pos
-]
 style-rule: rule [data] [
 'style
 set data [block! | string!]
@@ -3852,6 +3846,16 @@ append includes/stylesheet entag data 'style
 append includes/style data
 ]
 )
+]
+get-style: rule [pos data type] [
+set type ['id | 'class]
+pos:
+set data [word! | block!] (
+data: either word? data [get bind data user-words] [rejoin bind data user-words]
+data: either type = 'id [to issue! data] [to word! head insert to string! data dot]
+change-code pos data
+)
+:pos
 ]
 style: rule [pos word continue] [
 any [
@@ -4296,9 +4300,7 @@ debug-print ["INPUT:name=" name]
 local datalist none
 )
 any [
-eval-strict any [
-set label string! (debug-print ["INPUT:" name " label:" label])
-| 'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
+'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 | 'value eval set value string! (debug-print ["INPUT:" name " value:" value])
 | 'checked (debug-print ["INPUT:" name " checked"]) (append tag [checked: true])
 | 'required (debug-print ["INPUT:" name " required"]) (append tag [required: true])
@@ -4309,9 +4311,9 @@ set label string! (debug-print ["INPUT:" name " label:" label])
 | actions (debug-print ["INPUT:" name " after actions"])
 | style (debug-print ["INPUT:" name " after style"])
 ]
+set label string! (debug-print ["INPUT:" name " label:" label])
 ]
-]
-input: rule [type simple continue] [
+input: rule [type simple] [
 (simple: defval: value: label: def-error: none)
 opt ['simple (simple: true)]
 set type [
@@ -4319,12 +4321,14 @@ set type [
 | 'number | 'email | 'url | 'search | 'tel | 'color | 'file
 ]
 if (not simple) [
+(debug-print "==INPUT FORM-GROUP")
 init-div
 (append tag/class 'form-group)
 emit-tag
 ]
 (tag-name: 'input)
 init-tag
+(debug-print ["==INPUT:" type])
 (append tag/class 'form-control)
 (append tag reduce/no-set [type: type])
 (debug-print "<input-parameters>")
@@ -4655,7 +4659,9 @@ error/near: pos
 do error
 ]
 body: head buffer
-unless empty? includes/style []
+unless empty? includes/style [
+includes/style: ajoin [<style> prestyle includes/style </style>]
+]
 body: either header? [
 ajoin [
 <!DOCTYPE html> newline
@@ -4665,6 +4671,7 @@ ajoin [
 <meta charset="utf-8"> newline
 page/meta newline
 includes/stylesheets
+includes/style
 includes/header
 </head> newline
 build-tag 'body includes/body-tag

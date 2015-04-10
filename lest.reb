@@ -644,6 +644,7 @@ template-rule: rule [name label type value urule args pos this-rule] [
 	set name set-word!
 	'template
 	(
+		debug-print ["==TEMPLATE:" name]
 		args: copy []
 		idx: none
 		if block? pos: attach user-rule-names name [
@@ -658,14 +659,17 @@ template-rule: rule [name label type value urule args pos this-rule] [
 		]
 	)
 	opt into [
-		set label word!
-		(
-			add-rule args rule [px] reduce [
-				to set-word! 'px to lit-word! label
-				to paren! reduce/no-set [ to set-path! 'px/1 label ]
-			]
-			repend this-rule ['eval to set-word! 'pos 'set label 'any-type! ]
-		)
+		some [
+			set label word!
+			(
+				debug-print ["==TEMPLATE arg:" label]
+				add-rule args rule [px] reduce [
+					to set-word! 'px to lit-word! label
+					to paren! reduce/no-set [ to set-path! 'px/1 label ]
+				]
+				repend this-rule ['eval to set-word! 'pos 'set label 'any-type! ]
+			)
+		]
 	]
 	set value block!
 	(
@@ -1352,6 +1356,19 @@ actions: rule [action data] [
 
 ; ----
 
+style-rule: rule [data] [
+	'style
+	(debug-print "==STYLE")
+	set data [block! | string!]
+	(
+		either string? data [
+			append includes/stylesheet entag data 'style
+		] [
+			append includes/style data
+		]
+	)
+]
+
 get-style: rule [pos data type] [
 	set type ['id | 'class]
 	pos:
@@ -1364,18 +1381,6 @@ get-style: rule [pos data type] [
 		change-code pos data
 	)
 	:pos
-]
-
-style-rule: rule [data] [
-	'style
-	set data [block! | string!]
-	(
-		either string? data [
-			append includes/stylesheet entag data 'style
-		] [
-			append includes/style data
-		]
-	)
 ]
 
 style: rule [pos word continue] [
@@ -1905,10 +1910,9 @@ input-parameters: rule [list data] [
 		debug-print ["INPUT:name=" name]
 		local datalist none
 	)
-	any [
-		eval-strict any [
-			set label string! (debug-print ["INPUT:" name " label:" label])
-		|	'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
+	;any [
+		any [
+			'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
 		|	'checked	(debug-print ["INPUT:" name " checked"])					(append tag [checked: true])
 		|	'required	 (debug-print ["INPUT:" name " required"])					(append tag [required: true])
@@ -1919,10 +1923,11 @@ input-parameters: rule [list data] [
 		|	actions (debug-print ["INPUT:" name " after actions"])
 		|	style (debug-print ["INPUT:" name " after style"])
 		]
-	]
+	;]
+	set label string! (debug-print ["INPUT:" name " label:" label])
 ]
 
-input: rule [type simple continue] [
+input: rule [type simple] [
 	(simple: defval: value: label: def-error: none)
 	opt ['simple (simple: true)]
 	set type [
@@ -1930,12 +1935,14 @@ input: rule [type simple continue] [
 	|	'number | 'email | 'url | 'search | 'tel | 'color | 'file
 	]
 	if (not simple) [
+		(debug-print "==INPUT FORM-GROUP")
 		init-div
 		(append tag/class 'form-group)
 		emit-tag	
 	]
 	(tag-name: 'input)
 	init-tag
+	(debug-print ["==INPUT:" type])
 	(append tag/class 'form-control)
 	(append tag reduce/no-set [type: type])
 	(debug-print "<input-parameters>")
@@ -2311,6 +2318,7 @@ func [
 	unless empty? includes/style [
 ;		write %lest-temp.css prestyle includes/style
 ;		debug-print ["CSS wrote to file %lest-temp.css"]
+		includes/style: ajoin [<style> prestyle includes/style </style>] 
 	]
 
 	body: either header? [
@@ -2322,6 +2330,7 @@ func [
 		<meta charset="utf-8"> newline
 		page/meta newline
 		includes/stylesheets
+		includes/style
 		includes/header
 	</head> newline
 ;	<body data-spy="scroll" data-target=".navbar">	; WHAT AN UGLY HACK!!!
