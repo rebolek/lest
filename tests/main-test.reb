@@ -342,7 +342,26 @@
 		tf [repeat [div :x span :y] replace :x :y 3 times with (reduce [form index form 2 * index])]
 ]
 ; -- for
-; .....
+[
+	equal? 
+		tf [for i 3 times [span i]]
+		"<span>1</span><span>2</span><span>3</span>"
+]
+[
+	equal? 
+		tf [x: 3 for i x times [span i]]
+		"<span>1</span><span>2</span><span>3</span>"
+]
+[
+	equal? 
+		tf [for i in [1 2 3] [span i]]
+		"<span>1</span><span>2</span><span>3</span>"
+]
+[
+	equal? 
+		tf [set x [1 2 3] for i in x [span i]]
+		"<span>1</span><span>2</span><span>3</span>"
+]
 ; -- <<
 [equal? tf [span << ["a" "b"]]  "<span>a</span><span>b</span>" ]
 [equal? tf [set data ["a" "b"] span << data]  "<span>a</span><span>b</span>" ]
