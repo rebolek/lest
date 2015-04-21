@@ -1025,16 +1025,17 @@ repeat-rule: rule [offset element count value values data pos current out] [
 	]
 ]
 
-pipe-loop-rule: rule [pos content data out] [
+pipe-loop-rule: rule [pos content data out length] [
 	set data [word! | block!]
 	'<<
 	(content: append copy [] data)
 	(debug-print ["pipe-loop-rule matched:" mold content])
 	eval
 	pos:
-	set data block!
+	set data [block! | string! | integer!]
 	(
 		debug-print ["pipe-loop-rule data:" mold data]
+		unless block? data [data: reverse array/initial length: get-integer data does [-- length]]
 		out: make block! 100
 		foreach value data [
 			append out append copy content value

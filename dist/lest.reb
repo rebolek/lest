@@ -1,7 +1,7 @@
 REBOL [
 Title: "Lest (processed)"
-Date: 21-Apr-2015/9:47:34+2:00
-Build: 904
+Date: 21-Apr-2015/10:19:05+2:00
+Build: 908
 ]
 debug-print: none
 comment "plugin cache"
@@ -3609,16 +3609,17 @@ change-code pos out
 ]
 ]
 ]
-pipe-loop-rule: rule [pos content data out] [
+pipe-loop-rule: rule [pos content data out length] [
 set data [word! | block!]
 '<<
 (content: append copy [] data)
 (debug-print ["pipe-loop-rule matched:" mold content])
 eval
 pos:
-set data block!
+set data [block! | string! | integer!]
 (
 debug-print ["pipe-loop-rule data:" mold data]
+unless block? data [data: reverse array/initial length: get-integer data does [-- length]]
 out: make block! 100
 foreach value data [
 append out append copy content value
