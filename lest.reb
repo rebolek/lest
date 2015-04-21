@@ -7,7 +7,7 @@ REBOL[
 	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
-	Needs: 		[prestyle md]
+	Needs: 		[prestyle md compile-rules]
 ;	Options: 	[isolate]
 	Notes: [
 		9-1-15 "BB" {LEST sets 'lest-styles word that holds list of all used CSS styles.
@@ -68,17 +68,6 @@ Add webserver that can serve pages directly:
 
 css-path: %css/
 js-path: %js/
-
-; fuck off current module system
-
-do %compile-rules.reb
-
-; /fuck off
-
-
-;debug-print: none
-; :print
-;none
 
 ; SETTINGS
 
@@ -492,7 +481,17 @@ text-settings: rule [type] [
 	(text-style: type)
 ]
 
-eval: [any [commands | user-values | process-code | plugins |  comparators]]
+eval: [
+	(debug-print "!!EVAL!!") 
+	any [
+		commands  		(debug-print "!!EVAL!!command")
+	| 	user-values  		(debug-print "!!EVAL!!user-val")
+	| 	process-code 	(debug-print "!!EVAL!!code")
+	| 	plugins 			(debug-print "!!EVAL!!plugin")
+	| 	comparators 		(debug-print "!!EVAL!!comparator")
+	]
+	(debug-print "!!EVAL!!END!!") 
+]
 eval-strict: [any [user-values | process-code | commands ]]		; ignore plugins
 
 process-code: rule [ p value ] [
@@ -925,7 +924,7 @@ for-rule: rule [pos out var src content] [
 	set var [word! | block!]
 	[
 			'in eval set src [word! | block! | file! | url!]
-		|	set src integer! 'times
+		|	eval set src [integer! | string!] 'times (src: get-integer src)
 	]
 	pos: set content block! (
 		debug-print "FOR matched"
@@ -1910,20 +1909,21 @@ input-parameters: rule [list data] [
 		debug-print ["INPUT:name=" name]
 		local datalist none
 	)
-	;any [
+	any [
+		eval
 		any [
 			'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
-		|	'checked	(debug-print ["INPUT:" name " checked"])					(append tag [checked: true])
-		|	'required	 (debug-print ["INPUT:" name " required"])					(append tag [required: true])
-		|	'error (debug-print ["INPUT:" name " error"]) eval set data string!		(append tag compose [data-error: (data)])
-		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!]		(append tag compose [data-match: (to issue! data)])
+		|	'checked (debug-print ["INPUT:" name " checked"] append tag [checked: true])
+		|	'required	(debug-print ["INPUT:" name " required"] append tag [required: true])
+		|	'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
+		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
 		|	'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
 		|	'datalist (list: none debug-print ["INPUT:" name " minlength"]) eval opt [set list word!] eval set data block! (local datalist data local datalist-id list)
 		|	actions (debug-print ["INPUT:" name " after actions"])
 		|	style (debug-print ["INPUT:" name " after style"])
 		]
-	;]
+	]
 	set label string! (debug-print ["INPUT:" name " label:" label])
 ]
 
@@ -1990,6 +1990,7 @@ input: rule [type simple] [
 ]
 checkbox: rule [] [
 	'checkbox
+	(debug-print ["==CHECKBOX:"])
 	init-div
 	(append tag/class 'checkbox)
 	emit-tag
@@ -2007,6 +2008,7 @@ checkbox: rule [] [
 ]
 radio: rule [] [
 	'radio
+	(debug-print ["==RADIO:"])
 	init-div
 	(append tag/class 'radio)
 	emit-tag
@@ -2033,6 +2035,7 @@ radio: rule [] [
 textarea: [
 	; TODO: DEFAULT
 	set tag-name 'textarea
+	(debug-print ["==TEXTAREA:"])
 	(
 		size: none
 		label: ""

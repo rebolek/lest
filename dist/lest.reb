@@ -1,7 +1,7 @@
 REBOL [
 Title: "Lest (processed)"
-Date: 10-Apr-2015/7:47:19+2:00
-Build: 877
+Date: 21-Apr-2015/9:47:34+2:00
+Build: 904
 ]
 debug-print: none
 comment "plugin cache"
@@ -964,7 +964,7 @@ $(function () {
 ]
 ]]
 comment "/plugin cache"
-comment {Import file colorspaces.reb for prestyle.reb:#{9F9F11F26DE4E8444FA4FA75E1B199EA0FEB349C}}
+comment {Import file colorspaces.reb for prestyle.reb (partial checksum: n58R8m3k)}
 import module [
 title: "Colorspaces"
 name: none
@@ -1180,7 +1180,7 @@ color/hsl/1: color/hsl/1 + amount // 360
 ]
 ]
 ]
-comment {Import file styletalk.reb for prestyle.reb:#{9C374DA6705A2223F21F9E8EFB6DEBCCD8C71A95}}
+comment {Import file styletalk.reb for prestyle.reb (partial checksum: nDdNpnBa)}
 import module [
 title: "StyleTalk"
 name: styletalk
@@ -1852,7 +1852,7 @@ out/render
 ]
 ]
 ]
-comment {Import file prestyle.reb for lest.reb:#{EDD52B2997DDF305DD6A5788CB6238D8338BE4C2}}
+comment {Import file prestyle.reb for lest.reb (partial checksum: 7dUrKZfd)}
 import module [
 title: "Styletalk preprocessor"
 name: prestyle
@@ -2032,7 +2032,7 @@ parse data [some rules]
 either only [buffer] [to-css buffer]
 ]
 ]
-comment {Import file md.reb for lest.reb:#{937F6B38CE27AD7EC04F444E556E48A7DFD0F465}}
+comment {Import file md.reb for lest.reb (partial checksum: k39rOM4n)}
 import module [
 title: "Rebol Markdown Parser"
 name: none
@@ -2401,8 +2401,38 @@ parse data [some rules]
 md-buffer
 ]
 ]
-css-path: %css/
-js-path: %js/
+comment {Import file compile-rules.reb for lest.reb (partial checksum: d4+4UKb3)}
+import module [
+title: "COMPILE-RULES with integrated dialect framework"
+name: compile-rules
+type: module
+version: 1.5.0
+date: 20-May-2014
+file: %compile-rules.reb
+author: "Gabriele Santilli"
+needs: none
+options: [isolate]
+checksum: none
+EMail: giesse@rebol.it
+History: [
+13-Jan-2003 1.1.0 "History start"
+14-Jan-2003 1.2.0 "First version"
+6-Mar-2003 1.3.0 {Integrating PARSE-DIALECT's functionality in COMPILE-RULES}
+6-Mar-2003 1.4.0 {First working version of COMPILE-RULES with new INTERPRET rule}
+20-May-2014 1.5.0 "Changed for REBOL3 (rebolek)"
+]
+Purpose: {
+        This script defines the COMPILE-RULES function. This function compiles
+        an extended PARSE dialect into the normal PARSE dialect. The extended PARSE
+        dialect has some new rules; some of them are documented in
+
+             http://www.rebol.it/REPs/PARSE.html
+
+        The INTERPRET rule is not yet documented and handles control and iteration
+        functions in your dialect.
+    }
+Exports: [compile-rules control-functions]
+] [
 control-functions: none
 context [
 element: [
@@ -2774,6 +2804,9 @@ evaluate-control-function
 ) continue? :here
 ]
 ]
+]
+css-path: %css/
+js-path: %js/
 plugin-path: %plugins/
 text-style: 'html
 dot: #"."
@@ -3101,7 +3134,17 @@ set type ['plain | 'html | 'markdown]
 'text
 (text-style: type)
 ]
-eval: [any [commands | user-values | process-code | plugins | comparators]]
+eval: [
+(debug-print "!!EVAL!!")
+any [
+commands (debug-print "!!EVAL!!command")
+| user-values (debug-print "!!EVAL!!user-val")
+| process-code (debug-print "!!EVAL!!code")
+| plugins (debug-print "!!EVAL!!plugin")
+| comparators (debug-print "!!EVAL!!comparator")
+]
+(debug-print "!!EVAL!!END!!")
+]
 eval-strict: [any [user-values | process-code | commands]]
 process-code: rule [p value] [
 (debug-print "--process code")
@@ -3470,7 +3513,7 @@ for-rule: rule [pos out var src content] [
 set var [word! | block!]
 [
 'in eval set src [word! | block! | file! | url!]
-| set src integer! 'times
+| eval set src [integer! | string!] 'times (src: get-integer src)
 ]
 pos: set content block! (
 debug-print "FOR matched"
@@ -3838,6 +3881,7 @@ set data string!
 ]
 style-rule: rule [data] [
 'style
+(debug-print "==STYLE")
 set data [block! | string!]
 (
 either string? data [
@@ -4300,16 +4344,19 @@ debug-print ["INPUT:name=" name]
 local datalist none
 )
 any [
+eval
+any [
 'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 | 'value eval set value string! (debug-print ["INPUT:" name " value:" value])
-| 'checked (debug-print ["INPUT:" name " checked"]) (append tag [checked: true])
-| 'required (debug-print ["INPUT:" name " required"]) (append tag [required: true])
+| 'checked (debug-print ["INPUT:" name " checked"] append tag [checked: true])
+| 'required (debug-print ["INPUT:" name " required"] append tag [required: true])
 | 'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
 | 'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
 | 'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
 | 'datalist (list: none debug-print ["INPUT:" name " minlength"]) eval opt [set list word!] eval set data block! (local datalist data local datalist-id list)
 | actions (debug-print ["INPUT:" name " after actions"])
 | style (debug-print ["INPUT:" name " after style"])
+]
 ]
 set label string! (debug-print ["INPUT:" name " label:" label])
 ]
@@ -4375,6 +4422,7 @@ end-tag
 ]
 checkbox: rule [] [
 'checkbox
+(debug-print ["==CHECKBOX:"])
 init-div
 (append tag/class 'checkbox)
 emit-tag
@@ -4392,6 +4440,7 @@ end-tag
 ]
 radio: rule [] [
 'radio
+(debug-print ["==RADIO:"])
 init-div
 (append tag/class 'radio)
 emit-tag
@@ -4417,6 +4466,7 @@ end-tag
 ]
 textarea: [
 set tag-name 'textarea
+(debug-print ["==TEXTAREA:"])
 (
 size: none
 label: ""
