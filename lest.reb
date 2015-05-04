@@ -830,7 +830,7 @@ commands: [
 	|	as-map-rule
 	|	as-rule
 	|	join-rule
-	|	default-rule
+	|	let-rule
 	|	length-rule
 	|	insert-append-rule
 	|	math-commands
@@ -1046,8 +1046,8 @@ pipe-loop-rule: rule [pos content data out length] [
 	:pos
 ]
 
-default-rule: rule [value word defval] [
-	'default
+let-rule: rule [value word defval] [
+	'let
 	set word word!
 	set defval any-type!
 	(
@@ -1912,8 +1912,9 @@ input-parameters: rule [list data] [
 	)
 	any [
 		eval
+		pos: (print ["onto poarams" mold pos])
 		any [
-			'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
+			'default (print "defallt matched") pos: (print ["????" mold pos]) eval pos: (print ["????" mold pos])  set defval string! (debug-print ["INPUT:" name " default:" defval])
 		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
 		|	'checked (debug-print ["INPUT:" name " checked"] append tag [checked: true])
 		|	'required	(debug-print ["INPUT:" name " required"] append tag [required: true])

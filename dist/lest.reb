@@ -1,7 +1,7 @@
 REBOL [
 Title: "Lest (processed)"
-Date: 21-Apr-2015/10:19:05+2:00
-Build: 908
+Date: 4-May-2015/18:19:31+2:00
+Build: 919
 ]
 debug-print: none
 comment "plugin cache"
@@ -682,7 +682,6 @@ end-tag
 link-list-content: [
 any [
 'link
-(print "==LINK-LIST LINK")
 (tag-name: 'a)
 init-tag
 (append tag/class 'list-group-item)
@@ -699,16 +698,11 @@ end-tag
 ]
 link-list-group: [
 'link-list
-(print "==LINK-LIST")
 init-div
 (append tag/class 'list-group)
 emit-tag
-pos: (print [">>" mold pos])
-(print "BE LAZY" local lazy? true)
 eval
-pos: (print [">>" mold pos])
 [into link-list-content | link-list-content]
-(print "DONT BE LAZY" local lazy? false)
 end-tag
 ]
 old-link-list-group: [
@@ -3431,7 +3425,7 @@ if-rule
 | as-map-rule
 | as-rule
 | join-rule
-| default-rule
+| let-rule
 | length-rule
 | insert-append-rule
 | math-commands
@@ -3629,8 +3623,8 @@ change-code pos out
 )
 :pos
 ]
-default-rule: rule [value word defval] [
-'default
+let-rule: rule [value word defval] [
+'let
 set word word!
 set defval any-type!
 (
@@ -4346,8 +4340,9 @@ local datalist none
 )
 any [
 eval
+pos: (print ["onto poarams" mold pos])
 any [
-'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
+'default (print "defallt matched") pos: (print ["????" mold pos]) eval pos: (print ["????" mold pos]) set defval string! (debug-print ["INPUT:" name " default:" defval])
 | 'value eval set value string! (debug-print ["INPUT:" name " value:" value])
 | 'checked (debug-print ["INPUT:" name " checked"] append tag [checked: true])
 | 'required (debug-print ["INPUT:" name " required"] append tag [required: true])
