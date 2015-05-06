@@ -1,7 +1,7 @@
 REBOL [
 Title: "Lest (processed)"
-Date: 4-May-2015/18:19:31+2:00
-Build: 919
+Date: 6-May-2015/16:12:25+2:00
+Build: 922
 ]
 debug-print: none
 comment "plugin cache"
@@ -1174,7 +1174,7 @@ color/hsl/1: color/hsl/1 + amount // 360
 ]
 ]
 ]
-comment {Import file styletalk.reb for prestyle.reb (partial checksum: nDdNpnBa)}
+comment {Import file styletalk.reb for prestyle.reb (partial checksum: 1DnMe9Hc)}
 import module [
 title: "StyleTalk"
 name: styletalk
@@ -1643,6 +1643,7 @@ emits 'font-family
 | 'opacity mark number capture (emits 'opacity)
 | mark 'nowrap capture (emits 'white-space)
 | mark 'center capture (emits 'text-align)
+| mark position-y capture (emits 'vertical-align)
 | 'transition any [
 mark transition-attribute time opt time capture (
 append/only current/transitions captured
@@ -2969,7 +2970,7 @@ number: charset "0123456789"
 int-rule: [opt #"-" some number]
 any [
 integer? value
-parse value int-rule
+all [string? value parse value int-rule]
 ]
 ]
 lest: use [
@@ -3695,6 +3696,7 @@ result: switch type [
 class [to word! head insert result #"."]
 id [to issue! result]
 file [to file! result]
+url [to url! result]
 ]
 ]
 change-code pos result

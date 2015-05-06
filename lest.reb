@@ -277,7 +277,7 @@ lest-integer?: func [
 	int-rule: 		[opt #"-" some number]
 	any [
 		integer? value
-		parse value int-rule
+		all [string? value parse value int-rule]
 	]
 ]
 
@@ -1127,6 +1127,7 @@ join-rule: rule [values type delimiter result] [
 				class 	[to word! head insert result #"."]
 				id 		[to issue! result]
 				file 	[to file! result]
+				url 	[to url! result]
 			]
 		]
 ;		pos/1: result
