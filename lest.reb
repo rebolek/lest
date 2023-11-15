@@ -7,7 +7,7 @@ REBOL[
 	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
-	Needs: 		[prestyle md compile-rules]
+;	Needs: 		[prestyle md compile-rules]
 ;	Options: 	[isolate]
 	Notes: [
 		9-1-15 "BB" {LEST sets 'lest-styles word that holds list of all used CSS styles.
@@ -65,6 +65,10 @@ Add webserver that can serve pages directly:
 		}
 	]
 ]
+
+import %prestyle.reb
+import %md.reb
+import %compile-rules.reb
 
 css-path: %css/
 js-path: %js/
@@ -168,7 +172,8 @@ rule: func [
 	rule 	[block!]		"PARSE rule"
 ] [
 	if word? local [local: reduce [local]]
-	compile-rules use local reduce [rule]
+;	compile-rules use local reduce [rule]
+	use local reduce [rule]
 ]
 
 add-rule: func [
@@ -1544,7 +1549,7 @@ header-content: [
 
 
 main-rule: rule [] [
-	throw "Unknown tag, command or user template"
+;	throw "Unknown tag, command or user template"
 	[some content-rule]
 ]
 
@@ -1562,7 +1567,7 @@ content-rule: [
 ]
 
 match-content: rule [] [
-	throw "Expected string, tag or block of tags"
+;	throw "Expected string, tag or block of tags"
 	content-rule
 ]
 

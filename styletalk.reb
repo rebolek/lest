@@ -650,7 +650,7 @@ parser: context [
 	VvJUQ15KCl9fby5WJ8dTCybcXKS8dsaIIb3xk3UuYI63XJ+K+sLY3NtVlffuKW9c
 	PYZcW5uIaIsm+hEPA31eTMVZPLwGm529jsPL7PUb/DXa0OKBf+FvC8Kfj01abk6t
 	W26ODV1ukOxvKxG8Kj8FAAA=
-	}
+	} 'zlib
 
 	; Output
 	render: does [
