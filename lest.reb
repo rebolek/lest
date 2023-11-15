@@ -1392,7 +1392,7 @@ get-style: rule [pos data type] [
 style: rule [pos word continue] [
 	any [
 		get-style
-	|	set word issue! (tag/id: next form word debug-print ["** " tag-name "/id: " tag/id])
+	|	set word issue! (tag/id: form word debug-print ["** " tag-name "/id: " tag/id])
 	|	[
 			pos: set word word!
 			(
