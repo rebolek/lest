@@ -28,7 +28,7 @@ preprocess-script: func [
 			mod-header: take module-file
 			append module-cache compose/deep [
 				comment (rejoin ["Import file " file " for " script-name ":" checksum to binary! mold module-file 'SHA256])
-				import module [(body-of mod-header)] [(preprocess-script file module-file)]
+				import (to paren! compose/deep [module [(body-of mod-header)] [(preprocess-script file module-file)]])
 			]
 		]
 	]
