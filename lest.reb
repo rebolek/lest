@@ -293,7 +293,7 @@ lest: use [
 	tag
 	tag-name
 	tag-stack
-	includes	
+	includes
 	rules
 	header?
 	safe?
@@ -1918,12 +1918,11 @@ input-parameters: rule [list data] [
 	)
 	any [
 		eval
-		pos: (print ["onto poarams" mold pos])
 		any [
-			'default (print "defallt matched") pos: (print ["????" mold pos]) eval pos: (print ["????" mold pos])  set defval string! (debug-print ["INPUT:" name " default:" defval])
+			'default eval set defval string! (debug-print ["INPUT:" name " default:" defval])
 		|	'value eval set value string! (debug-print ["INPUT:" name " value:" value]) 
 		|	'checked (debug-print ["INPUT:" name " checked"] append tag [checked: true])
-		|	'required	(debug-print ["INPUT:" name " required"] append tag [required: true])
+		|	'required (debug-print ["INPUT:" name " required"] append tag [required: true])
 		|	'error (debug-print ["INPUT:" name " error"]) eval set data string! (append tag compose [data-error: (data)])
 		|	'match (debug-print ["INPUT:" name " match"]) eval set data [word! | issue!] (append tag compose [data-match: (to issue! data)])
 		|	'min-length (debug-print ["INPUT:" name " minlength"]) eval set data [string! | integer!] eval set def-error string! (append tag compose [data-minlegth: (data)])
@@ -1946,7 +1945,7 @@ input: rule [type simple] [
 		(debug-print "==INPUT FORM-GROUP")
 		init-div
 		(append tag/class 'form-group)
-		emit-tag	
+		emit-tag
 	]
 	(tag-name: 'input)
 	init-tag
@@ -1975,15 +1974,15 @@ input: rule [type simple] [
 	)
 	emit-tag
 	take-tag ; INPUT has no closing tag
-	if (locals/validator?) [
+	[if (locals/validator?) [
 		init-div
 		(append tag/class [help-block with-errors])
 		emit-tag
 		(if def-error [emit def-error])
 		end-tag
-	]
-	if (not simple) [end-tag]
-	if (locals/datalist) [
+	] | break]
+	[if (not simple) [end-tag] | break]
+	[if (locals/datalist) [
 		(tag-name: 'datalist)
 		init-tag
 		(tag/id: locals/datalist-id)
@@ -1994,7 +1993,7 @@ input: rule [type simple] [
 			]
 		)
 		end-tag
-	]
+	] | break]
 ]
 checkbox: rule [] [
 	'checkbox
@@ -2319,6 +2318,7 @@ func [
 	debug-print "run main parse"
 	unless parse data bind rules/main-rule rules [
 ;		return make error! ajoin ["LEST: there was error in LEST dialect at: " mold pos]
+		set 'stack tag-stack
 		error: make error! "LEST: there was error in LEST dialect"
 		error/near: pos
 		do error
