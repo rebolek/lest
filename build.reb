@@ -13,20 +13,21 @@ preprocess-script: func [
 	/local cmd file files header script module-file mod-header
 ] [
 	print ["Processing file:" script-name]
-;	script: load/header/type script-name 'unbound
-	script: load/header script-name
+	script: load/header/as script-name 'unbound
 	header: take script
 ;	files: make block! 10
 	; preprocess files from header
 	needs: header/needs
 	if needs [
 		foreach file needs [
-			file: to file! join file %.reb
-			print [header/name " == needs == " file]	
-			module-file: load/header/type file 'unbound
+			if not file? file [
+				file: to file! join file %.reb
+			]
+			print [header/name " == needs == " file]
+			module-file: load/header/as file 'unbound
 			mod-header: take module-file
 			append module-cache compose/deep [
-				comment (rejoin ["Import file " file " for " script-name ":" checksum/method to binary! mold module-file 'SHA1]) 
+				comment (rejoin ["Import file " file " for " script-name ":" checksum to binary! mold module-file 'SHA256])
 				import module [(body-of mod-header)] [(preprocess-script file module-file)]
 			]
 		]
@@ -59,7 +60,7 @@ plugins: read %plugins/
 plugin-cache: make block! 2 * length? plugins
 foreach plugin plugins [
 	repend plugin-cache [
-		to word! first parse plugin #"."
+		to word! first split plugin #"."
 		load join %plugins/ plugin
 	]
 ]
@@ -75,7 +76,7 @@ insert script compose/deep [
 ;	Title: "Lest (preprocessed)"
 ;]
 
-build-number: load %build-number
+build-number: any [attempt [load %build-number] 0]
 ++ build-number
 save %build-number build-number
 
