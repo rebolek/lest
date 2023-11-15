@@ -1,20 +1,21 @@
 REBOL[
-	Title: 		"Colorspaces"
-	File: 		%colorspaces.reb
-	Author: 	"Boleslav Březovský"
+	Title:		"Colorspaces"
+	File:		%colorspaces.reb
+	Author:		"Boleslav Březovský"
 	Date:		3-4-2014
-	Version: 	0.0.1
-	Type: 		'module
-	Exports: 	[
-		load-web-color load-hsl load-hsv 
-		to-hsl to-hsv 
+	Version:	0.0.1
+	Type:		'module
+	Name:		'colorspaces
+	Exports:	[
+		load-web-color load-hsl load-hsv
+		to-hsl to-hsv
 		new-color set-color apply-color
 	]
 ]
 
 load-web-color: func [
 	"Convert hex RGB issue! value to tuple!"
-	color 	[issue!] ; add string also? is it needed?
+	color	[issue!] ; add string also? is it needed?
 	/local pos
 ] [
 	to tuple! debase/base next form color 16
@@ -35,14 +36,14 @@ to-hsl: func [
     total: max + min
     local: object [h: s: l: to percent! total / 2]
     do in local bind [
-    	either zero? delta [h: s: 0] [
+		either zero? delta [h: s: 0] [
 			s: to percent! either l > .5 [2 - max - min] [delta / total]
 			h: 60 * switch max reduce [
 				r [g - b / delta + either g < b 6 0]
 				g [b - r / delta + 2]
 				b [r - g / delta + 4]
 			]
-    	]
+		]
     ] color
     local: values-of local
     if alpha [append local alpha]
@@ -63,14 +64,14 @@ to-hsv: func [
     delta: max - min
     local: object [h: s: v: to percent! max]
         do in local bind [
-    	either zero? delta [h: s: 0] [
+		either zero? delta [h: s: 0] [
 			s: to percent! either delta = 0 [0] [delta / max]
 			h: 60 * switch max reduce [
 				r [g - b / delta + either g < b 6 0]
 				g [b - r / delta + 2]
 				b [r - g / delta + 4]
 			]
-    	]
+		]
     ] color
     local: values-of local
     if alpha [append local alpha]
@@ -148,9 +149,9 @@ color!: object [
 new-color: does [make color! []]
 
 set-color: func [
-	color 	[object!] "Color object"
+	color	[object!] "Color object"
 	value	[block! tuple! issue!]
-	type 	[word!]
+	type	[word!]
 ] [
 	switch type [
 		rgb [
@@ -193,9 +194,9 @@ set-color: func [
 
 apply-color: func [
 	"Apply color effect on color"
-	color 	[object!] 	"Color! object"
-	effect 	[word!]		"Effect to apply"
-	amount 	[number!]	"Effect amount"
+	color	[object!]	"Color! object"
+	effect	[word!]		"Effect to apply"
+	amount	[number!]	"Effect amount"
 ] [
 	effect: do bind select effects effect 'amount
 	set-color color color/:effect effect
