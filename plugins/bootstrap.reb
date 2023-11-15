@@ -8,12 +8,11 @@ REBOL[
 ]
 
 startup: [
-	stylesheet css-path/bootstrap.min.css 
-	insert script js-path/jquery-2.1.3.min.js 
-	insert script js-path/bootstrap.min.js 
-	insert script js-path/validator.min.js 
+	stylesheet css-path/bootstrap.min.css
+	insert script js-path/bootstrap.bundle.min.js
+;	insert script js-path/validator.min.js
 	meta viewport "width=device-width, initial-scale=1"
-	meta http-equiv: X-UA-Compatible "IE=edge"
+;	meta http-equiv: X-UA-Compatible "IE=edge"
 ]
 
 main: [
@@ -368,7 +367,7 @@ dropdown: [
 		tag/class: [ btn-group ]
 		value-to-emit: [
 			build-tag tag-name tag
-			<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+			<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
 			label
 			<span class="caret"></span>
 			</button>
