@@ -71,7 +71,7 @@ make object! [
 		]
 
 		flags: copy []
-		unless parse/all test-sources [
+		unless parse test-sources [
 			any [
 				some whitespace
 				|	";" [thru newline | to end]
@@ -121,7 +121,7 @@ make object! [
 			make error! rejoin ["Unable to read " mold log-file]
 		]
 
-		parse/all log-contents [
+		parse log-contents [
 			(stop: [end skip])
 			any [
 				any whitespace
@@ -142,7 +142,7 @@ make object! [
 							|	{"} copy value to {"} skip
 								; test result found
 								(
-									parse/all value [
+									parse value [
 										"succeeded"
 										(value: 'succeeded)
 										|	"failed"

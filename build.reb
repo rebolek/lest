@@ -13,7 +13,8 @@ preprocess-script: func [
 	/local cmd file files header script module-file mod-header
 ] [
 	print ["Processing file:" script-name]
-	script: load/header/type script-name 'unbound
+;	script: load/header/type script-name 'unbound
+	script: load/header script-name
 	header: take script
 ;	files: make block! 10
 	; preprocess files from header

@@ -11,7 +11,7 @@ test-file: func [
 	set 'flags []
 
 	; calculate script checksum
-	script-checksum: checksum/method read script 'sha1
+	script-checksum: checksum read script 'sha256
 
 	print "Testing ..."
 	result: do-recover file flags script-checksum
@@ -24,8 +24,8 @@ test-file: func [
 home: pwd
 
 print "===Test Lest==="
-do %dist/lest.reb
-test-file %tests/main-test.reb %dist/lest.reb
+do %lest.reb
+test-file %tests/main-test.reb %lest.reb
 change-dir home
 
 halt

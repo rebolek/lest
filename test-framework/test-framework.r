@@ -104,11 +104,10 @@ make object! compose [
 	] [
 		allowed-flags: flags
 
-
 		; calculate test checksum
-		test-checksum: checksum/method read-binary file 'sha1
-		
-		log-file: to file! first parse last split-path file "."
+		test-checksum: checksum read-binary file 'sha256
+
+		log-file: to file! first split last split-path file "."
 		foreach checksum reduce [code-checksum test-checksum] [
 			append log-file "_"
 			append log-file copy/part skip mold checksum 2 6
@@ -126,7 +125,7 @@ make object! compose [
 				true
 			]
 			all [
-				parse/all read log-file [
+				parse read log-file [
 					(
 						last-vector: none
 						stop: [end skip]
@@ -153,7 +152,7 @@ make object! compose [
 									|	{"} copy value to {"} skip
 										; test result found
 										(
-											parse/all value [
+											parse value [
 												"succeeded"
 												(successes: successes + 1)
 												|	"failed"
