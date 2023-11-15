@@ -9,7 +9,7 @@ REBOL[
 	Name:		'prestyle
 	Exports: 	[prestyle load-web-color]
 	Options:	[isolate]
-;	Needs: 		[colorspaces styletalk]
+	Needs: 		[%colorspaces.reb %styletalk.reb]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
@@ -27,8 +27,6 @@ REBOL[
 	]
 ]
 
-import %colorspaces.reb
-import %styletalk.reb
 ; ---
 
 rule: func [

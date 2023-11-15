@@ -7,7 +7,7 @@ REBOL[
 	Created:	7-12-2013
 ;	Type: 		'module
 ;	Exports: 	[lest]
-;	Needs: 		[prestyle md compile-rules]
+	Needs: 		[%prestyle.reb %md.reb] ; %compile-rules.reb]
 ;	Options: 	[isolate]
 	Notes: [
 		9-1-15 "BB" {LEST sets 'lest-styles word that holds list of all used CSS styles.
@@ -65,10 +65,6 @@ Add webserver that can serve pages directly:
 		}
 	]
 ]
-
-import %prestyle.reb
-import %md.reb
-import %compile-rules.reb
 
 css-path: %css/
 js-path: %js/
