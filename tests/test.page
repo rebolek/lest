@@ -1,14 +1,17 @@
+enable bootstrap
+
 head
 meta viewport "width=device-width, initial-scale=1.0"
 stylesheet %css/bootstrap.min.css
-stylesheet %css/bootstrap-theme.min.css
+
 body
 h1 "Bootstrap test"
-p #lead "This is lead, whatever it means."
-p [ "Some glyph: " glyphicon eye-open  b " hope you've seen it"]
 container [
 	row [
-		col 4 [br]
+		col 4 [
+			p .lead "This is lead, whatever it means."
+			p [ "And this is not lead."]
+		]
 		col 8 [
 			form horizontal %script [
 				email login "login (your email):"
@@ -18,5 +21,4 @@ container [
 		]
 	]
 ]
-script https://code.jquery.com/jquery.js
-script %js/bootstrap.min.js
+script %js/bootstrap.bundle.min.js

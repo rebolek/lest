@@ -453,6 +453,10 @@ rules: object [
 		(emit value-to-emit)
 	]
 
+	if-content: rule [pos] [
+		pos:
+		if (not empty? pos)
+	]
 
 ; --- subrules
 
@@ -1541,6 +1545,16 @@ header-content: [
 ;
 ;  TOP LEVEL RULES (needs to be simplified)
 ;
+;  TODO: also needs to be split into:
+;        * flow
+;        * heading
+;        * sectioning
+;        * phrasing
+;        * embedded
+;        * phrasing
+;        * interactive
+;        * metadata
+;
 ;------------------------------------------------------------
 
 
@@ -1813,14 +1827,15 @@ table: rule [value] [
 		'header
 		(tag-name: 'tr)
 		init-tag
+		opt style
 		emit-tag
 		into [
 			some [
-				set value string!
+				if-content
 				(tag-name: 'th)
 				init-tag
 				emit-tag
-				(emit value)
+				basic-elems
 				end-tag
 			]
 		]
@@ -1832,11 +1847,11 @@ table: rule [value] [
 			init-tag
 			emit-tag
 			some [
-				pos: block! :pos 	; check for value before initing <TD>
+				if-content
 				(tag-name: 'td)
 				init-tag
 				emit-tag
-				into main-rule
+				basic-elems
 				end-tag
 			]
 			end-tag
@@ -2093,7 +2108,7 @@ submit: rule [label name value] [
 	opt ['with set name word! set value string!]
 	(
 		append tag [type: submit]
-		append tag/class [btn btn-default]
+		append tag/class [btn btn-primary]
 		if all [name value] [
 			append tag compose [
 				name: (name)
