@@ -10,7 +10,7 @@ Instead it uses efficient and rich Rebol syntax to describe the document.
 Custom plugins can be added very easily and basic distribution includes plugin
 for advanced [Bootstrap](http://www.getbootstrap.com) support.
 
-### Overview
+## Overview
 
 **Lest** describes HTML document in clutter-free way that is then translated
 to the mess that rules the world. See some examples *(Lest source is
@@ -230,7 +230,7 @@ Variables are words that hold one value and are set using `SET` syntax.
 
 Variables can also be used to change default settings like **js-path** or **css-path**.
 
-### Structural logic
+## Structural logic
 
 In **Lest**, you are free to shoot yourself to foot using embeed Rebol code. 
 However, **Lest** provides much safer basic structural logic that is preferred
@@ -303,3 +303,22 @@ Basic syntax is: `FOR <word> IN <block> [...]`
 #### other structural logic
 
 will be added later.
+
+## Tags
+
+Some detailed tag description
+
+### TABLE
+
+Example:
+```
+table
+	header .header-style ["Name" "Age" "City"]
+	["Tycho de Brahe" span .age "49" "Prague"]
+	["John Dee"       span .age "87" "London"]
+	["Copernicus"     span .age "12" "Adamov"]
+```
+
+`header` is optional.
+
+Rows currently can't be generated programmatically. This is going to be fixed.
