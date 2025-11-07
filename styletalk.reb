@@ -4,8 +4,8 @@ Rebol [
 	Version: 0.2.1
 	Date: 17-Jun-2013
 	Author: "Christopher Ross-Gill"
-	Name: 'styletalk
-	Type: 'module
+	Name: styletalk
+	Type: module
 	Exports: [to-css]
 ]
 

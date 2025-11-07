@@ -2,10 +2,10 @@ REBOL[
 	Title:		"Colorspaces"
 	File:		%colorspaces.reb
 	Author:		"Boleslav Březovský"
-	Date:		3-4-2014
+	Date:		11-7-2025
 	Version:	0.0.1
-	Type:		'module
-	Name:		'colorspaces
+	Type:		module
+	Name:		colorspaces
 	Exports:	[
 		load-web-color load-hsl load-hsv
 		to-hsl to-hsv

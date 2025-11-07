@@ -1,9 +1,10 @@
 REBOL[
 	Title: "Rebol Markdown Parser"
 	File: %md.reb
+	Name: md
 	Author: "Boleslav Březovský"
-	Date: 7-3-2014
-	Type: 'module
+	Date: 11-7-2025
+	Type: module
 	Exports: [markdown]
 	Options: [isolate]
 	To-do: [

@@ -1,14 +1,14 @@
 REBOL[
 	Title:		"LEST - Low Entropy System for Templating"
 	Author:		"Boleslav Brezovsky"
-	Name: 		'lest	
+	Name: 		lest
 	Version:	0.0.5
-	Date:		19-9-2014
+	Date:		11-7-2025
 	Created:	7-12-2013
-;	Type: 		'module
-;	Exports: 	[lest]
-	Needs: 		[%prestyle.reb %md.reb] ; %compile-rules.reb]
-;	Options: 	[isolate]
+	Type: 		module
+	Exports: 	[lest]
+	Needs: 		[prestyle md compile-rules colorspaces]
+	Options: 	[isolate]
 	Notes: [
 		9-1-15 "BB" {LEST sets 'lest-styles word that holds list of all used CSS styles.
 This will be later changed to object! that will hold more informations

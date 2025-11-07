@@ -3,13 +3,13 @@ REBOL[
 	Title: 		"Styletalk preprocessor"
 	Author: 	"Boleslav Březovský"
 	Version:	0.0.2
-	Date: 		31-3-2014
+	Date: 		11-7-2025
 	Created: 	31-3-2014
-	Type: 		'module
-	Name:		'prestyle
+	Type: 		module
+	Name:		prestyle
 	Exports: 	[prestyle load-web-color]
 	Options:	[isolate]
-	Needs: 		[%colorspaces.reb %styletalk.reb]
+	Needs: 		[colorspaces styletalk]
 	Codename: 	"KSČ"
 	Email: 		rebolek@gmail.com
 	Purpose:	"StyleTalk preprocessor. Use variables, block replacements, functions... in CSS. See LESS or SASS."
