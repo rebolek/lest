@@ -4,6 +4,20 @@ LEST
 Low Entropy System for Templating
 ---------------------------------
 
+> [!WARNING]
+> I'm improving Lest to use latest Rebol features. Until it's done, you may find
+> it doesn't work properly, unless you manually install everything in the right location.
+> The reason why I'm doing this in `master` branch is that the old version doesn't
+> work properly in newer Rebol anyway.
+>
+> To have current Lest running somehow, copy `%*.reb` files to `system/options/modules`.
+>
+> Once I'm done with the update, the installation process would be much saner.
+>
+> Next step is to remove obsolete features like CSS preprocessor as CSS evolved significantly.
+>
+> THANK YOU FOR YOUR ATTENTION TO THIS MATTER.
+
 **Lest** is template engine/static site generator/whatever with low entropy and
 high customization. It removes unnecessary visual noise as `<`and `>` or end tags. 
 Instead it uses efficient and rich Rebol syntax to describe the document.
